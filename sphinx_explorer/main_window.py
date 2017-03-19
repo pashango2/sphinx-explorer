@@ -20,6 +20,12 @@ class MainWindow(QMainWindow):
     def __init__(self, home_dir, parent=None):
         super(MainWindow, self).__init__(parent)
 
+        # create actions
+        self.del_document_act = QAction("Delete Document", self)
+        self.del_document_act.setShortcut(QKeySequence.Delete)
+        self.del_document_act.setShortcutContext(Qt.WidgetShortcut)
+        self.del_document_act.setObjectName("action_del_document")
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -34,8 +40,12 @@ class MainWindow(QMainWindow):
         self.ui.tool_button_quick_start.setDefaultAction(self.ui.action_quickstart)
         self.ui.tool_add_document.setDefaultAction(self.ui.action_add_document)
 
+        self.ui.tree_view_projects.addAction(self.del_document_act)
+
         # setup context menu
         self.ui.tree_view_projects.setContextMenuPolicy(Qt.CustomContextMenu)
+
+        self.setAcceptDrops(True)
 
         self._setup()
 
@@ -79,6 +89,7 @@ class MainWindow(QMainWindow):
         menu.addAction(open_act)
         menu.addAction(show_act)
         menu.addAction(auto_build_act)
+        menu.addAction(self.del_document_act)
 
         return menu
 
@@ -86,8 +97,23 @@ class MainWindow(QMainWindow):
         self._save()
         super(MainWindow, self).closeEvent(evt)
 
+    def dragEnterEvent(self, evt):
+        if evt.mimeData().hasFormat("text/uri-list"):
+            evt.acceptProposedAction()
+
+    def dropEvent(self, evt):
+        urls = [x.toLocalFile() for x in evt.mimeData().urls()]
+        print(urls)
+        dirs = [x for x in urls if os.path.isdir(x)]
+
+        for doc_path in dirs:
+            index = self.project_list_model.find(doc_path)
+            if index.isValid() is False:
+                self.project_list_model.add_document(doc_path)
+
     @staticmethod
     def _show_directory(path):
+        # type: (str) -> None
         if platform.system() == "Windows":
             subprocess.Popen(["explorer", path])
         elif platform.system() == "Darwin":
@@ -112,11 +138,20 @@ class MainWindow(QMainWindow):
         if doc_dir:
             self.project_list_model.add_document(doc_dir)
 
+    @Slot()
+    def on_action_del_document_triggered(self):
+        indexes = self.ui.tree_view_projects.selectedIndexes()
+
+        if indexes:
+            indexes = sorted(indexes, key=lambda x: x.row())
+
+            for index in indexes:
+                self.project_list_model.takeRow(index.row())
+
     @Slot(QModelIndex)
     def on_tree_view_projects_doubleClicked(self, index):
         # type: (QModelIndex) -> None
         if index.isValid():
-            index = self.project_list_model.index(index.row(), 1)
             path = index.data()
 
             self.editor.open(path)

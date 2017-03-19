@@ -6,5 +6,6 @@ ATOM_PATH = "atom"
 
 
 def open(path):
-    # print(" ".join([ATOM_PATH, path]))
+    assert path
+    print(path)
     subprocess.Popen([ATOM_PATH, path], shell=True)
