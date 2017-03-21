@@ -12,6 +12,7 @@ from . import quickstart
 from . import icon
 from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel
+from .theme_dialog import ThemeDialog
 
 
 class MainWindow(QMainWindow):
@@ -103,7 +104,6 @@ class MainWindow(QMainWindow):
 
     def dropEvent(self, evt):
         urls = [x.toLocalFile() for x in evt.mimeData().urls()]
-        print(urls)
         dirs = [x for x in urls if os.path.isdir(x)]
 
         for doc_path in dirs:
@@ -123,7 +123,9 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def on_action_quickstart_triggered(self):
-        dlg = quickstart.QuickStartDialog(self)
+        # dlg = quickstart.QuickStartDialog(self)
+        # dlg.exec_()
+        dlg = ThemeDialog(self)
         dlg.exec_()
 
     @Slot()
@@ -143,9 +145,17 @@ class MainWindow(QMainWindow):
         indexes = self.ui.tree_view_projects.selectedIndexes()
 
         if indexes:
-            indexes = sorted(indexes, key=lambda x: x.row())
+            # noinspection PyCallByClass
+            result = QMessageBox.question(
+                self,
+                self.windowTitle(),
+                "Delete Document?",
+                QMessageBox.Yes | QMessageBox.No,
+            )
+            if result != QMessageBox.Yes:
+                return
 
-            for index in indexes:
+            for index in sorted(indexes, key=lambda x: x.row()):
                 self.project_list_model.takeRow(index.row())
 
     @Slot(QModelIndex)

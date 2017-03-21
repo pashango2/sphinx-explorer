@@ -1,0 +1,44 @@
+[
+  {
+    "Name": "default",
+    "ThemeName": "default",
+    "Thumbnail": "default.png"
+  },
+  {
+    "Name": "basic",
+    "ThemeName": "basic",
+    "Thumbnail": "basic.png"
+  },
+  {
+    "Name": "sphinxdoc",
+    "ThemeName": "sphinxdoc"
+  },
+  {
+    "Name": "agogo",
+    "ThemeName": "agogo"
+  },
+  {
+    "Name": "nature",
+    "ThemeName": "nature"
+  },
+  {
+    "Name": "pyramid",
+    "ThemeName": "pyramid"
+  },
+  {
+    "Name": "haiku",
+    "ThemeName": "haiku"
+  },
+  {
+    "Name": "traditional",
+    "ThemeName": "traditional"
+  },
+  {
+    "Name": "epub",
+    "ThemeName": "epub"
+  },
+  {
+    "Name": "bizstyle",
+    "ThemeName": "bizstyle"
+  }
+]
