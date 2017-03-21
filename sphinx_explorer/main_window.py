@@ -1,4 +1,6 @@
-#! coding:utf-8
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import, unicode_literals
 import os
 import json
 import platform
@@ -53,10 +55,8 @@ class MainWindow(QMainWindow):
         self.ui.tree_view_projects.setModel(self.project_list_model)
 
     def _setup(self):
-        try:
+        if not os.path.isdir(self.home_dir):
             os.makedirs(self.home_dir)
-        except FileExistsError:
-            pass
 
         json_path = os.path.join(self.home_dir, self.JSON_NAME)
 
