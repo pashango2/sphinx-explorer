@@ -15,7 +15,6 @@ import typing
 if typing.TYPE_CHECKING:
     from typing import Iterator
 
-
 CssStyle = """
 <style>
 a {color: #4183C4; }
@@ -44,7 +43,7 @@ class PluginDialog(QDialog):
         self.theme_model = ThemeItemModel(self)
 
         # self.ui.list_view_theme.setUniformItemSizes(True)
-        self.ui.list_view_theme.setIconSize(QSize(675//3, 369//3))
+        self.ui.list_view_theme.setIconSize(QSize(675 // 3, 369 // 3))
 
         self.thread_obj = LoadingThreadObject(plugin_dir_path)
         self.thread_obj.do()
@@ -67,6 +66,7 @@ class PluginDialog(QDialog):
         )
 
     def _onCurrentChanged(self, current, _):
+        # type: (QModelIndex, QModelIndex) -> None
         self._setup_preview(current)
 
     def _setup_preview(self, current):
