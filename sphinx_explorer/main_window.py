@@ -10,7 +10,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from sphinx_explorer.editor_plugin import atom_editor
-from . import quickstart
+# from . import quickstart
 from . import icon
 from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel

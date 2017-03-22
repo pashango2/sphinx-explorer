@@ -6,9 +6,9 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from .plugin_dialog import PluginDialog
 
 
-ThemePluginDir = "theme_plugin"
+ExtensionPluginDir = "extension_plugin"
 
 
-class ThemeDialog(PluginDialog):
+class ExtensionDialog(PluginDialog):
     def __init__(self, parent=None):
-        super(ThemeDialog, self).__init__(ThemePluginDir, parent)
+        super(ExtensionDialog, self).__init__(ExtensionPluginDir, parent)

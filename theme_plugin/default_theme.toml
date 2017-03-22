@@ -1,0 +1,40 @@
+[default]
+Description = """
+This is Default Theme.
+"""
+
+[basic]
+
+[sphinxdoc]
+
+[agogo]
+
+[nature]
+
+[pyramid]
+
+[haiku]
+
+[epub]
+
+[bizstyle]
+
+[CommonMark]
+Packages = [
+    "commonmark",
+    "recommonmark"
+]
+
+Description = """
+CommonMark Extension
+
+```python
+source_suffix = ['.rst', '.md']
+
+from recommonmark.parser import CommonMarkParser
+
+source_parsers = {
+    '.md': CommonMarkParser,
+}
+```
+"""

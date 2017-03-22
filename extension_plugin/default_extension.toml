@@ -1,0 +1,19 @@
+[CommonMark]
+Packages = [
+    "commonmark",
+    "recommonmark"
+]
+
+Desctiption = """
+CommonMark Extension
+
+```python
+source_suffix = ['.rst', '.md']
+
+from recommonmark.parser import CommonMarkParser
+
+source_parsers = {
+    '.md': CommonMarkParser,
+}
+```
+"""

@@ -5,6 +5,10 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 
 :StyleSheet:
     https://github.com/ColinDuquesnoy/QDarkStyleSheet
+
+:dependent:
+    * toml
+    * qdarkstyle
 """
 from PySide.QtGui import *
 import sys
