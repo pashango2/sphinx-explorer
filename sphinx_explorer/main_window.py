@@ -57,6 +57,7 @@ class MainWindow(QMainWindow):
         self._setup()
 
         self.ui.tree_view_projects.setModel(self.project_list_model)
+        self.ui.tree_view_projects.resizeColumnToContents(0)
 
     def _setup(self):
         if not os.path.isdir(self.home_dir):

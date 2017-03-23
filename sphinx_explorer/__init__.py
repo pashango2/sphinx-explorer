@@ -24,7 +24,7 @@ def main():
 
     app.setStyleSheet(qdarkstyle.load_stylesheet())
 
-    main_window = MainWindow(HOME_DIR)
-    main_window.show()
+    window = MainWindow(HOME_DIR)
+    window.show()
 
     app.exec_()

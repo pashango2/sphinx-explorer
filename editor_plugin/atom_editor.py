@@ -5,6 +5,7 @@ import subprocess
 ATOM_PATH = "atom"
 
 
+# noinspection PyShadowingBuiltins
 def open(path):
     assert path
     print(path)
