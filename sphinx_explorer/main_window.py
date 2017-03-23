@@ -85,15 +85,19 @@ class MainWindow(QMainWindow):
 
         open_act = QAction(icon.load("editor"), "Open Editor", menu)
         show_act = QAction(icon.load("open_folder"), "Show File", menu)
+        terminal_act = QAction(icon.load("terminal"), "Open Terrminal", menu)
         auto_build_act = QAction(icon.load("reload"), "Auto Build", menu)
 
         # noinspection PyUnresolvedReferences
         open_act.triggered.connect(lambda: self.editor.open(doc_path))
         # noinspection PyUnresolvedReferences
         show_act.triggered.connect(lambda: self._show_directory(doc_path))
+        # noinspection PyUnresolvedReferences
+        terminal_act.triggered.connect(lambda: self._open_terminal(doc_path))
 
         menu.addAction(open_act)
         menu.addAction(show_act)
+        menu.addAction(terminal_act)
         menu.addAction(auto_build_act)
         menu.addAction(self.del_document_act)
 
@@ -112,19 +116,28 @@ class MainWindow(QMainWindow):
         dirs = [x for x in urls if os.path.isdir(x)]
 
         for doc_path in dirs:
-            index = self.project_list_model.find(doc_path)
-            if index.isValid() is False:
-                self.project_list_model.add_document(doc_path)
+            self.project_list_model.add_document(doc_path)
 
     @staticmethod
     def _show_directory(path):
         # type: (str) -> None
         if platform.system() == "Windows":
-            subprocess.Popen(["explorer", path])
+            subprocess.Popen(["explorer", os.path.normpath(path)])
         elif platform.system() == "Darwin":
-            subprocess.Popen(["open", path])
+            subprocess.Popen(["open", os.path.normpath(path)])
         else:
-            subprocess.Popen(["xdg-open", path])
+            subprocess.Popen(["xdg-open", os.path.normpath(path)])
+
+    @staticmethod
+    def _open_terminal(path):
+        # type: (str) -> None
+        if platform.system() == "Windows":
+            # print(" ".join(["cmd", "/k cd", os.path.normpath(path)]))
+            subprocess.Popen(["cmd", "/k cd", os.path.normpath(path)])
+        elif platform.system() == "Darwin":
+            subprocess.Popen(["open", os.path.normpath(path)])
+        else:
+            subprocess.Popen(["gnome-terminal", os.path.normpath(path)])
 
     @Slot()
     def on_action_quickstart_triggered(self):
@@ -167,8 +180,7 @@ class MainWindow(QMainWindow):
     def on_tree_view_projects_doubleClicked(self, index):
         # type: (QModelIndex) -> None
         if index.isValid():
-            path = index.data()
-
+            path = self.project_list_model.path(index)
             self.editor.open(path)
 
     @Slot(QPoint)
@@ -176,7 +188,8 @@ class MainWindow(QMainWindow):
         # type: (QPoint) -> None
         index = self.ui.tree_view_projects.indexAt(pos)
         if index.isValid():
-            menu = self._create_context_menu(index.data())
+            path = os.path.normpath(self.project_list_model.path(index))
+            menu = self._create_context_menu(path)
             menu.exec_(self.ui.tree_view_projects.viewport().mapToGlobal(pos))
 
     @staticmethod

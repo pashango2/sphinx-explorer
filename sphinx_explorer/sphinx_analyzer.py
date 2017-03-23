@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-# from PySide.QtGui import *
-# from PySide.QtCore import *
+from PySide.QtGui import *
+from PySide.QtCore import *
 import os
 from .util import sphinx_config
 
@@ -32,3 +32,18 @@ class SphinxInfo(object):
         return None
 
 
+class QSphinxAnalyzer(QObject, QRunnable):
+    finished = Signal(SphinxInfo, QStandardItem)
+
+    def __init__(self, doc_path, item):
+        # type: (str, QStandardItem) -> None
+        QObject.__init__(self)
+        QRunnable.__init__(self)
+
+        self.doc_path = doc_path
+        self.item = item
+
+    def run(self):
+        info = SphinxInfo(self.doc_path)
+        info.read_conf()
+        self.finished.emit(info, self.item)

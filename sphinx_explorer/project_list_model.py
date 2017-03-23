@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-import sys
 import os
 from PySide.QtGui import *
 from PySide.QtCore import *
-from .sphinx_analyzer import SphinxInfo
+from .sphinx_analyzer import SphinxInfo, QSphinxAnalyzer
+from . import icon
 
 
 class ProjectListModel(QStandardItemModel):
@@ -53,7 +53,26 @@ class ProjectListModel(QStandardItemModel):
     def _create_item(project_path):
         # type: (str) -> QStandardItem
         item = ProjectItem(project_path)
+        item.setIcon(icon.load("eye"))
+
+        ana = QSphinxAnalyzer(project_path, item)
+        ana.finished.connect(ProjectListModel.onAnalyzeFinished)
+
+        # noinspection PyArgumentList
+        thread_pool = QThreadPool.globalInstance()
+        thread_pool.start(ana)
+
         return item
+
+    @staticmethod
+    def onAnalyzeFinished(info, item):
+        # type: (SphinxInfo, ProjectItem) -> None
+        item.setInfo(info)
+        item.setIcon(icon.load("open_folder"))
+        if item.model():
+            left = item.index()
+            right = item.model().index(left.row(), 1)
+            item.model().dataChanged.emit(left, right)
 
     def data(self, index, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
@@ -64,12 +83,19 @@ class ProjectListModel(QStandardItemModel):
 
         return super(ProjectListModel, self).data(index, role)
 
+    def path(self, index):
+        # type: (QModelIndex) -> str
+        index = self.index(index.row(), 0)
+        return index.data()
+
 
 class ProjectItem(QStandardItem):
     def __init__(self, name):
         super(ProjectItem, self).__init__(name)
-        self.info = SphinxInfo(name)
-        self.info.read_conf()
+        self.info = None
+
+    def setInfo(self, info):
+        self.info = info
 
     def project(self):
-        return self.info.conf.get("project")
+        return self.info.conf.get("project") if self.info else None
