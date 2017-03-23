@@ -1,20 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-import os
+
 import json
+import os
 import platform
 import subprocess
 
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from sphinx_explorer.editor_plugin import atom_editor
-# from . import quickstart
+from editor_plugin import atom_editor
 from . import icon
 from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel
 from .theme_dialog import ThemeDialog
+# from .sphinx_analyzer import SphinxInfo
 
 
 class MainWindow(QMainWindow):
