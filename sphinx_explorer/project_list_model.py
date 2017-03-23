@@ -14,13 +14,15 @@ class ProjectListModel(QStandardItemModel):
 
         self.setHorizontalHeaderLabels([
             "Document Path",
+            "Project"
         ])
 
     def load(self, project_list):
         # type: ([str]) -> None
         for project_name in project_list:
-            item = self._create_item(project_name)
-            self.appendRow(item)
+            if project_name and os.path.isdir(project_name):
+                item = self._create_item(project_name)
+                self.appendRow(item)
 
     def dump(self):
         # type: () -> [str]
@@ -53,30 +55,21 @@ class ProjectListModel(QStandardItemModel):
         item = ProjectItem(project_path)
         return item
 
+    def data(self, index, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole:
+            if index.column() == 1:
+                index = self.index(index.row(), 0)
+                item = self.itemFromIndex(index)
+                return item.project()
+
+        return super(ProjectListModel, self).data(index, role)
+
 
 class ProjectItem(QStandardItem):
     def __init__(self, name):
         super(ProjectItem, self).__init__(name)
         self.info = SphinxInfo(name)
+        self.info.read_conf()
 
-        dir_path, base_name = os.path.split(self.info.conf_py_path)
-
-        from sphinx.config import Config
-        from sphinx.util.tags import Tags
-        print(dir_path, base_name)
-        tags = Tags(None)
-        self.config = Config(dir_path, base_name, {}, tags)
-
-        def warn(x):
-            pass
-
-        self.config.check_unicode(warn)
-        # defer checking types until i18n has been initialized
-
-        # initialize some limited config variables before initialize i18n and loading
-        # extensions
-        self.config.pre_init_values(warn)
-        self.config.init_values(warn)
-
-
-        print(self.config.project)
+    def project(self):
+        return self.info.conf.get("project")

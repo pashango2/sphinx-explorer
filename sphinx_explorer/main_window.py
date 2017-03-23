@@ -46,6 +46,9 @@ class MainWindow(QMainWindow):
 
         self.ui.tree_view_projects.addAction(self.del_document_act)
 
+        # setup project tree view
+        self.ui.tree_view_projects.setIndentation(0)
+
         # setup context menu
         self.ui.tree_view_projects.setContextMenuPolicy(Qt.CustomContextMenu)
 
@@ -64,7 +67,7 @@ class MainWindow(QMainWindow):
         if os.path.isfile(json_path):
             load_object = json.load(open(json_path))
 
-            if "projects" in load_object:
+            if "projects" in load_object and load_object["projects"]:
                 self.project_list_model.load(load_object["projects"])
 
     def _save(self):

@@ -12,8 +12,11 @@ import fnmatch
 from .theme_dialog_ui import Ui_Dialog
 import typing
 
-if typing.TYPE_CHECKING:
-    from typing import Iterator
+try:
+    if typing.TYPE_CHECKING:
+        from typing import Iterator
+except AttributeError:
+    pass
 
 CssStyle = """
 <style>
