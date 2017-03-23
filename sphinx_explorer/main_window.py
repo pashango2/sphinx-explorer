@@ -14,7 +14,9 @@ from editor_plugin import atom_editor
 from . import icon
 from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel
-from .theme_dialog import ThemeDialog
+from .quickstart import QuickStartDialog
+from .property_widget import PropertyWidget, TypeBool, TypeDirPath
+# from .theme_dialog import ThemeDialog
 # from .sphinx_analyzer import SphinxInfo
 
 
@@ -26,6 +28,7 @@ class MainWindow(QMainWindow):
 
         # create actions
         self.del_document_act = QAction("Delete Document", self)
+        self.del_document_act.setIcon(icon.load("remove"))
         self.del_document_act.setShortcut(QKeySequence.Delete)
         self.del_document_act.setShortcutContext(Qt.WidgetShortcut)
         self.del_document_act.setObjectName("action_del_document")
@@ -38,7 +41,7 @@ class MainWindow(QMainWindow):
 
         self.project_list_model = ProjectListModel(parent=self)
 
-        self.ui.action_quickstart.setIcon(icon.load("plus"))
+        self.ui.action_quickstart.setIcon(icon.load("file"))
         self.ui.action_add_document.setIcon(icon.load("plus"))
 
         self.ui.tool_button_quick_start.setDefaultAction(self.ui.action_quickstart)
@@ -71,6 +74,8 @@ class MainWindow(QMainWindow):
             if "projects" in load_object and load_object["projects"]:
                 self.project_list_model.load(load_object["projects"])
 
+        self._setup_property_widget(self.ui.table_view_property)
+
     def _save(self):
         json_path = os.path.join(self.home_dir, self.JSON_NAME)
 
@@ -79,14 +84,17 @@ class MainWindow(QMainWindow):
         }
         json.dump(dump_object, open(json_path, "w"))
 
-    def _create_context_menu(self, doc_path):
-        # type : (str) -> QMenu
+    def _create_context_menu(self, item, doc_path):
+        # type : (ProjectItem, str) -> QMenu
         menu = QMenu(self)
 
         open_act = QAction(icon.load("editor"), "Open Editor", menu)
         show_act = QAction(icon.load("open_folder"), "Show File", menu)
         terminal_act = QAction(icon.load("terminal"), "Open Terrminal", menu)
         auto_build_act = QAction(icon.load("reload"), "Auto Build", menu)
+
+        if not item.can_make():
+            auto_build_act.setEnabled(False)
 
         # noinspection PyUnresolvedReferences
         open_act.triggered.connect(lambda: self.editor.open(doc_path))
@@ -141,10 +149,10 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def on_action_quickstart_triggered(self):
-        # dlg = quickstart.QuickStartDialog(self)
-        # dlg.exec_()
-        dlg = ThemeDialog(self)
+        dlg = QuickStartDialog(self)
         dlg.exec_()
+        # dlg = ThemeDialog(self)
+        # dlg.exec_()
 
     @Slot()
     def on_action_add_document_triggered(self):
@@ -189,7 +197,8 @@ class MainWindow(QMainWindow):
         index = self.ui.tree_view_projects.indexAt(pos)
         if index.isValid():
             path = os.path.normpath(self.project_list_model.path(index))
-            menu = self._create_context_menu(path)
+            item = self.project_list_model.rowItem(index)
+            menu = self._create_context_menu(item, path)
             menu.exec_(self.ui.tree_view_projects.viewport().mapToGlobal(pos))
 
     @staticmethod
@@ -201,3 +210,19 @@ class MainWindow(QMainWindow):
         docs / _build / html
         """
         pass
+
+    def _setup_property_widget(self, widget):
+        # type: (PropertyWidget) -> None
+        widget.add_category("カテゴリA")
+        widget.add_property("Path", "kita-", TypeDirPath)
+        widget.add_property("Project", "kita-")
+        widget.add_property("Author", "kita-")
+        widget.add_property("Version", "kita-")
+        widget.add_property("Release", "kita-")
+
+        widget.add_category("カテゴリB")
+        widget.add_property("Sep", True, TypeBool)
+        # widget.add_property("extensions", "test", ValueTypes.TypeStrList)
+
+
+

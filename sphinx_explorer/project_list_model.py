@@ -52,7 +52,7 @@ class ProjectListModel(QStandardItemModel):
     @staticmethod
     def _create_item(project_path):
         # type: (str) -> QStandardItem
-        item = ProjectItem(project_path)
+        item = ProjectItem(os.path.normpath(project_path))
         item.setIcon(icon.load("eye"))
 
         ana = QSphinxAnalyzer(project_path, item)
@@ -68,7 +68,11 @@ class ProjectListModel(QStandardItemModel):
     def onAnalyzeFinished(info, item):
         # type: (SphinxInfo, ProjectItem) -> None
         item.setInfo(info)
-        item.setIcon(icon.load("open_folder"))
+        if info.is_valid():
+            item.setIcon(icon.load("open_folder"))
+        else:
+            item.setIcon(icon.load("error"))
+
         if item.model():
             left = item.index()
             right = item.model().index(left.row(), 1)
@@ -88,6 +92,11 @@ class ProjectListModel(QStandardItemModel):
         index = self.index(index.row(), 0)
         return index.data()
 
+    def rowItem(self, index):
+        # type: (QModelIndex) -> ProjectItem
+        index = self.index(index.row(), 0) if index.column() != 0 else index
+        return self.itemFromIndex(index)
+
 
 class ProjectItem(QStandardItem):
     def __init__(self, name):
@@ -99,3 +108,7 @@ class ProjectItem(QStandardItem):
 
     def project(self):
         return self.info.conf.get("project") if self.info else None
+
+    def can_make(self):
+        # type: () -> bool
+        return self.info and self.info.is_valid()

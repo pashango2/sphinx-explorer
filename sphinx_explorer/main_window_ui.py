@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/main_window.ui'
+# Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Sun Mar 19 13:08:11 2017
+# Created: Thu Mar 23 17:48:51 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -30,13 +30,23 @@ class Ui_MainWindow(object):
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.verticalLayout.addLayout(self.horizontalLayout)
-        self.tree_view_projects = QtGui.QTreeView(self.centralwidget)
+        self.splitter = QtGui.QSplitter(self.centralwidget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.splitter.sizePolicy().hasHeightForWidth())
+        self.splitter.setSizePolicy(sizePolicy)
+        self.splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter.setObjectName("splitter")
+        self.tree_view_projects = QtGui.QTreeView(self.splitter)
         self.tree_view_projects.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.tree_view_projects.setObjectName("tree_view_projects")
-        self.verticalLayout.addWidget(self.tree_view_projects)
+        self.table_view_property = PropertyWidget(self.splitter)
+        self.table_view_property.setObjectName("table_view_property")
+        self.verticalLayout.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 25))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 24))
         self.menubar.setObjectName("menubar")
         self.menuFile_F = QtGui.QMenu(self.menubar)
         self.menuFile_F.setObjectName("menuFile_F")
@@ -65,3 +75,4 @@ class Ui_MainWindow(object):
         self.action_add_document.setText(QtGui.QApplication.translate("MainWindow", "Add Document", None, QtGui.QApplication.UnicodeUTF8))
         self.action_add_document.setToolTip(QtGui.QApplication.translate("MainWindow", "Add Document", None, QtGui.QApplication.UnicodeUTF8))
 
+from property_widget import PropertyWidget

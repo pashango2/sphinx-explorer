@@ -19,7 +19,12 @@ class SphinxInfo(object):
         self.conf_py_path = self._find_conf_py(self.path)
 
     def read_conf(self):
-        self.conf = sphinx_config.get(self.conf_py_path)
+        if self.conf_py_path:
+            self.conf = sphinx_config.get(self.conf_py_path)
+
+    def is_valid(self):
+        # type: () -> bool
+        return bool(self.conf_py_path)
 
     @staticmethod
     def _find_conf_py(path):
@@ -45,5 +50,6 @@ class QSphinxAnalyzer(QObject, QRunnable):
 
     def run(self):
         info = SphinxInfo(self.doc_path)
-        info.read_conf()
+        if info.conf_py_path:
+            info.read_conf()
         self.finished.emit(info, self.item)
