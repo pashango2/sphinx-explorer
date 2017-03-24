@@ -41,11 +41,13 @@ class MainWindow(QMainWindow):
 
         self.project_list_model = ProjectListModel(parent=self)
 
-        self.ui.action_quickstart.setIcon(icon.load("file"))
+        self.ui.action_quickstart.setIcon(icon.load("rocket"))
         self.ui.action_add_document.setIcon(icon.load("plus"))
+        self.ui.action_setting.setIcon(icon.load("setting"))
 
         self.ui.tool_button_quick_start.setDefaultAction(self.ui.action_quickstart)
         self.ui.tool_add_document.setDefaultAction(self.ui.action_add_document)
+        self.ui.tool_setting.setDefaultAction(self.ui.action_setting)
 
         self.ui.tree_view_projects.addAction(self.del_document_act)
 
@@ -213,16 +215,17 @@ class MainWindow(QMainWindow):
 
     def _setup_property_widget(self, widget):
         # type: (PropertyWidget) -> None
-        widget.add_category("カテゴリA")
-        widget.add_property("Path", "kita-", TypeDirPath)
-        widget.add_property("Project", "kita-")
-        widget.add_property("Author", "kita-")
-        widget.add_property("Version", "kita-")
-        widget.add_property("Release", "kita-")
-
-        widget.add_category("カテゴリB")
-        widget.add_property("Sep", True, TypeBool)
-        # widget.add_property("extensions", "test", ValueTypes.TypeStrList)
+        # widget.add_category("カテゴリA")
+        # widget.add_property("path", "Path", "kita-", TypeDirPath)
+        # widget.add_property("Project", "kita-")
+        # widget.add_property("Author", "kita-")
+        # widget.add_property("Version", "kita-")
+        # widget.add_property("Release", "kita-")
+        #
+        # widget.add_category("カテゴリB")
+        # widget.add_property("Sep", True, TypeBool)
+        # # widget.add_property("extensions", "test", ValueTypes.TypeStrList)
+        pass
 
 
 

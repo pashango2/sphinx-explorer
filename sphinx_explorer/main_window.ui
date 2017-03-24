@@ -38,6 +38,16 @@
        </widget>
       </item>
       <item>
+       <widget class="QToolButton" name="tool_setting">
+        <property name="text">
+         <string>Setting</string>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextBesideIcon</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -88,6 +98,8 @@
     </property>
     <addaction name="action_quickstart"/>
     <addaction name="action_add_document"/>
+    <addaction name="separator"/>
+    <addaction name="action_setting"/>
    </widget>
    <addaction name="menuFile_F"/>
   </widget>
@@ -106,6 +118,17 @@
    </property>
    <property name="toolTip">
     <string>Add Document</string>
+   </property>
+  </action>
+  <action name="action_setting">
+   <property name="text">
+    <string>Setting</string>
+   </property>
+   <property name="toolTip">
+    <string>Setting</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
  </widget>

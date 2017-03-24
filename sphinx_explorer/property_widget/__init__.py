@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-
-import os
-
 from PySide.QtCore import *
 from PySide.QtGui import *
+import json
+from typing import Iterator
 
 # from .theme_dialog import ThemeDialog
 # from .sphinx_analyzer import SphinxInfo
@@ -23,40 +22,9 @@ class TypeBase(object):
     def height(cls):
         return -1
 
-
-class TypeBool(TypeBase):
     @classmethod
-    def control(cls, parent):
-        combo = QComboBox(parent)
-        combo.addItem("Yes")
-        combo.addItem("No")
-        return combo
-
-    @classmethod
-    def set_value(cls, control, value):
-        control.setCurrentIndex(0 if value else 1)
-
-    @classmethod
-    def value(cls, control):
-        return control.currentIndex() == 0
-
-    @staticmethod
-    def data(value):
-        return "Yes" if value else "No"
-
-
-class TypeDirPath(TypeBase):
-    @classmethod
-    def control(cls, parent):
-        return PathParamWidget(parent)
-
-    @classmethod
-    def set_value(cls, control, value):
-        control.setText(value)
-
-    @classmethod
-    def value(cls, control):
-        return control.text()
+    def default(cls):
+        return None
 
 
 class PropertyWidget(QTableView):
@@ -78,9 +46,9 @@ class PropertyWidget(QTableView):
         self.setSpan(item.row(), 0, 1, 2)
         return item
 
-    def add_property(self, label_name, value, value_type=None):
-        # type: (str, any, any) -> PropertyItem
-        item = PropertyItem(label_name, value, value_type)
+    def add_property(self, key, label_name, value, value_type=None):
+        # type: (str, str, any, any) -> PropertyItem
+        item = PropertyItem(key, label_name, value, value_type)
         self._model.add_property(item)
 
         height = item.sizeHint().height()
@@ -92,6 +60,40 @@ class PropertyWidget(QTableView):
     def setReadOnly(self, readonly):
         # type: (bool) -> None
         self._model.setReadOnly(readonly)
+
+    def dump(self):
+        # type: () -> dict
+        result = {}
+        for item in self.properties():
+            if item.value is not None:
+                result[item.key] = item.value
+        return result
+
+    def dumps(self):
+        # type: () -> str
+        return json.dumps(self.dump(), indent=4)
+
+    def loads(self, params):
+        # type: (str) -> bool
+        obj = json.loads(params)
+        return self.load(obj)
+
+    def load(self, params):
+        # type: (dict) -> bool
+        params_dict = {x.key: x for x in self.properties()}
+        for key, value in params.items():
+            if key in params_dict:
+                item = params_dict[key]
+                item.value = value
+
+        return True
+
+    def properties(self):
+        # type: () -> Iterator[PropertyItem]
+        for row in range(self._model.rowCount()):
+            item = self._model.item(row)
+            if item.type() == PropertyItemType:
+                yield item
 
 
 class PropertyModel(QStandardItemModel):
@@ -118,7 +120,7 @@ class PropertyModel(QStandardItemModel):
         return self.itemFromIndex(index)
 
     def data(self, index, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole:
+        if role == Qt.DisplayRole or role == Qt.EditRole:
             if index.column() == 1:
                 index = self.index(index.row(), 0)
                 item = self.itemFromIndex(index)
@@ -150,7 +152,7 @@ class PropertyCategoryItem(QStandardItem):
         # type: (str) -> None
         super(PropertyCategoryItem, self).__init__(name)
 
-        self.setBackground(QBrush(QColor(0, 0, 0xFF)))
+        self.setBackground(QBrush(QColor(71, 74, 77)))
         self.setFlags(self.flags() & ~Qt.ItemIsEditable)
 
 
@@ -159,12 +161,16 @@ class PropertyItem(QStandardItem):
     def type():
         return PropertyItemType
 
-    def __init__(self, label, value, value_type=None):
-        # type: (str, any, int) -> None
+    def __init__(self, key, label, value, value_type=None):
+        # type: (str, any, TypeBase or None) -> None
         super(PropertyItem, self).__init__(label)
+        self.key = key
         self.value = value
         self.value_type = value_type
         self.setFlags(self.flags() & ~Qt.ItemIsEditable)
+
+        if self.value_type and value is None:
+            self.value = self.value_type.default()
 
 
 class PropertyItemDelegate(QStyledItemDelegate):
@@ -183,8 +189,8 @@ class PropertyItemDelegate(QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         # type: (QWidget, QModelIndex) -> None
-        model = index.model()           # :type: PropertyModel
-        item = model.rowItem(index)     # :type: PropertyItem
+        model = index.model()  # :type: PropertyModel
+        item = model.rowItem(index)  # :type: PropertyItem
 
         if item.value_type:
             item.value_type.set_value(editor, item.value)
@@ -193,8 +199,8 @@ class PropertyItemDelegate(QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         # type: (QWidget, PropertyModel, QModelIndex) -> None
-        model = index.model()           # :type: PropertyModel
-        item = model.rowItem(index)     # :type: PropertyItem
+        model = index.model()  # :type: PropertyModel
+        item = model.rowItem(index)  # :type: PropertyItem
 
         if item.value_type is None:
             super(PropertyItemDelegate, self).setModelData(editor, model, index)
@@ -202,47 +208,4 @@ class PropertyItemDelegate(QStyledItemDelegate):
             value = item.value_type.value(editor)
             model.setData(index, value, Qt.EditRole)
 
-
-class PathParamWidget(QFrame):
-    def __init__(self, parent=None):
-        super(PathParamWidget, self).__init__(parent)
-        self.line_edit = QLineEdit(self)
-        self.ref_button = QToolButton(self)
-        self.ref_button.setText("...")
-        self.ref_button.setAutoRaise(False)
-        self.ref_button.setContentsMargins(0, 0, 0, 0)
-
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.line_edit)
-        layout.addWidget(self.ref_button)
-
-        # noinspection PyUnresolvedReferences
-        self.ref_button.clicked.connect(self.onRefButtonClicked)
-
-        self.line_edit.setFocusPolicy(Qt.StrongFocus)
-        self.ref_button.setFocusPolicy(Qt.NoFocus)
-        self.setFocusPolicy(Qt.NoFocus)
-
-        self.line_edit.setFocus()
-        self.setFocusProxy(self.line_edit)
-
-    def onRefButtonClicked(self):
-        cwd = self.line_edit.text() or os.getcwd()
-
-        # noinspection PyCallByClass
-        path_dir = QFileDialog.getExistingDirectory(
-            self, "Sphinx root path", cwd
-        )
-        if path_dir:
-            self.line_edit.setText(path_dir)
-
-    def setText(self, text):
-        self.line_edit.setText(text)
-        self.line_edit.selectAll()
-        self.line_edit.setFocus()
-
-    def text(self):
-        return self.line_edit.text()
-
-
+from .value_types import *  # NOQA

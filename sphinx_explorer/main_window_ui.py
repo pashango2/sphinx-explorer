@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Thu Mar 23 17:48:51 2017
+# Created: Fri Mar 24 11:56:45 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -27,6 +27,10 @@ class Ui_MainWindow(object):
         self.tool_add_document.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.tool_add_document.setObjectName("tool_add_document")
         self.horizontalLayout.addWidget(self.tool_add_document)
+        self.tool_setting = QtGui.QToolButton(self.centralwidget)
+        self.tool_setting.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.tool_setting.setObjectName("tool_setting")
+        self.horizontalLayout.addWidget(self.tool_setting)
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.verticalLayout.addLayout(self.horizontalLayout)
@@ -58,8 +62,12 @@ class Ui_MainWindow(object):
         self.action_quickstart.setObjectName("action_quickstart")
         self.action_add_document = QtGui.QAction(MainWindow)
         self.action_add_document.setObjectName("action_add_document")
+        self.action_setting = QtGui.QAction(MainWindow)
+        self.action_setting.setObjectName("action_setting")
         self.menuFile_F.addAction(self.action_quickstart)
         self.menuFile_F.addAction(self.action_add_document)
+        self.menuFile_F.addSeparator()
+        self.menuFile_F.addAction(self.action_setting)
         self.menubar.addAction(self.menuFile_F.menuAction())
 
         self.retranslateUi(MainWindow)
@@ -69,10 +77,14 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Sphinx-explorer", None, QtGui.QApplication.UnicodeUTF8))
         self.tool_button_quick_start.setText(QtGui.QApplication.translate("MainWindow", "sphinx- quickstart", None, QtGui.QApplication.UnicodeUTF8))
         self.tool_add_document.setText(QtGui.QApplication.translate("MainWindow", "add document", None, QtGui.QApplication.UnicodeUTF8))
+        self.tool_setting.setText(QtGui.QApplication.translate("MainWindow", "Setting", None, QtGui.QApplication.UnicodeUTF8))
         self.menuFile_F.setTitle(QtGui.QApplication.translate("MainWindow", "File(&F)", None, QtGui.QApplication.UnicodeUTF8))
         self.action_quickstart.setText(QtGui.QApplication.translate("MainWindow", "quickstart", None, QtGui.QApplication.UnicodeUTF8))
         self.action_quickstart.setToolTip(QtGui.QApplication.translate("MainWindow", "quickstart", None, QtGui.QApplication.UnicodeUTF8))
         self.action_add_document.setText(QtGui.QApplication.translate("MainWindow", "Add Document", None, QtGui.QApplication.UnicodeUTF8))
         self.action_add_document.setToolTip(QtGui.QApplication.translate("MainWindow", "Add Document", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_setting.setText(QtGui.QApplication.translate("MainWindow", "Setting", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_setting.setToolTip(QtGui.QApplication.translate("MainWindow", "Setting", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_setting.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+Shift+S", None, QtGui.QApplication.UnicodeUTF8))
 
 from property_widget import PropertyWidget

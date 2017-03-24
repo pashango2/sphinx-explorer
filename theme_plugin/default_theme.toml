@@ -1,5 +1,25 @@
+[sphinx_rtd_theme]
+packages = ["sphinx_rtd_theme"]
+append_conf_py = """
+import sphinx_rtd_theme
+
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+"""
+
+description = '''
+Read The Docs Theme.
+
+```
+import sphinx_rtd_theme
+
+html_theme = "sphinx_rtd_theme"
+
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+```
+'''
+
 [default]
-Description = """
+description = """
 This is Default Theme.
 """
 
@@ -19,22 +39,3 @@ This is Default Theme.
 
 [bizstyle]
 
-[CommonMark]
-Packages = [
-    "commonmark",
-    "recommonmark"
-]
-
-Description = """
-CommonMark Extension
-
-```python
-source_suffix = ['.rst', '.md']
-
-from recommonmark.parser import CommonMarkParser
-
-source_parsers = {
-    '.md': CommonMarkParser,
-}
-```
-"""

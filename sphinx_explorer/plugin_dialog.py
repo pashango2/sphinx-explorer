@@ -68,9 +68,21 @@ class PluginDialog(QDialog):
             Qt.LinksAccessibleByKeyboard
         )
 
+        self._double_click_done_flag = False
+
+    def set_double_click_done_flag(self, flag):
+        # type: (bool) -> None
+        self._double_click_done_flag = flag
+
     def _onCurrentChanged(self, current, _):
         # type: (QModelIndex, QModelIndex) -> None
         self._setup_preview(current)
+
+    @Slot(QModelIndex)
+    def on_list_view_theme_doubleClicked(self, index):
+        # type: (QModelIndex) -> None
+        if index.isValid() and self._double_click_done_flag:
+            self.done(self.Accepted)
 
     def _setup_preview(self, current):
         # type: (QModelIndex) -> None
@@ -78,12 +90,6 @@ class PluginDialog(QDialog):
 
         md = """
 # {}
-
-its makdown
-
-## test
-
-[test](http://google.co.jp)
 
 {}
 
@@ -96,22 +102,35 @@ its makdown
         # self.ui.text_edit_preview.setHtml(CssStyle + CommonMark.commonmark(md))
         # print(CommonMark.commonmark(md))
 
+    def selectedItems(self):
+        # type: () -> [str]
+        indexes = self.ui.list_view_theme.selectedIndexes()
+
+        return [
+            index.data()
+            for index in indexes
+            if index.isValid()
+        ]
+
 
 class ThemeItemModel(QStandardItemModel):
     @staticmethod
-    def create_item(name, thumb_path, **kwargs):
-        # type: (str, str) -> ThemeItem
-        return ThemeItem(name, thumb_path, **kwargs)
+    def create_item(key, name, thumb_path, **kwargs):
+        # type: (str, str, str) -> ThemeItem
+        return ThemeItem(key, name, thumb_path, **kwargs)
 
     def add_theme(self, item):
         self.appendRow(item)
 
 
 class ThemeItem(QStandardItem):
-    def __init__(self, name, thumb_path, **kwargs):
+    def __init__(self, key, name, thumb_path, **kwargs):
+        # type: (str, str, str, dict) -> None
         super(ThemeItem, self).__init__(name)
+        self.key = key
         self.thumb_path = thumb_path
-        self.description = kwargs.get("Description", "").strip()
+        self.description = kwargs.get("description", "").strip()
+        self.params = kwargs
 
 
 class LoadingThreadObject(QObject):
