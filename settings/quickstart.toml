@@ -123,3 +123,5 @@ only have to run e.g. `make html' instead of invoking sphinx-build directly.
 A Makefile and a Windows command file can be generated for you so that you
 only have to run e.g. `make html' instead of invoking sphinx-build directly.
     '''
+
+["Extensions"]

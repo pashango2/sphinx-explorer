@@ -61,6 +61,9 @@ class PropertyWidget(QTableView):
         self.verticalHeader().hide()
         self.horizontalHeader().setStretchLastSection(True)
 
+        self.setEditTriggers(QAbstractItemView.AllEditTriggers)
+        self.setTabKeyNavigation(False)
+
     def index(self, row, column):
         # type: (int, int) -> QModelIndex
         return self._model.index(row, column)
@@ -81,9 +84,6 @@ class PropertyWidget(QTableView):
         if height > 0:
             self.setRowHeight(item.row(), height)
 
-        if value_type and value_type.is_persistent_editor:
-            index = self._model.index(item.row(), 1)
-            self.openPersistentEditor(index)
         return item
 
     def setReadOnly(self, readonly):
@@ -205,7 +205,9 @@ class PropertyCategoryItem(QStandardItem):
         super(PropertyCategoryItem, self).__init__(name)
 
         self.setBackground(QBrush(QColor(71, 74, 77)))
-        self.setFlags(self.flags() & ~Qt.ItemIsEditable)
+        # self.setFlags(self.flags() & ~(Qt.ItemIsEditable | Qt.ItemIsSelectable))
+        self.setFlags(Qt.NoItemFlags)
+        self.setEnabled(False)
 
 
 class PropertyItem(QStandardItem):
@@ -220,7 +222,8 @@ class PropertyItem(QStandardItem):
         self.value = value
         self.description = description
         self.value_type = value_type
-        self.setFlags(self.flags() & ~Qt.ItemIsEditable)
+        self.setFlags(Qt.NoItemFlags)
+        self.setEnabled(True)
 
         if self.value_type and value is None:
             self.value = self.value_type.default()

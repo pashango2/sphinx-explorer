@@ -112,7 +112,7 @@ class MainWindow(QMainWindow):
 
         open_act = QAction(icon.load("editor"), "Open Editor", menu)
         show_act = QAction(icon.load("open_folder"), "Show File", menu)
-        terminal_act = QAction(icon.load("terminal"), "Open Terrminal", menu)
+        terminal_act = QAction(icon.load("terminal"), "Open Terminal", menu)
         auto_build_act = QAction(icon.load("reload"), "Auto Build", menu)
 
         if not item.can_make():
@@ -172,8 +172,6 @@ class MainWindow(QMainWindow):
     def on_action_quickstart_triggered(self):
         dlg = QuickStartDialog(self)
         dlg.exec_()
-        # dlg = ThemeDialog(self)
-        # dlg.exec_()
 
     @Slot()
     def on_action_wizard_triggered(self):
@@ -249,6 +247,3 @@ class MainWindow(QMainWindow):
         # widget.add_property("Sep", True, TypeBool)
         # # widget.add_property("extensions", "test", ValueTypes.TypeStrList)
         pass
-
-
-

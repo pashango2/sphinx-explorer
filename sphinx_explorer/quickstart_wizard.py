@@ -49,6 +49,8 @@ def create_intro_page(category_name, params):
     property_widget.currentChanged.connect(_onCurrentChanged)
     property_widget.setCurrentIndex(property_widget.index(0, 1))
 
+    property_widget.setFocus()
+
     return page
 
 
@@ -65,4 +67,5 @@ def main(parent):
     # disable default button
     wizard.setOption(QWizard.NoDefaultButton, True)
 
+    # noinspection PyUnresolvedReferences
     wizard.show()

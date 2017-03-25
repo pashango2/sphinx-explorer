@@ -4,13 +4,14 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from . import TypeBase
 import os
 import locale
-# from PySide.QtCore import *
+from PySide.QtCore import *
 from PySide.QtGui import *
 
 
-class RefButtonWidget(QFrame):
+class RefButtonWidget(QWidget):
     def __init__(self, parent=None):
         super(RefButtonWidget, self).__init__(parent)
+        self.delegate = None
         self.line_edit = QLineEdit(self)
         self.ref_button = QToolButton(self)
         self.ref_button.setText("...")
@@ -23,22 +24,35 @@ class RefButtonWidget(QFrame):
         layout.addWidget(self.ref_button)
 
         # noinspection PyUnresolvedReferences
-        self.ref_button.clicked.connect(self.onRefButtonClicked)
+        self.ref_button.clicked.connect(self._onRefButtonClicked)
+        self.setTabOrder(self.line_edit, self.ref_button)
+        self.setFocusProxy(self.line_edit)
+        self.setFocusPolicy(Qt.WheelFocus)
 
-    def onRefButtonClicked(self):
-        cwd = self.line_edit.text() or os.getcwd()
+        self.line_edit.installEventFilter(self)
 
-        # noinspection PyCallByClass
-        path_dir = QFileDialog.getExistingDirectory(
-            self, "Sphinx root path", cwd
-        )
-        if path_dir:
-            self.line_edit.setText(path_dir)
+        self._block = False
+
+    def eventFilter(self, obj, evt):
+        if evt.type() == QEvent.FocusOut:
+            if self._block is False:
+                # noinspection PyCallByClass
+                QApplication.postEvent(self, QFocusEvent(evt.type(), evt.reason()))
+                return False
+                # pass
+        return super(RefButtonWidget, self).eventFilter(obj, evt)
+
+    def _onRefButtonClicked(self):
+        self._block = True
+        try:
+            self.onRefButtonClicked()
+        finally:
+            self._block = False
 
     def setText(self, text):
         self.line_edit.setText(text)
-        # self.line_edit.selectAll()
-        # self.line_edit.setFocus()
+        self.line_edit.selectAll()
+        self.line_edit.setFocus()
 
     def text(self):
         return self.line_edit.text()
@@ -47,7 +61,6 @@ class RefButtonWidget(QFrame):
 class PathParamWidget(RefButtonWidget):
     def onRefButtonClicked(self):
         cwd = self.line_edit.text() or os.getcwd()
-
         # noinspection PyCallByClass
         path_dir = QFileDialog.getExistingDirectory(
             self, "Sphinx root path", cwd
