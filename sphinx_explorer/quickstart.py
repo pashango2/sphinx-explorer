@@ -16,16 +16,18 @@ from .theme_dialog import TypeHtmlTheme
 TOML_PATH = "settings/quickstart.toml"
 
 
+def quickstart_settings():
+    return toml.load(TOML_PATH, OrderedDict)
+
+
 class QuickStartDialog(QDialog):
     def __init__(self, parent=None):
-        """
-        :type parent: QWidget
-        """
+        # type: (QWidget or None) -> None
         super(QuickStartDialog, self).__init__(parent)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
-        questions = toml.load(TOML_PATH, OrderedDict)
+        questions = quickstart_settings()
 
         property_widget = self.ui.table_view_property
         for category, params in questions.items():
@@ -36,7 +38,8 @@ class QuickStartDialog(QDialog):
                     param_key,
                     value_dict.get("name"),
                     value_dict.get("default"),
-                    self._find_value_type(value_dict.get("value_type")),
+                    value_dict.get("description"),
+                    self.find_value_type(value_dict.get("value_type")),
                 )
 
                 if value_dict.get("description"):
@@ -46,7 +49,7 @@ class QuickStartDialog(QDialog):
         property_widget.setAlternatingRowColors(True)
         property_widget.setStyleSheet("alternate-background-color: #2b2b2b;")
 
-        # action
+        # actions
         self.ui.action_bookmark.setIcon(icon.load("bookmark"))
         self.ui.action_export.setIcon(icon.load("export"))
         self.ui.action_import.setIcon(icon.load("import"))
@@ -55,8 +58,10 @@ class QuickStartDialog(QDialog):
         self.ui.tool_export.setDefaultAction(self.ui.action_export)
         self.ui.tool_import.setDefaultAction(self.ui.action_import)
 
+        self.ui.table_view_property.setFocus()
+
     @staticmethod
-    def _find_value_type(type_name):
+    def find_value_type(type_name):
         for value_type in AllTypes + [TypeHtmlTheme]:
             if value_type.__name__ == type_name:
                 return value_type
@@ -73,6 +78,31 @@ class QuickStartDialog(QDialog):
         dlg = ImportExportDialog(True, self)
         if dlg.exec_() == QDialog.Accepted:
             self.ui.table_view_property.loads(dlg.text())
+
+    @Slot()
+    def on_action_bookmark_triggered(self):
+        dlg = QInputDialog(self)
+        dlg.setInputMode(QInputDialog.TextInput)
+        dlg.setWindowFlags(Qt.Popup)
+        geometry = self.ui.tool_bookmark.geometry()
+        pos = self.ui.tool_bookmark.mapToGlobal(geometry.bottomLeft())
+        dlg.setGeometry(QRect(pos, QSize(200, 100)))
+        dlg.setLabelText("Bookmark")
+        dlg.setTextValue("test")
+        dlg.exec_()
+
+
+class BookmarkDialog(QDialog):
+    def __init__(self, parent=None):
+        super(BookmarkDialog, self).__init__(parent)
+
+        self.line_edit = QLineEdit(self)
+        self.add_button = QPushButton("Add", self)
+        self.cancel_button = QPushButton("Cancel", self)
+
+        self.form_layout = QFormLayout()
+        self.form_layout.addWidget(QLabel("Bookmark"))
+        self.form_layout.addRow("Name", self.line_edit)
 
 
 class ImportExportDialog(QDialog):

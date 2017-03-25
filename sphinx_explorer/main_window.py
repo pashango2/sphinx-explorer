@@ -16,6 +16,7 @@ from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel
 from .property_widget import PropertyWidget
 from .quickstart import QuickStartDialog
+from . import quickstart_wizard
 
 
 # from .theme_dialog import ThemeDialog
@@ -46,8 +47,9 @@ class MainWindow(QMainWindow):
         self.ui.action_quickstart.setIcon(icon.load("rocket"))
         self.ui.action_add_document.setIcon(icon.load("plus"))
         self.ui.action_setting.setIcon(icon.load("setting"))
+        self.ui.action_wizard.setIcon(icon.load("magic"))
 
-        self.ui.tool_button_quick_start.setDefaultAction(self.ui.action_quickstart)
+        # self.ui.tool_button_quick_start.setDefaultAction(self.ui.action_quickstart)
         self.ui.tool_add_document.setDefaultAction(self.ui.action_add_document)
         self.ui.tool_setting.setDefaultAction(self.ui.action_setting)
 
@@ -65,6 +67,15 @@ class MainWindow(QMainWindow):
 
         self.ui.tree_view_projects.setModel(self.project_list_model)
         self.ui.tree_view_projects.resizeColumnToContents(0)
+
+        self.ui.tree_view_projects.setFocus()
+
+        self.quick_start_menu = QMenu(self)
+        self.quick_start_menu.addAction(self.ui.action_wizard)
+        self.quick_start_menu.addAction(self.ui.action_quickstart)
+
+        self.ui.tool_button_quick_start.setMenu(self.quick_start_menu)
+        self.ui.tool_button_quick_start.setPopupMode(QToolButton.InstantPopup)
 
     def _setup(self):
         if not os.path.isdir(self.home_dir):
@@ -144,7 +155,6 @@ class MainWindow(QMainWindow):
     def _open_terminal(path):
         # type: (str) -> None
         if platform.system() == "Windows":
-            # print(" ".join(["cmd", "/k cd", os.path.normpath(path)]))
             subprocess.Popen(["cmd", "/k cd", os.path.normpath(path)])
         elif platform.system() == "Darwin":
             subprocess.Popen(["open", os.path.normpath(path)])
@@ -157,6 +167,10 @@ class MainWindow(QMainWindow):
         dlg.exec_()
         # dlg = ThemeDialog(self)
         # dlg.exec_()
+
+    @Slot()
+    def on_action_wizard_triggered(self):
+        quickstart_wizard.main(self)
 
     @Slot()
     def on_action_add_document_triggered(self):

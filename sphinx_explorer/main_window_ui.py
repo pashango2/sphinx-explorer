@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/main_window.ui'
 #
-# Created: Sat Mar 25 00:05:37 2017
+# Created: Sat Mar 25 14:13:36 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -50,7 +50,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 24))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 25))
         self.menubar.setObjectName("menubar")
         self.menuFile_F = QtGui.QMenu(self.menubar)
         self.menuFile_F.setObjectName("menuFile_F")
@@ -64,6 +64,8 @@ class Ui_MainWindow(object):
         self.action_add_document.setObjectName("action_add_document")
         self.action_setting = QtGui.QAction(MainWindow)
         self.action_setting.setObjectName("action_setting")
+        self.action_wizard = QtGui.QAction(MainWindow)
+        self.action_wizard.setObjectName("action_wizard")
         self.menuFile_F.addAction(self.action_quickstart)
         self.menuFile_F.addAction(self.action_add_document)
         self.menuFile_F.addSeparator()
@@ -86,5 +88,7 @@ class Ui_MainWindow(object):
         self.action_setting.setText(QtGui.QApplication.translate("MainWindow", "Setting", None, QtGui.QApplication.UnicodeUTF8))
         self.action_setting.setToolTip(QtGui.QApplication.translate("MainWindow", "Setting", None, QtGui.QApplication.UnicodeUTF8))
         self.action_setting.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+Shift+S", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_wizard.setText(QtGui.QApplication.translate("MainWindow", "wizard mode", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_wizard.setToolTip(QtGui.QApplication.translate("MainWindow", "wizard mode", None, QtGui.QApplication.UnicodeUTF8))
 
 from .property_widget import PropertyWidget

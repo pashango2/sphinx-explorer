@@ -89,7 +89,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>24</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile_F">
@@ -129,6 +129,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="action_wizard">
+   <property name="text">
+    <string>wizard mode</string>
+   </property>
+   <property name="toolTip">
+    <string>wizard mode</string>
    </property>
   </action>
  </widget>

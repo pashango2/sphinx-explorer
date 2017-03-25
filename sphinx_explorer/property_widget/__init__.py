@@ -1,16 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+# noinspection PyUnresolvedReferences
 from PySide.QtCore import *
 from PySide.QtGui import *
 import json
 from typing import Iterator
-
-# from .theme_dialog import ThemeDialog
-# from .sphinx_analyzer import SphinxInfo
+import markdown
 
 CategoryItemType = QStandardItem.UserType + 1
 PropertyItemType = CategoryItemType + 1
+
+CssStyle = """
+<style>
+a {color: #4183C4; }
+a.absent {color: #cc0000; }
+a.anchor {
+  display: block;
+  padding-left: 30px;
+  margin-left: -30px;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0; }
+
+</style>
+"""
 
 
 class TypeBase(object):
@@ -28,16 +44,24 @@ class TypeBase(object):
 
 
 class PropertyWidget(QTableView):
+    currentChanged = Signal(QModelIndex, QModelIndex)
+
     def __init__(self, parent=None):
         # type: (QWidget) -> None
         super(PropertyWidget, self).__init__(parent)
         self._delegate = PropertyItemDelegate(self)
         self._model = PropertyModel(self)
         self.setModel(self._model)
+        self.selection_model = self.selectionModel()
+        self.selection_model.currentChanged.connect(self.currentChanged.emit)
         self.setItemDelegate(self._delegate)
 
         self.verticalHeader().hide()
         self.horizontalHeader().setStretchLastSection(True)
+
+    def index(self, row, column):
+        # type: (int, int) -> QModelIndex
+        return self._model.index(row, column)
 
     def add_category(self, category_name):
         # type: (str) -> PropertyCategoryItem
@@ -46,9 +70,9 @@ class PropertyWidget(QTableView):
         self.setSpan(item.row(), 0, 1, 2)
         return item
 
-    def add_property(self, key, label_name, value, value_type=None):
+    def add_property(self, key, label_name, value, description, value_type=None):
         # type: (str, str, any, any) -> PropertyItem
-        item = PropertyItem(key, label_name, value, value_type)
+        item = PropertyItem(key, label_name, value, description, value_type)
         self._model.add_property(item)
 
         height = item.sizeHint().height()
@@ -85,7 +109,6 @@ class PropertyWidget(QTableView):
             if key in params_dict:
                 item = params_dict[key]
                 item.value = value
-
         return True
 
     def properties(self):
@@ -94,6 +117,30 @@ class PropertyWidget(QTableView):
             item = self._model.item(row)
             if item.type() == PropertyItemType:
                 yield item
+
+    def description(self, index):
+        # type: (QModelIndex) -> str or None
+        if not index.isValid():
+            return None
+
+        item = self._model.item(index.row())
+        if item.type() == PropertyItemType:
+            return item.description
+        return None
+
+    def html(self, index):
+        # type: (QModelIndex) -> str or None
+        description = self.description(index)
+        if description:
+            md = """
+            {}
+            """.strip().format(description)
+
+            mdo = markdown.Markdown(extensions=["gfm"])
+            html = CssStyle + mdo.convert(md)
+            return html
+
+        return None
 
 
 class PropertyModel(QStandardItemModel):
@@ -161,11 +208,12 @@ class PropertyItem(QStandardItem):
     def type():
         return PropertyItemType
 
-    def __init__(self, key, label, value, value_type=None):
-        # type: (str, any, TypeBase or None) -> None
+    def __init__(self, key, label, value, description, value_type=None):
+        # type: (str, any, str, TypeBase or None) -> None
         super(PropertyItem, self).__init__(label)
         self.key = key
         self.value = value
+        self.description = description
         self.value_type = value_type
         self.setFlags(self.flags() & ~Qt.ItemIsEditable)
 
@@ -178,9 +226,12 @@ class PropertyItemDelegate(QStyledItemDelegate):
         super(PropertyItemDelegate, self).__init__(parent)
 
     def createEditor(self, parent, option, index):
-        # type: (QWidget, QStyleOptionViewItem, QModelIndex) -> QWidget
+        # type: (QWidget, QStyleOptionViewItem, QModelIndex) -> QWidget or None
         model = index.model()  # :type: PropertyModel
         item = model.rowItem(index)  # :type: PropertyItem
+
+        if item.type() != PropertyItemType:
+            return None
 
         if item.value_type is None:
             return super(PropertyItemDelegate, self).createEditor(parent, option, index)
