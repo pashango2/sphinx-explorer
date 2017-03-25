@@ -60,6 +60,9 @@ def main(parent):
         wizard.addPage(create_intro_page(category_name, params))
 
     wizard.setWindowTitle("Sphinx Quckstart Wizard")
-
     wizard.resize(QSize(1000, 600).expandedTo(wizard.minimumSizeHint()))
+
+    # disable default button
+    wizard.setOption(QWizard.NoDefaultButton, True)
+
     wizard.show()

@@ -79,6 +79,9 @@ class PropertyWidget(QTableView):
         if height > 0:
             self.setRowHeight(item.row(), height)
 
+        if value_type:
+            index = self._model.index(item.row(), 1)
+            self.openPersistentEditor(index)
         return item
 
     def setReadOnly(self, readonly):

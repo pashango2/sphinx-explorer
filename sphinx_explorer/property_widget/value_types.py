@@ -25,12 +25,12 @@ class RefButtonWidget(QFrame):
         # noinspection PyUnresolvedReferences
         self.ref_button.clicked.connect(self.onRefButtonClicked)
 
-        self.line_edit.setFocusPolicy(Qt.StrongFocus)
-        self.ref_button.setFocusPolicy(Qt.NoFocus)
-        self.setFocusPolicy(Qt.NoFocus)
+        # self.line_edit.setFocusPolicy(Qt.StrongFocus)
+        # self.ref_button.setFocusPolicy(Qt.NoFocus)
+        # self.setFocusPolicy(Qt.NoFocus)
 
-        self.line_edit.setFocus()
-        self.setFocusProxy(self.line_edit)
+        # self.line_edit.setFocus()
+        # self.setFocusProxy(self.line_edit)
 
     def onRefButtonClicked(self):
         cwd = self.line_edit.text() or os.getcwd()
@@ -45,7 +45,7 @@ class RefButtonWidget(QFrame):
     def setText(self, text):
         self.line_edit.setText(text)
         self.line_edit.selectAll()
-        self.line_edit.setFocus()
+        # self.line_edit.setFocus()
 
     def text(self):
         return self.line_edit.text()

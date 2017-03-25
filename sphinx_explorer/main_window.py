@@ -77,6 +77,11 @@ class MainWindow(QMainWindow):
         self.ui.tool_button_quick_start.setMenu(self.quick_start_menu)
         self.ui.tool_button_quick_start.setPopupMode(QToolButton.InstantPopup)
 
+        # move to center
+        r = self.geometry()
+        r.moveCenter(QApplication.desktop().availableGeometry().center())
+        self.setGeometry(r)
+
     def _setup(self):
         if not os.path.isdir(self.home_dir):
             os.makedirs(self.home_dir)
