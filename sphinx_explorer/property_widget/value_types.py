@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from . import TypeBase
 import os
 import locale
-from PySide.QtCore import *
+# from PySide.QtCore import *
 from PySide.QtGui import *
 
 
@@ -24,13 +24,6 @@ class RefButtonWidget(QFrame):
 
         # noinspection PyUnresolvedReferences
         self.ref_button.clicked.connect(self.onRefButtonClicked)
-
-        # self.line_edit.setFocusPolicy(Qt.StrongFocus)
-        # self.ref_button.setFocusPolicy(Qt.NoFocus)
-        # self.setFocusPolicy(Qt.NoFocus)
-
-        # self.line_edit.setFocus()
-        # self.setFocusProxy(self.line_edit)
 
     def onRefButtonClicked(self):
         cwd = self.line_edit.text() or os.getcwd()

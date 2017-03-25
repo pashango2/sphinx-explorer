@@ -80,6 +80,7 @@ class MainWindow(QMainWindow):
 
         # move to center
         r = self.geometry()
+        # noinspection PyArgumentList
         r.moveCenter(QApplication.desktop().availableGeometry().center())
         self.setGeometry(r)
 
