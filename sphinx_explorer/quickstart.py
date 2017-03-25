@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from PySide.QtGui import *
-from PySide.QtCore import *
-import os
-import toml
-from .quickstart_dialog_ui import Ui_Dialog
-from collections import OrderedDict, namedtuple
-from .property_widget import TypeBool, TypeDirPath, AllTypes
-from .property_widget.value_types import TypeLanguage
-from .theme_dialog import TypeHtmlTheme
-from . import icon
 
+from collections import OrderedDict
+
+import toml
+from PySide.QtCore import *
+from PySide.QtGui import *
+
+from . import icon
+from .property_widget import AllTypes
+from .quickstart_dialog_ui import Ui_Dialog
+from .theme_dialog import TypeHtmlTheme
 
 TOML_PATH = "settings/quickstart.toml"
 

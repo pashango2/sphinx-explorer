@@ -115,19 +115,18 @@ class PluginDialog(QDialog):
 
 class ThemeItemModel(QStandardItemModel):
     @staticmethod
-    def create_item(key, name, thumb_path, **kwargs):
-        # type: (str, str, str) -> ThemeItem
-        return ThemeItem(key, name, thumb_path, **kwargs)
+    def create_item(name, thumb_path, **kwargs):
+        # type: (str, str, dict) -> ThemeItem
+        return ThemeItem(name, thumb_path, **kwargs)
 
     def add_theme(self, item):
         self.appendRow(item)
 
 
 class ThemeItem(QStandardItem):
-    def __init__(self, key, name, thumb_path, **kwargs):
-        # type: (str, str, str, dict) -> None
+    def __init__(self, name, thumb_path, **kwargs):
+        # type: (str, str, dict) -> None
         super(ThemeItem, self).__init__(name)
-        self.key = key
         self.thumb_path = thumb_path
         self.description = kwargs.get("description", "").strip()
         self.params = kwargs

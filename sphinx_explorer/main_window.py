@@ -14,8 +14,10 @@ from editor_plugin import atom_editor
 from . import icon
 from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel
+from .property_widget import PropertyWidget
 from .quickstart import QuickStartDialog
-from .property_widget import PropertyWidget, TypeBool, TypeDirPath
+
+
 # from .theme_dialog import ThemeDialog
 # from .sphinx_analyzer import SphinxInfo
 

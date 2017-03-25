@@ -5,6 +5,10 @@ import sys
 import os
 import subprocess
 import json
+import platform
+
+
+TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
 
 
 def main(config_py_path):
@@ -35,9 +39,18 @@ def main(config_py_path):
 
 def get(config_py_path):
     # type: (str) -> dict
-    result = subprocess.check_output([__file__, config_py_path], shell=True)
-    result = json.loads(result)
+    cmd = " ".join(["python", __file__, config_py_path])
+    result = check_output(cmd)
+    result = json.loads(result.decode(TERM_ENCODING))
     return result
+
+
+def check_output(cmd):
+    # type: (str) -> bytes
+    if platform.system() in ("Windows", "Darwin"):
+        return subprocess.check_output(cmd, shell=True)
+    else:
+        return subprocess.check_output(['/bin/bash', '-i', '-c', cmd])
 
 
 if __name__ == "__main__":

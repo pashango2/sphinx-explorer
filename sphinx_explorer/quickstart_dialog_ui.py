@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'quickstart_dialog.ui'
+# Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/quickstart_dialog.ui'
 #
-# Created: Fri Mar 24 14:13:13 2017
+# Created: Sat Mar 25 00:05:37 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -63,4 +63,4 @@ class Ui_Dialog(object):
         self.action_export.setText(QtGui.QApplication.translate("Dialog", "Export", None, QtGui.QApplication.UnicodeUTF8))
         self.action_export.setToolTip(QtGui.QApplication.translate("Dialog", "Export", None, QtGui.QApplication.UnicodeUTF8))
 
-from property_widget import PropertyWidget
+from .property_widget import PropertyWidget

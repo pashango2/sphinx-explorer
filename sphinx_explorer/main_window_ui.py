@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'main_window.ui'
+# Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/main_window.ui'
 #
-# Created: Fri Mar 24 11:56:45 2017
+# Created: Sat Mar 25 00:05:37 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -87,4 +87,4 @@ class Ui_MainWindow(object):
         self.action_setting.setToolTip(QtGui.QApplication.translate("MainWindow", "Setting", None, QtGui.QApplication.UnicodeUTF8))
         self.action_setting.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+Shift+S", None, QtGui.QApplication.UnicodeUTF8))
 
-from property_widget import PropertyWidget
+from .property_widget import PropertyWidget

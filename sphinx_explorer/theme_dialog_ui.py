@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'theme_dialog.ui'
+# Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/theme_dialog.ui'
 #
-# Created: Fri Mar 24 17:29:10 2017
+# Created: Sat Mar 25 00:05:37 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
