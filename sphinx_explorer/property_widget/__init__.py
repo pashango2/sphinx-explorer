@@ -42,6 +42,8 @@ class TypeBase(object):
     def default(cls):
         return None
 
+    is_persistent_editor = False
+
 
 class PropertyWidget(QTableView):
     currentChanged = Signal(QModelIndex, QModelIndex)
@@ -79,7 +81,7 @@ class PropertyWidget(QTableView):
         if height > 0:
             self.setRowHeight(item.row(), height)
 
-        if value_type:
+        if value_type and value_type.is_persistent_editor:
             index = self._model.index(item.row(), 1)
             self.openPersistentEditor(index)
         return item

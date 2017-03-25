@@ -44,6 +44,7 @@ class MainWindow(QMainWindow):
 
         self.project_list_model = ProjectListModel(parent=self)
 
+        self.ui.tool_button_quick_start.setIcon(icon.load("rocket"))
         self.ui.action_quickstart.setIcon(icon.load("rocket"))
         self.ui.action_add_document.setIcon(icon.load("plus"))
         self.ui.action_setting.setIcon(icon.load("setting"))

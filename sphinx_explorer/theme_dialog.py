@@ -28,6 +28,8 @@ class HtmlThemeWidget(RefButtonWidget):
 
 
 class TypeHtmlTheme(TypeBase):
+    is_persistent_editor = True
+
     @classmethod
     def control(cls, parent):
         return HtmlThemeWidget(parent)

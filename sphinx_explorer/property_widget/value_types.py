@@ -44,7 +44,7 @@ class RefButtonWidget(QFrame):
 
     def setText(self, text):
         self.line_edit.setText(text)
-        self.line_edit.selectAll()
+        # self.line_edit.selectAll()
         # self.line_edit.setFocus()
 
     def text(self):
@@ -85,6 +85,8 @@ class TypeBool(TypeBase):
 
 
 class TypeDirPath(TypeBase):
+    is_persistent_editor = True
+
     @classmethod
     def control(cls, parent):
         return PathParamWidget(parent)
