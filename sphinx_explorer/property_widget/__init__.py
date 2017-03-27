@@ -75,15 +75,23 @@ class PropertyWidget(QTableView):
         self.setSpan(item.row(), 0, 1, 2)
         return item
 
-    def add_property(self, key, label_name, value, description, value_type=None):
+    @staticmethod
+    def create_property(key, label_name, value, description, value_type):
         # type: (str, str, any, any) -> PropertyItem
-        item = PropertyItem(key, label_name, value, description, value_type)
+        return PropertyItem(key, label_name, value, description, value_type)
+
+    def add_property_item(self, item):
+        # type: (PropertyItem) -> None
         self._model.add_property(item)
 
         height = item.sizeHint().height()
         if height > 0:
             self.setRowHeight(item.row(), height)
 
+    def add_property(self, key, label_name, value, description, value_type=None):
+        # type: (str, str, any, any) -> PropertyItem
+        item = self.create_property(key, label_name, value, description, value_type)
+        self.add_property_item(item)
         return item
 
     def setReadOnly(self, readonly):
@@ -158,6 +166,10 @@ class PropertyWidget(QTableView):
             action = QAbstractItemView.MoveUp
         
         return super(PropertyWidget,self).moveCursor(action, modifiers)
+
+    def validate(self):
+        # type: () -> bool
+        return True
 
 
 class PropertyModel(QStandardItemModel):
@@ -239,6 +251,10 @@ class PropertyItem(QStandardItem):
 
         if self.value_type and value is None:
             self.value = self.value_type.default()
+
+    def set_indent(self, indent):
+        # type: (int) -> None
+        self.setText(("    " * indent) + self.text())
 
 
 class PropertyItemDelegate(QStyledItemDelegate):

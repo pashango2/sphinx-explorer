@@ -7,7 +7,8 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .property_widget import PropertyWidget
-from .quickstart import QuickStartDialog
+from .quickstart import property_item_iter
+from . import extension
 
 
 class PropertyWizard(QWizardPage):
@@ -18,20 +19,10 @@ class PropertyWizard(QWizardPage):
         self.setTitle(category_name)
 
         property_widget = PropertyWidget(self)
-        for param_key, value_dict in params.items():
-            item = property_widget.add_property(
-                param_key,
-                value_dict.get("name"),
-                value_dict.get("default"),
-                value_dict.get("description"),
-                QuickStartDialog.find_value_type(value_dict.get("value_type")),
-            )
-
-            if value_dict.get("description"):
-                item.setToolTip(value_dict.get("description").strip())
+        for item in property_item_iter(params):
+            property_widget.add_property_item(item)
 
         layout = QVBoxLayout(self)
-
         text_browser = QTextBrowser(self)
         splitter = QSplitter(self)
         splitter.addWidget(property_widget)
@@ -66,6 +57,11 @@ def main(parent):
     settings = quickstart.quickstart_settings()
 
     wizard = QWizard(parent)
+
+    # for Windows
+    # For default VistaStyle painting hardcoded in source of QWizard(qwizard.cpp[1805]).
+    wizard.setWizardStyle(QWizard.ClassicStyle)
+
     for category_name, params in settings.items():
         wizard.addPage(PropertyWizard(category_name, params))
 

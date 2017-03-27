@@ -1,22 +1,7 @@
-[commonmark]
 package = [
     "commonmark",
     "recommonmark"
 ]
-
-desctiption = """
-CommonMark Extension
-
-```python
-source_suffix = ['.rst', '.md']
-
-from recommonmark.parser import CommonMarkParser
-
-source_parsers = {
-    '.md': CommonMarkParser,
-}
-```
-"""
 
 conf_py = """
 source_suffix = [source_suffix, '.md']
@@ -33,3 +18,4 @@ def setup(app):
             }, True)
     app.add_transform(AutoStructify)
 """
+

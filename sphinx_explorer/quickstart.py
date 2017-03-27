@@ -9,15 +9,57 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from . import icon
-from .property_widget import AllTypes
+from .property_widget import AllTypes, PropertyWidget
 from .quickstart_dialog_ui import Ui_Dialog
 from .theme_dialog import TypeHtmlTheme
+from . import extension
 
 TOML_PATH = "settings/quickstart.toml"
 
 
 def quickstart_settings():
     return toml.load(TOML_PATH, OrderedDict)
+
+
+def find_value_type(type_name):
+    for value_type in AllTypes + [TypeHtmlTheme]:
+        if value_type.__name__ == type_name:
+            return value_type
+    return None
+
+
+def _property_iter(params):
+    if "extensions" in params:
+        for ext_name in params["extensions"]:
+            value_dict = extension.get(ext_name)
+            if value_dict is None:
+                value_dict = {
+                    "default": True,
+                }
+
+            value_dict["name"] = ext_name
+            value_dict["value_type"] = "TypeBool"
+
+            yield ext_name, value_dict
+    else:
+        for param_key, value_dict in params.items():
+            yield param_key, value_dict
+
+
+def property_item_iter(params):
+    for param_key, value_dict in _property_iter(params):
+        item = PropertyWidget.create_property(
+            param_key,
+            value_dict.get("name"),
+            value_dict.get("default"),
+            value_dict.get("description"),
+            find_value_type(value_dict.get("value_type")),
+        )
+
+        if value_dict.get("description"):
+            item.setToolTip(value_dict.get("description").strip())
+
+        yield item
 
 
 class QuickStartDialog(QDialog):
@@ -33,17 +75,8 @@ class QuickStartDialog(QDialog):
         for category, params in questions.items():
             property_widget.add_category(category)
 
-            for param_key, value_dict in params.items():
-                item = property_widget.add_property(
-                    param_key,
-                    value_dict.get("name"),
-                    value_dict.get("default"),
-                    value_dict.get("description"),
-                    self.find_value_type(value_dict.get("value_type")),
-                )
-
-                if value_dict.get("description"):
-                    item.setToolTip(value_dict.get("description").strip())
+            for item in property_item_iter(params):
+                property_widget.add_property_item(item)
 
         property_widget.resizeColumnsToContents()
         property_widget.setAlternatingRowColors(True)
@@ -59,13 +92,6 @@ class QuickStartDialog(QDialog):
         self.ui.tool_import.setDefaultAction(self.ui.action_import)
 
         self.ui.table_view_property.setFocus()
-
-    @staticmethod
-    def find_value_type(type_name):
-        for value_type in AllTypes + [TypeHtmlTheme]:
-            if value_type.__name__ == type_name:
-                return value_type
-        return None
 
     @Slot()
     def on_action_export_triggered(self):

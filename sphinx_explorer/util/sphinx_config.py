@@ -3,12 +3,8 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 import sys
 import os
-import subprocess
 import json
-import platform
-
-
-TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
+from . import exec_sphinx
 
 
 def main(config_py_path):
@@ -40,17 +36,9 @@ def main(config_py_path):
 def get(config_py_path):
     # type: (str) -> dict
     cmd = " ".join(["python", __file__, config_py_path])
-    result = check_output(cmd)
-    result = json.loads(result.decode(TERM_ENCODING))
+    result = exec_sphinx.check_output(cmd)
+    result = json.loads(result)
     return result
-
-
-def check_output(cmd):
-    # type: (str) -> bytes
-    if platform.system() in ("Windows", "Darwin"):
-        return subprocess.check_output(cmd, shell=True)
-    else:
-        return subprocess.check_output(['/bin/bash', '-i', '-c', cmd])
 
 
 if __name__ == "__main__":

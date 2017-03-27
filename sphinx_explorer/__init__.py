@@ -21,10 +21,10 @@ HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx_explorer")
 
 def main():
     app = QApplication(sys.argv)
-
     app.setStyleSheet(qdarkstyle.load_stylesheet())
 
-    window = MainWindow(HOME_DIR)
+    sys_dir = os.path.dirname(sys.argv[0])
+    window = MainWindow(sys_dir, HOME_DIR)
     window.show()
 
     app.exec_()

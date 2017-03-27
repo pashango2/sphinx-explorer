@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-
+import sys
 import json
 import os
 import platform
@@ -10,13 +10,14 @@ import subprocess
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from editor_plugin import atom_editor
+from editor_plugin import atom_editor, vs_code_editor
 from . import icon
 from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel
 from .property_widget import PropertyWidget
 from .quickstart import QuickStartDialog
 from . import quickstart_wizard
+from . import extension
 
 
 # from .theme_dialog import ThemeDialog
@@ -26,7 +27,7 @@ from . import quickstart_wizard
 class MainWindow(QMainWindow):
     JSON_NAME = "setting.json"
 
-    def __init__(self, home_dir, parent=None):
+    def __init__(self, sys_dir, home_dir, parent=None):
         super(MainWindow, self).__init__(parent)
 
         # create actions
@@ -40,7 +41,8 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.home_dir = home_dir
-        self.editor = atom_editor
+        # self.editor = atom_editor
+        self.editor = vs_code_editor
 
         self.project_list_model = ProjectListModel(parent=self)
 
@@ -84,6 +86,9 @@ class MainWindow(QMainWindow):
         r.moveCenter(QApplication.desktop().availableGeometry().center())
         self.setGeometry(r)
 
+        # load extension
+        extension.init(os.path.join(sys_dir, "extension_plugin"))
+
     def _setup(self):
         if not os.path.isdir(self.home_dir):
             os.makedirs(self.home_dir)
@@ -119,7 +124,7 @@ class MainWindow(QMainWindow):
             auto_build_act.setEnabled(False)
 
         # noinspection PyUnresolvedReferences
-        open_act.triggered.connect(lambda: self.editor.open(doc_path))
+        open_act.triggered.connect(lambda: self.editor.open_dir(doc_path))
         # noinspection PyUnresolvedReferences
         show_act.triggered.connect(lambda: self._show_directory(doc_path))
         # noinspection PyUnresolvedReferences
@@ -212,7 +217,7 @@ class MainWindow(QMainWindow):
         # type: (QModelIndex) -> None
         if index.isValid():
             path = self.project_list_model.path(index)
-            self.editor.open(path)
+            self.editor.open_dir(path)
 
     @Slot(QPoint)
     def on_tree_view_projects_customContextMenuRequested(self, pos):
