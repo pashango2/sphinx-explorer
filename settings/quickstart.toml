@@ -125,3 +125,83 @@ only have to run e.g. `make html' instead of invoking sphinx-build directly.
     '''
 
 ["Extensions"]
+["Extensions".autodoc]
+name = "autodoc"
+value_type = "TypeBool"
+
+["Extensions".doctest]
+name = "doctest"
+value_type = "TypeBool"
+
+["Extensions".intersphinx]
+name = "intersphinx"
+value_type = "TypeBool"
+
+["Extensions".todo]
+name = "todo"
+value_type = "TypeBool"
+
+["Extensions".coverage]
+name = "coverage"
+value_type = "TypeBool"
+
+["Extensions".imgmath]
+name = "imgmath"
+value_type = "TypeBool"
+
+
+["Extensions".mathjax]
+name = "mathjax"
+value_type = "TypeBool"
+
+
+["Extensions".ifconfig]
+name = "ifconfig"
+value_type = "TypeBool"
+
+["Extensions".viewcode]
+name = "viewcode"
+value_type = "TypeBool"
+
+["Extensions".githubpage]
+name = "githubpage"
+value_type = "TypeBool"
+
+["More Extensions"]
+["More Extensions".commonmark]
+name = "commonmark"
+value_type = "TypeBool"
+package=["CommonMark", "recommonmark"]
+conf_py='''
+# ----- CommonMark
+source_suffix = [source_suffix, '.md']
+from recommonmark.parser import CommonMarkParser
+source_parsers = {
+    '.md': CommonMarkParser,
+}
+from recommonmark.transform import AutoStructify
+github_doc_root = 'https://github.com/rtfd/recommonmark/tree/master/doc/'
+def setup(app):
+    app.add_config_value('recommonmark_config', {
+            'url_resolver': lambda url: github_doc_root + url,
+            'auto_toc_tree_section': 'Contents',
+            }, True)
+    app.add_transform(AutoStructify)
+'''
+
+["More Extensions".nbsphinx]
+name = "nbsphinx"
+value_type = "TypeBool"
+conf_py="""
+# ----- Jupyter Notebook nbsphinx
+extensions.append('nbsphinx')
+exclude_patterns.append('**.ipynb_checkpoints')
+"""
+package=["nbsphinx"]
+
+
+["More Extensions".fontawesome]
+name = "fontawesome"
+value_type = "TypeBool"
+package=["sphinx-fontawesome"]
+

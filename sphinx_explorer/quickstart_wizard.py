@@ -10,48 +10,56 @@ from .property_widget import PropertyWidget
 from .quickstart import QuickStartDialog
 
 
-def create_intro_page(category_name, params):
-    # type: (str, dict) -> QWizardPage
-    page = QWizardPage()
-    page.setTitle(category_name)
+class PropertyWizard(QWizardPage):
+    def __init__(self, category_name, params, parent=None):
+        # type: (str, dict, QWidget or None) -> None
+        super(PropertyWizard, self).__init__(parent)
 
-    property_widget = PropertyWidget(page)
-    for param_key, value_dict in params.items():
-        item = property_widget.add_property(
-            param_key,
-            value_dict.get("name"),
-            value_dict.get("default"),
-            value_dict.get("description"),
-            QuickStartDialog.find_value_type(value_dict.get("value_type")),
-        )
+        self.setTitle(category_name)
 
-        if value_dict.get("description"):
-            item.setToolTip(value_dict.get("description").strip())
+        property_widget = PropertyWidget(self)
+        for param_key, value_dict in params.items():
+            item = property_widget.add_property(
+                param_key,
+                value_dict.get("name"),
+                value_dict.get("default"),
+                value_dict.get("description"),
+                QuickStartDialog.find_value_type(value_dict.get("value_type")),
+            )
 
-    layout = QVBoxLayout(page)
+            if value_dict.get("description"):
+                item.setToolTip(value_dict.get("description").strip())
 
-    text_browser = QTextBrowser(page)
-    splitter = QSplitter(page)
-    splitter.addWidget(property_widget)
-    splitter.addWidget(text_browser)
-    splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        layout = QVBoxLayout(self)
 
-    layout.addWidget(splitter)
-    page.setLayout(layout)
+        text_browser = QTextBrowser(self)
+        splitter = QSplitter(self)
+        splitter.addWidget(property_widget)
+        splitter.addWidget(text_browser)
+        splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-    def _onCurrentChanged(current, _):
-        html = property_widget.html(current)
-        if html:
-            text_browser.setHtml(html)
-        else:
-            text_browser.clear()
+        layout.addWidget(splitter)
+        self.setLayout(layout)
 
-    property_widget.currentChanged.connect(_onCurrentChanged)
-    property_widget.setCurrentIndex(property_widget.index(0, 1))
+        def _onCurrentChanged(current, _):
+            html = property_widget.html(current)
+            if html:
+                text_browser.setHtml(html)
+            else:
+                text_browser.clear()
 
-    property_widget.setFocus()
+        property_widget.currentChanged.connect(_onCurrentChanged)
+        property_widget.setCurrentIndex(property_widget.index(0, 1))
 
-    return page
+        self.property_widget = property_widget
+        text_browser.setFocusPolicy(Qt.NoFocus)
+
+        self.setTabOrder(self.property_widget, None)
+
+        self.property_widget.resizeColumnToContents(0)
+
+    def initializePage(self):
+        self.property_widget.setFocus()
 
 
 def main(parent):
@@ -59,7 +67,7 @@ def main(parent):
 
     wizard = QWizard(parent)
     for category_name, params in settings.items():
-        wizard.addPage(create_intro_page(category_name, params))
+        wizard.addPage(PropertyWizard(category_name, params))
 
     wizard.setWindowTitle("Sphinx Quckstart Wizard")
     wizard.resize(QSize(1000, 600).expandedTo(wizard.minimumSizeHint()))

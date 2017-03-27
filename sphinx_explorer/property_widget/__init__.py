@@ -147,6 +147,18 @@ class PropertyWidget(QTableView):
 
         return None
 
+    def closeEditor(self, editor, hint):
+        # super(PropertyWidget, self).closeEditor(editor, hint)
+        super(PropertyWidget, self).closeEditor(editor, QAbstractItemDelegate.EditNextItem)
+
+    def moveCursor(self, action, modifiers):
+        if action == QAbstractItemView.MoveNext:
+            action = QAbstractItemView.MoveDown
+        elif action == QAbstractItemView.MovePrevious:
+            action = QAbstractItemView.MoveUp
+        
+        return super(PropertyWidget,self).moveCursor(action, modifiers)
+
 
 class PropertyModel(QStandardItemModel):
     def __init__(self, parent=None):
@@ -207,7 +219,7 @@ class PropertyCategoryItem(QStandardItem):
         self.setBackground(QBrush(QColor(71, 74, 77)))
         # self.setFlags(self.flags() & ~(Qt.ItemIsEditable | Qt.ItemIsSelectable))
         self.setFlags(Qt.NoItemFlags)
-        self.setEnabled(False)
+        self.setEnabled(True)
 
 
 class PropertyItem(QStandardItem):

@@ -8,7 +8,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 
-class RefButtonWidget(QWidget):
+class RefButtonWidget(QFrame):
     def __init__(self, parent=None):
         super(RefButtonWidget, self).__init__(parent)
         self.delegate = None
@@ -39,7 +39,6 @@ class RefButtonWidget(QWidget):
                 # noinspection PyCallByClass
                 QApplication.postEvent(self, QFocusEvent(evt.type(), evt.reason()))
                 return False
-                # pass
         return super(RefButtonWidget, self).eventFilter(obj, evt)
 
     def _onRefButtonClicked(self):
