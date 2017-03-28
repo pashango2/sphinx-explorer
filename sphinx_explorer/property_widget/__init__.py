@@ -101,6 +101,8 @@ class PropertyWidget(QTableView):
         # type: (bool) -> None
         if readonly:
             self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        else:
+            self.setEditTriggers(QAbstractItemView.AllEditTriggers)
 
     def dump(self):
         # type: () -> dict
@@ -252,6 +254,7 @@ class PropertyItem(QStandardItem):
         self.value_type = value_type
         self.setFlags(Qt.NoItemFlags)
         self.setEnabled(True)
+        self.validator = None
 
         if self.value_type and value is None:
             self.value = self.value_type.default()
@@ -259,6 +262,10 @@ class PropertyItem(QStandardItem):
     def set_indent(self, indent):
         # type: (int) -> None
         self.setText(("    " * indent) + self.text())
+
+    def set_validator(self, validator):
+        # type: (QValidator) -> None
+        self.validator = validator
 
 
 class PropertyItemDelegate(QStyledItemDelegate):
