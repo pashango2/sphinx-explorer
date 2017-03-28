@@ -64,6 +64,9 @@ class PropertyWidget(QTableView):
         self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.setTabKeyNavigation(False)
 
+    def clear(self):
+        self._model.removeRows(0, self._model.rowCount())
+
     def index(self, row, column):
         # type: (int, int) -> QModelIndex
         return self._model.index(row, column)
@@ -88,7 +91,7 @@ class PropertyWidget(QTableView):
         if height > 0:
             self.setRowHeight(item.row(), height)
 
-    def add_property(self, key, label_name, value, description, value_type=None):
+    def add_property(self, key, label_name, value, description=None, value_type=None):
         # type: (str, str, any, any) -> PropertyItem
         item = self.create_property(key, label_name, value, description, value_type)
         self.add_property_item(item)
@@ -96,7 +99,8 @@ class PropertyWidget(QTableView):
 
     def setReadOnly(self, readonly):
         # type: (bool) -> None
-        self._model.setReadOnly(readonly)
+        if readonly:
+            self.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
     def dump(self):
         # type: () -> dict
