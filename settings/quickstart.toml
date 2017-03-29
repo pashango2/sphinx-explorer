@@ -126,23 +126,23 @@ only have to run e.g. `make html' instead of invoking sphinx-build directly.
 
 ["Extensions"]
 extensions = [
-    "autodoc",
-    "doctest",
-    "intersphinx",
-    "todo",
-    "coverage",
-    "imgmath",
-    "mathjax",
-    "ifconfig",
-    "viewcode",
-    "githubpage",
+    "ext-autodoc",
+    "ext-doctest",
+    "ext-intersphinx",
+    "ext-todo",
+    "ext-coverage",
+    "ext-imgmath",
+    "ext-mathjax",
+    "ext-ifconfig",
+    "ext-viewcode",
+    "ext-githubpage",
 ]
 
 ["More Extensions"]
 extensions = [
-    "commonmark",
-    "nbsphinx",
-    "fontawesome",
-    "blockdiag",
+    "ext-commonmark",
+    "ext-nbsphinx",
+    "ext-fontawesome",
+    "ext-blockdiag",
 ]
 

@@ -9,13 +9,15 @@ from . import icon
 
 
 class ProjectListModel(QStandardItemModel):
+    sphinxInfoLoaded = Signal(QModelIndex)
+
     def __init__(self, parent=None):
         super(ProjectListModel, self).__init__(parent)
 
-        self.setHorizontalHeaderLabels([
-            "Document Path",
-            "Project"
-        ])
+        # self.setHorizontalHeaderLabels([
+        #     "Document Path",
+        #     "Project"
+        # ])
 
     def load(self, project_list):
         # type: ([str]) -> None
@@ -49,14 +51,13 @@ class ProjectListModel(QStandardItemModel):
                 return index
         return QModelIndex()
 
-    @staticmethod
-    def _create_item(project_path):
+    def _create_item(self, project_path):
         # type: (str) -> QStandardItem
         item = ProjectItem(os.path.normpath(project_path))
         item.setIcon(icon.load("eye"))
 
         ana = QSphinxAnalyzer(project_path, item)
-        ana.finished.connect(ProjectListModel.onAnalyzeFinished)
+        ana.finished.connect(self.onAnalyzeFinished)
 
         # noinspection PyArgumentList
         thread_pool = QThreadPool.globalInstance()
@@ -64,12 +65,12 @@ class ProjectListModel(QStandardItemModel):
 
         return item
 
-    @staticmethod
-    def onAnalyzeFinished(info, item):
+    def onAnalyzeFinished(self, info, item):
         # type: (SphinxInfo, ProjectItem) -> None
         item.setInfo(info)
         if info.is_valid():
             item.setIcon(icon.load("open_folder"))
+            self.sphinxInfoLoaded.emit(item.index())
         else:
             item.setIcon(icon.load("error"))
 
@@ -101,12 +102,14 @@ class ProjectListModel(QStandardItemModel):
 class ProjectItem(QStandardItem):
     def __init__(self, name):
         super(ProjectItem, self).__init__(name)
-        self.info = None
+        self.info = None    # type: SphinxInfo
 
     def setInfo(self, info):
+        # type: (SphinxInfo) -> None
         self.info = info
 
     def project(self):
+        # type: () -> str
         return self.info.conf.get("project") if self.info else None
 
     def can_make(self):

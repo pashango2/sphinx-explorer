@@ -17,6 +17,10 @@ from . import extension
 TOML_PATH = "settings/quickstart.toml"
 
 
+def cmd(d):
+    return ""
+
+
 def quickstart_settings():
     return toml.load(TOML_PATH, OrderedDict)
 
@@ -92,6 +96,9 @@ class QuickStartDialog(QDialog):
         self.ui.tool_import.setDefaultAction(self.ui.action_import)
 
         self.ui.table_view_property.setFocus()
+
+    def dump(self):
+        return self.ui.table_view_property.dump()
 
     @Slot()
     def on_action_export_triggered(self):

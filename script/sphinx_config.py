@@ -4,7 +4,6 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import sys
 import os
 import json
-from . import exec_sphinx
 
 
 def main(config_py_path):
@@ -35,9 +34,10 @@ def main(config_py_path):
 
 def get(config_py_path):
     # type: (str) -> dict
+    from . import exec_sphinx
+
     cmd = " ".join(["python", __file__, config_py_path])
-    result = exec_sphinx.check_output(cmd)
-    result = json.loads(result)
+    result = json.loads(exec_sphinx.check_output(cmd))
     return result
 
 

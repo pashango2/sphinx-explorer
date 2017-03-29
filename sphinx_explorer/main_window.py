@@ -13,7 +13,7 @@ from PySide.QtGui import *
 from editor_plugin import atom_editor, vs_code_editor
 from . import icon
 from .main_window_ui import Ui_MainWindow
-from .project_list_model import ProjectListModel
+from .project_list_model import ProjectListModel, ProjectItem
 from .property_widget import PropertyWidget
 from .quickstart import QuickStartDialog
 from . import quickstart_wizard
@@ -70,6 +70,13 @@ class MainWindow(QMainWindow):
 
         self.ui.tree_view_projects.setModel(self.project_list_model)
         self.ui.tree_view_projects.resizeColumnToContents(0)
+        self.project_list_model.sphinxInfoLoaded.connect(self.onSphinxInfoLoaded)
+
+        self.ui.table_view_property.setReadOnly(True)
+        self.ui.tree_view_projects.setHeaderHidden(True)
+
+        self.project_selection_model = self.ui.tree_view_projects.selectionModel()
+        self.project_selection_model.currentChanged.connect(self.onProjectCurrentChanged)
 
         self.ui.tree_view_projects.setFocus()
 
@@ -100,8 +107,6 @@ class MainWindow(QMainWindow):
 
             if "projects" in load_object and load_object["projects"]:
                 self.project_list_model.load(load_object["projects"])
-
-        self._setup_property_widget(self.ui.table_view_property)
 
     def _save(self):
         json_path = os.path.join(self.home_dir, self.JSON_NAME)
@@ -173,10 +178,23 @@ class MainWindow(QMainWindow):
         else:
             subprocess.Popen(["gnome-terminal", os.path.normpath(path)])
 
+    @Slot(QModelIndex, QModelIndex)
+    def onProjectCurrentChanged(self, current, _):
+        # type: (QModelIndex, QModelIndex) -> None
+        self._setup_property_widget(current)
+
+    @Slot(QModelIndex)
+    def onSphinxInfoLoaded(self, index):
+        # type: (QModelIndex) -> None
+        if self.ui.tree_view_projects.currentIndex() == index:
+            self._setup_property_widget(index)
+
     @Slot()
     def on_action_quickstart_triggered(self):
         dlg = QuickStartDialog(self)
-        dlg.exec_()
+        if dlg.exec_() == QDialog.Accepted:
+            print(dlg.dump())
+            pass
 
     @Slot()
     def on_action_wizard_triggered(self):
@@ -239,16 +257,23 @@ class MainWindow(QMainWindow):
         """
         pass
 
-    def _setup_property_widget(self, widget):
-        # type: (PropertyWidget) -> None
-        # widget.add_category("カテゴリA")
-        # widget.add_property("path", "Path", "kita-", TypeDirPath)
-        # widget.add_property("Project", "kita-")
-        # widget.add_property("Author", "kita-")
-        # widget.add_property("Version", "kita-")
-        # widget.add_property("Release", "kita-")
-        #
-        # widget.add_category("カテゴリB")
-        # widget.add_property("Sep", True, TypeBool)
-        # # widget.add_property("extensions", "test", ValueTypes.TypeStrList)
-        pass
+    def _setup_property_widget(self, index):
+        # type: (QModelIndex) -> None
+        widget = self.ui.table_view_property
+        widget.clear()
+
+        if not index.isValid():
+            return
+
+        item = self.project_list_model.item(index.row())     # type: ProjectItem
+        if item is None or item.info is None:
+            return
+
+        conf = item.info.conf
+        widget.add_property(None, "project", conf.get("project"))
+
+        widget.add_category("Extensions")
+        for ex_name in conf.get("extensions", []):
+            widget.add_property(None, ex_name, "Yes")
+
+        widget.resizeColumnToContents(0)
