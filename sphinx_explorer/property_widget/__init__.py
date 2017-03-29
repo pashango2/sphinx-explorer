@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+
+import json
+
+import markdown
 # noinspection PyUnresolvedReferences
 from PySide.QtCore import *
 from PySide.QtGui import *
-import json
-from typing import Iterator
-import markdown
+from typing import Iterator, Any
 
 CategoryItemType = QStandardItem.UserType + 1
 PropertyItemType = CategoryItemType + 1
@@ -49,6 +51,49 @@ class TypeBase(object):
     is_persistent_editor = False
 
 
+class PropertyCategoryItem(QStandardItem):
+    @staticmethod
+    def type():
+        return CategoryItemType
+
+    def __init__(self, name):
+        # type: (str) -> None
+        super(PropertyCategoryItem, self).__init__(name)
+
+        self.setBackground(QBrush(QColor(71, 74, 77)))
+        # self.setFlags(self.flags() & ~(Qt.ItemIsEditable | Qt.ItemIsSelectable))
+        self.setFlags(Qt.NoItemFlags)
+        self.setEnabled(True)
+
+
+class PropertyItem(QStandardItem):
+    @staticmethod
+    def type():
+        return PropertyItemType
+
+    def __init__(self, key, label, value, description, value_type=None):
+        # type: (str, str, Any, str, Optional[Type[TypeBase]]) -> None
+        super(PropertyItem, self).__init__(label)
+        self.key = key
+        self.value = value
+        self.description = description
+        self.value_type = value_type
+        self.setFlags(Qt.NoItemFlags)
+        self.setEnabled(True)
+        self.validator = None
+
+        if self.value_type and value is None:
+            self.value = self.value_type.default()
+
+    def set_indent(self, indent):
+        # type: (int) -> None
+        self.setText(("    " * indent) + self.text())
+
+    def set_validator(self, validator):
+        # type: (QValidator) -> None
+        self.validator = validator
+
+
 class PropertyWidget(QTableView):
     currentChanged = Signal(QModelIndex, QModelIndex)
 
@@ -76,7 +121,7 @@ class PropertyWidget(QTableView):
     def clear(self):
         self._model.removeRows(0, self._model.rowCount())
 
-    def index(self, row, column):
+    def index(self, row: int, column: int) -> QModelIndex:
         # type: (int, int) -> QModelIndex
         return self._model.index(row, column)
 
@@ -88,9 +133,10 @@ class PropertyWidget(QTableView):
         return item
 
     @staticmethod
-    def create_property(key, label_name, value, description, value_type):
-        # type: (str, str, any, any) -> PropertyItem
-        return PropertyItem(key, label_name, value, description, value_type)
+    def create_property(item_key, label_name, value, description, value_type=None):
+        # type: (str, str, Any, str, Optional[Type[TypeBase]]) -> PropertyItem
+        item = PropertyItem(item_key, label_name, value, description, value_type)
+        return item
 
     def add_property_item(self, item):
         # type: (PropertyItem) -> None
@@ -103,9 +149,9 @@ class PropertyWidget(QTableView):
         if height > 0:
             self.setRowHeight(item.row(), height)
 
-    def add_property(self, key, label_name, value, description=None, value_type=None):
-        # type: (str, str, any, any) -> PropertyItem
-        item = self.create_property(key, label_name, value, description, value_type)
+    def add_property(self, item_key, label_name, value, description="", value_type=None):
+        # type: (str, str, Any, str, Optional[Type[TypeBase]]) -> PropertyItem
+        item = PropertyWidget.create_property(item_key, label_name, value, description, value_type)
         self.add_property_item(item)
         return item
 
@@ -133,7 +179,7 @@ class PropertyWidget(QTableView):
         obj = json.loads(params)
         return self.load(obj)
 
-    def load(self, params):
+    def load(self, params: dict) -> bool:
         # type: (dict) -> bool
         params_dict = {x.key: x for x in self.properties()}
         for key, value in params.items():
@@ -182,12 +228,47 @@ class PropertyWidget(QTableView):
             action = QAbstractItemView.MoveDown
         elif action == QAbstractItemView.MovePrevious:
             action = QAbstractItemView.MoveUp
-        
+
         return super(PropertyWidget, self).moveCursor(action, modifiers)
 
-    def validate(self):
-        # type: () -> bool
-        return True
+
+class PropertyItemDelegate(QStyledItemDelegate):
+    def __init__(self, parent=None):
+        super(PropertyItemDelegate, self).__init__(parent)
+
+    def createEditor(self, parent, option, index):
+        # type: (QWidget, QStyleOptionViewItem, QModelIndex) -> QWidget or None
+        model = index.model()  # :type: PropertyModel
+        item = model.rowItem(index)  # :type: PropertyItem
+
+        if item.type() != PropertyItemType:
+            return None
+
+        if item.value_type is None:
+            return super(PropertyItemDelegate, self).createEditor(parent, option, index)
+        else:
+            return item.value_type.control(parent)
+
+    def setEditorData(self, editor, index):
+        # type: (QWidget, QModelIndex) -> None
+        model = index.model()  # :type: PropertyModel
+        item = model.rowItem(index)  # :type: PropertyItem
+
+        if item.value_type:
+            item.value_type.set_value(editor, item.value)
+        else:
+            super(PropertyItemDelegate, self).setEditorData(editor, index)
+
+    def setModelData(self, editor, model, index):
+        # type: (QWidget, PropertyModel, QModelIndex) -> None
+        model = index.model()  # :type: PropertyModel
+        item = model.rowItem(index)  # :type: PropertyItem
+
+        if item.value_type is None:
+            super(PropertyItemDelegate, self).setModelData(editor, model, index)
+        else:
+            value = item.value_type.value(editor)
+            model.setData(index, value, Qt.EditRole)
 
 
 class PropertyModel(QStandardItemModel):
@@ -209,7 +290,7 @@ class PropertyModel(QStandardItemModel):
         self._readonly = readonly
 
     def rowItem(self, index):
-        # type: (QModelIndex) -> QStandardItem
+        # type: (QModelIndex) -> PropertyItem
         index = self.index(index.row(), 0) if index.column() != 0 else index
         return self.itemFromIndex(index)
 
@@ -251,86 +332,5 @@ class PropertyModel(QStandardItemModel):
 
         return super(PropertyModel, self).setData(index, value, role)
 
-
-class PropertyCategoryItem(QStandardItem):
-    @staticmethod
-    def type():
-        return CategoryItemType
-
-    def __init__(self, name):
-        # type: (str) -> None
-        super(PropertyCategoryItem, self).__init__(name)
-
-        self.setBackground(QBrush(QColor(71, 74, 77)))
-        # self.setFlags(self.flags() & ~(Qt.ItemIsEditable | Qt.ItemIsSelectable))
-        self.setFlags(Qt.NoItemFlags)
-        self.setEnabled(True)
-
-
-class PropertyItem(QStandardItem):
-    @staticmethod
-    def type():
-        return PropertyItemType
-
-    def __init__(self, key, label, value, description, value_type=None):
-        # type: (str, any, str, TypeBase or None) -> None
-        super(PropertyItem, self).__init__(label)
-        self.key = key
-        self.value = value
-        self.description = description
-        self.value_type = value_type
-        self.setFlags(Qt.NoItemFlags)
-        self.setEnabled(True)
-        self.validator = None
-
-        if self.value_type and value is None:
-            self.value = self.value_type.default()
-
-    def set_indent(self, indent):
-        # type: (int) -> None
-        self.setText(("    " * indent) + self.text())
-
-    def set_validator(self, validator):
-        # type: (QValidator) -> None
-        self.validator = validator
-
-
-class PropertyItemDelegate(QStyledItemDelegate):
-    def __init__(self, parent=None):
-        super(PropertyItemDelegate, self).__init__(parent)
-
-    def createEditor(self, parent, option, index):
-        # type: (QWidget, QStyleOptionViewItem, QModelIndex) -> QWidget or None
-        model = index.model()  # :type: PropertyModel
-        item = model.rowItem(index)  # :type: PropertyItem
-
-        if item.type() != PropertyItemType:
-            return None
-
-        if item.value_type is None:
-            return super(PropertyItemDelegate, self).createEditor(parent, option, index)
-        else:
-            return item.value_type.control(parent)
-
-    def setEditorData(self, editor, index):
-        # type: (QWidget, QModelIndex) -> None
-        model = index.model()  # :type: PropertyModel
-        item = model.rowItem(index)  # :type: PropertyItem
-
-        if item.value_type:
-            item.value_type.set_value(editor, item.value)
-        else:
-            super(PropertyItemDelegate, self).setEditorData(editor, index)
-
-    def setModelData(self, editor, model, index):
-        # type: (QWidget, PropertyModel, QModelIndex) -> None
-        model = index.model()  # :type: PropertyModel
-        item = model.rowItem(index)  # :type: PropertyItem
-
-        if item.value_type is None:
-            super(PropertyItemDelegate, self).setModelData(editor, model, index)
-        else:
-            value = item.value_type.value(editor)
-            model.setData(index, value, Qt.EditRole)
 
 from .value_types import *  # NOQA

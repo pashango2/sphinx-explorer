@@ -6,6 +6,7 @@ import fnmatch
 import toml
 from PySide.QtGui import *
 from .util.exec_sphinx import launch
+from typing import Iterator
 
 Editors = {}
 

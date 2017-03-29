@@ -1,31 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-import sys
-import os
-import json
-import subprocess
-import platform
 
+import json
+import os
+import platform
+import subprocess
+import sys
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
 
 
 def _cmd(cmd):
-    # type: (str) -> Tuple[str, bool]
+    # type: (str) -> str
     if platform.system() in ("Windows", "Darwin"):
-        return cmd, True
+        return cmd
     else:
-        return " ".join(['/bin/bash', '-i', '-c', '"' + cmd + '"']), True
+        return " ".join(['/bin/bash', '-i', '-c', '"' + cmd + '"'])
 
 
 def check_output(cmd):
     # type: (str) -> str
-    cmd, shell = _cmd(cmd)
-    return subprocess.check_output(cmd, shell=shell)
+    cmd = _cmd(cmd)
+    return subprocess.check_output(cmd, shell=True).decode(TERM_ENCODING)
 
 
 def config(config_path):
+    # type: (str) -> str or None
     result = check_output(
         " ".join([
             "python", os.path.join("script", "sphinx_config.py"), config_path
@@ -36,20 +37,17 @@ def config(config_path):
 
 def exec_(cmd, cwd=None):
     # type: (str, str) -> bool
-    cmd, shell = _cmd(cmd)
-    return subprocess.call(cmd, cwd=cwd, shell=shell) == 0
+    cmd = _cmd(cmd)
+    return subprocess.call(cmd, cwd=cwd, shell=True) == 0
 
 
 def launch(cmd, cwd=None):
     # type: (str, str) -> None
-    cmd, shell = _cmd(cmd)
+    cmd = _cmd(cmd)
 
     if platform.system() == "Windows":
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.STARTF_USESHOWWINDOW
+        subprocess.Popen(cmd, cwd=cwd, shell=True, startupinfo=startupinfo)
     else:
-        startupinfo = subprocess.STARTUPINFO()
-
-    subprocess.Popen(cmd, cwd=cwd, shell=shell, startupinfo=startupinfo)
-
-
+        subprocess.Popen(cmd, cwd=cwd, shell=True)

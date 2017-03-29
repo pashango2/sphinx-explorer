@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'settings.ui'
+# Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/settings.ui'
 #
-# Created: Wed Mar 29 16:20:00 2017
+# Created: Wed Mar 29 21:56:19 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!

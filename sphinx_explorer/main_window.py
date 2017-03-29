@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-import json
 import os
 import platform
 import subprocess
@@ -238,7 +237,7 @@ class MainWindow(QMainWindow):
         doc_dir = QFileDialog.getExistingDirectory(
             self,
             "add document",
-            os.path.join(self.home_dir, "..")
+            os.path.join(self.setting_dir, "..")
         )
 
         if doc_dir:

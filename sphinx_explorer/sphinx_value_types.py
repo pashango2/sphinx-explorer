@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 from .property_widget import TypeBase, register_value_type
-import locale
+from .theme_dialog import TypeHtmlTheme
 from PySide.QtGui import *
 
 
@@ -73,3 +73,4 @@ class TypeLanguage(TypeBase):
 
 def init():
     register_value_type(TypeLanguage)
+    register_value_type(TypeHtmlTheme)

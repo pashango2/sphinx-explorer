@@ -5,6 +5,7 @@ from . import TypeBase
 import os
 from PySide.QtCore import *
 from PySide.QtGui import *
+from typing import Type, Optional
 
 
 class RefButtonWidget(QFrame):
@@ -149,11 +150,13 @@ AllTypes = [
 
 
 def register_value_type(value_type):
+    # type: (Type[TypeBase]) -> None
     global AllTypes
     AllTypes.append(value_type)
 
 
 def find_value_type(type_name):
+    # type: (str) -> Optional[Type[TypeBase]]
     for value_type in AllTypes:
         if value_type.__name__ == type_name:
             return value_type
