@@ -14,11 +14,6 @@ class ProjectListModel(QStandardItemModel):
     def __init__(self, parent=None):
         super(ProjectListModel, self).__init__(parent)
 
-        # self.setHorizontalHeaderLabels([
-        #     "Document Path",
-        #     "Project"
-        # ])
-
     def load(self, project_list):
         # type: ([str]) -> None
         for project_name in project_list:

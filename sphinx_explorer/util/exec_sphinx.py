@@ -22,8 +22,7 @@ def _cmd(cmd):
 def check_output(cmd):
     # type: (str) -> str
     cmd, shell = _cmd(cmd)
-    print(cmd)
-    return subprocess.check_output(cmd, shell=shell).decode(TERM_ENCODING)
+    return subprocess.check_output(cmd, shell=shell)
 
 
 def config(config_path):
@@ -32,15 +31,25 @@ def config(config_path):
             "python", os.path.join("script", "sphinx_config.py"), config_path
         ])
     )
-    return json.loads(result)
+    return json.loads(result) if result else None
 
 
-def exec_(cmd):
-    # type: (str) -> bool
+def exec_(cmd, cwd=None):
+    # type: (str, str) -> bool
     cmd, shell = _cmd(cmd)
-    print(cmd)
-    p = subprocess.Popen(cmd, shell=shell)
-    p.wait()
+    return subprocess.call(cmd, cwd=cwd, shell=shell) == 0
 
-    return p.returncode == 0
+
+def launch(cmd, cwd=None):
+    # type: (str, str) -> None
+    cmd, shell = _cmd(cmd)
+
+    if platform.system() == "Windows":
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.STARTF_USESHOWWINDOW
+    else:
+        startupinfo = subprocess.STARTUPINFO()
+
+    subprocess.Popen(cmd, cwd=cwd, shell=shell, startupinfo=startupinfo)
+
 

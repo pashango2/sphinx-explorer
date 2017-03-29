@@ -34,6 +34,10 @@ class TypeBase(object):
     def data(value):
         return value
 
+    @staticmethod
+    def icon(_):
+        return None
+
     @classmethod
     def height(cls):
         return -1
@@ -64,6 +68,11 @@ class PropertyWidget(QTableView):
         self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.setTabKeyNavigation(False)
 
+        self._default_dict = {}
+
+    def set_default_dict(self, default_dict):
+        self._default_dict = default_dict
+
     def clear(self):
         self._model.removeRows(0, self._model.rowCount())
 
@@ -86,6 +95,9 @@ class PropertyWidget(QTableView):
     def add_property_item(self, item):
         # type: (PropertyItem) -> None
         self._model.add_property(item)
+
+        if item.value is None and item.key in self._default_dict:
+            item.value = self._default_dict[item.key]
 
         height = item.sizeHint().height()
         if height > 0:
@@ -169,7 +181,7 @@ class PropertyWidget(QTableView):
         elif action == QAbstractItemView.MovePrevious:
             action = QAbstractItemView.MoveUp
         
-        return super(PropertyWidget,self).moveCursor(action, modifiers)
+        return super(PropertyWidget, self).moveCursor(action, modifiers)
 
     def validate(self):
         # type: () -> bool
@@ -199,16 +211,31 @@ class PropertyModel(QStandardItemModel):
         index = self.index(index.row(), 0) if index.column() != 0 else index
         return self.itemFromIndex(index)
 
+    def _property_item(self, index):
+        # type: (QModelIndex) -> PropertyItem or None
+        if not index.isValid():
+            return None
+
+        item = self.item(index.row(), 0)
+        if item.type() == PropertyItemType:
+            return item
+        return None
+
     def data(self, index, role=Qt.DisplayRole):
         if role == Qt.DisplayRole or role == Qt.EditRole:
             if index.column() == 1:
-                index = self.index(index.row(), 0)
-                item = self.itemFromIndex(index)
-                if item.type() == PropertyItemType:
+                item = self._property_item(index)
+                if item:
                     if item.value_type:
                         return item.value_type.data(item.value)
                     else:
                         return item.value
+        elif role == Qt.DecorationRole:
+            if index.column() == 1:
+                item = self._property_item(index)
+                if item:
+                    if item.value_type:
+                        return item.value_type.icon(item.value)
 
         return super(PropertyModel, self).data(index, role)
 

@@ -3,7 +3,6 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 from . import TypeBase
 import os
-import locale
 from PySide.QtCore import *
 from PySide.QtGui import *
 
@@ -105,56 +104,17 @@ class TypeDirPath(TypeBase):
         return control.text()
 
 
-class TypeLanguage(TypeBase):
-    Languages = """
-    bn – ベンガル語
-    ca – カタロニア語
-    cs – チェコ語
-    da – デンマーク語
-    de – ドイツ語
-    en – 英語
-    es – スペイン語
-    et – エストニア語
-    eu – バスク語
-    fa – イラン語
-    fi – フィンランド語
-    fr – フランス語
-    he – ヘブライ語
-    hr – クロアチア語
-    hu – ハンガリー語
-    id – インドネシア
-    it – イタリア語
-    ja – 日本語
-    ko – 韓国語
-    lt – リトアニア語
-    lv – ラトビア語
-    mk – マケドニア
-    nb_NO – ノルウェー語
-    ne – ネパール語
-    nl – オランダ語
-    pl – ポーランド語
-    pt_BR – ブラジルのポーランド語
-    pt_PT – ヨーロッパのポルトガル語
-    ru – ロシア語
-    si – シンハラ
-    sk – スロバキア語
-    sl – スロベニア語
-    sv – スウェーデン語
-    tr – トルコ語
-    uk_UA – ウクライナ語
-    vi – ベトナム語
-    zh_CN – 簡体字中国語
-    zh_TW – 繁体字中国語
-    """.strip()
+class TypeChoice(TypeBase):
+    def __init__(self, selects):
+        self.selects = selects
+        self._data_dict = {item["value"]: item for item in selects}
 
-    @classmethod
-    def control(cls, parent):
+    def control(self, parent):
         combo = QComboBox(parent)
 
-        for i, line in enumerate(cls.Languages.splitlines()):
-            combo.addItem(line.strip())
-            code = line.split("–")[0].strip()
-            combo.setItemData(i, code)
+        for i, item in enumerate(self.selects):
+            combo.addItem(item["text"])
+            combo.setItemData(i, item["value"])
 
         return combo
 
@@ -171,14 +131,30 @@ class TypeLanguage(TypeBase):
 
     @classmethod
     def default(cls):
-        language = locale.getdefaultlocale()[0]
-        if language:
-            return language.split("_")[0].lower()
         return None
+
+    # noinspection PyMethodOverriding
+    def data(self, value):
+        return self._data_dict[value]["text"] if value in self._data_dict else None
+
+    # noinspection PyMethodOverriding
+    def icon(self, value):
+        return self._data_dict[value]["icon"] if value in self._data_dict else None
 
 
 AllTypes = [
     TypeBool,
     TypeDirPath,
-    TypeLanguage,
 ]
+
+
+def register_value_type(value_type):
+    global AllTypes
+    AllTypes.append(value_type)
+
+
+def find_value_type(type_name):
+    for value_type in AllTypes:
+        if value_type.__name__ == type_name:
+            return value_type
+    return None

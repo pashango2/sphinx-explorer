@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/main_window.ui'
+# Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Sat Mar 25 14:13:36 2017
+# Created: Wed Mar 29 16:57:07 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -50,10 +50,12 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 25))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 24))
         self.menubar.setObjectName("menubar")
         self.menuFile_F = QtGui.QMenu(self.menubar)
         self.menuFile_F.setObjectName("menuFile_F")
+        self.menu_editor = QtGui.QMenu(self.menuFile_F)
+        self.menu_editor.setObjectName("menu_editor")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -62,32 +64,34 @@ class Ui_MainWindow(object):
         self.action_quickstart.setObjectName("action_quickstart")
         self.action_add_document = QtGui.QAction(MainWindow)
         self.action_add_document.setObjectName("action_add_document")
-        self.action_setting = QtGui.QAction(MainWindow)
-        self.action_setting.setObjectName("action_setting")
+        self.action_settings = QtGui.QAction(MainWindow)
+        self.action_settings.setObjectName("action_settings")
         self.action_wizard = QtGui.QAction(MainWindow)
         self.action_wizard.setObjectName("action_wizard")
         self.menuFile_F.addAction(self.action_quickstart)
         self.menuFile_F.addAction(self.action_add_document)
         self.menuFile_F.addSeparator()
-        self.menuFile_F.addAction(self.action_setting)
+        self.menuFile_F.addAction(self.action_settings)
+        self.menuFile_F.addAction(self.menu_editor.menuAction())
         self.menubar.addAction(self.menuFile_F.menuAction())
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Sphinx-explorer", None, QtGui.QApplication.UnicodeUTF8))
+        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Sphinx Explorer", None, QtGui.QApplication.UnicodeUTF8))
         self.tool_button_quick_start.setText(QtGui.QApplication.translate("MainWindow", "sphinx- quickstart", None, QtGui.QApplication.UnicodeUTF8))
         self.tool_add_document.setText(QtGui.QApplication.translate("MainWindow", "add document", None, QtGui.QApplication.UnicodeUTF8))
         self.tool_setting.setText(QtGui.QApplication.translate("MainWindow", "Setting", None, QtGui.QApplication.UnicodeUTF8))
         self.menuFile_F.setTitle(QtGui.QApplication.translate("MainWindow", "File(&F)", None, QtGui.QApplication.UnicodeUTF8))
+        self.menu_editor.setTitle(QtGui.QApplication.translate("MainWindow", "Editor", None, QtGui.QApplication.UnicodeUTF8))
         self.action_quickstart.setText(QtGui.QApplication.translate("MainWindow", "quickstart", None, QtGui.QApplication.UnicodeUTF8))
         self.action_quickstart.setToolTip(QtGui.QApplication.translate("MainWindow", "quickstart", None, QtGui.QApplication.UnicodeUTF8))
         self.action_add_document.setText(QtGui.QApplication.translate("MainWindow", "Add Document", None, QtGui.QApplication.UnicodeUTF8))
         self.action_add_document.setToolTip(QtGui.QApplication.translate("MainWindow", "Add Document", None, QtGui.QApplication.UnicodeUTF8))
-        self.action_setting.setText(QtGui.QApplication.translate("MainWindow", "Setting", None, QtGui.QApplication.UnicodeUTF8))
-        self.action_setting.setToolTip(QtGui.QApplication.translate("MainWindow", "Setting", None, QtGui.QApplication.UnicodeUTF8))
-        self.action_setting.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+Shift+S", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_settings.setText(QtGui.QApplication.translate("MainWindow", "Settings...", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_settings.setToolTip(QtGui.QApplication.translate("MainWindow", "Settings", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_settings.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+Shift+S", None, QtGui.QApplication.UnicodeUTF8))
         self.action_wizard.setText(QtGui.QApplication.translate("MainWindow", "wizard mode", None, QtGui.QApplication.UnicodeUTF8))
         self.action_wizard.setToolTip(QtGui.QApplication.translate("MainWindow", "wizard mode", None, QtGui.QApplication.UnicodeUTF8))
 

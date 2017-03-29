@@ -34,7 +34,7 @@ def main(config_py_path):
 
 def get(config_py_path):
     # type: (str) -> dict
-    from . import exec_sphinx
+    from sphinx_explorer.util import exec_sphinx
 
     cmd = " ".join(["python", __file__, config_py_path])
     result = json.loads(exec_sphinx.check_output(cmd))

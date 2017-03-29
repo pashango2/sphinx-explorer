@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-import sys
 import json
 import os
 import platform
@@ -10,14 +9,20 @@ import subprocess
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from editor_plugin import atom_editor, vs_code_editor
 from . import icon
 from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel, ProjectItem
-from .property_widget import PropertyWidget
 from .quickstart import QuickStartDialog
 from . import quickstart_wizard
 from . import extension
+from . import editor
+from .util.exec_sphinx import launch
+from .settings import SettingsDialog, Settings
+from . import sphinx_value_types
+
+
+SETTING_DIR = ".sphinx-explorer"
+SETTINGS_TOML = "settings.toml"
 
 
 # from .theme_dialog import ThemeDialog
@@ -30,6 +35,17 @@ class MainWindow(QMainWindow):
     def __init__(self, sys_dir, home_dir, parent=None):
         super(MainWindow, self).__init__(parent)
 
+        # make setting dir
+        self.setting_dir = home_dir
+        if not os.path.isdir(self.setting_dir):
+            os.makedirs(self.setting_dir)
+        self.settings = Settings(os.path.join(self.setting_dir, SETTINGS_TOML))
+
+        # load extension
+        sphinx_value_types.init()
+        extension.init(os.path.join(sys_dir, "extension_plugin"))
+        editor.init(os.path.join(sys_dir, "editor_plugin"))
+
         # create actions
         self.del_document_act = QAction("Delete Document", self)
         self.del_document_act.setIcon(icon.load("remove"))
@@ -37,55 +53,66 @@ class MainWindow(QMainWindow):
         self.del_document_act.setShortcutContext(Qt.WidgetShortcut)
         self.del_document_act.setObjectName("action_del_document")
 
+        self.open_act = QAction(icon.load("editor"), "Open Editor", self, triggered=self._open_dir)
+        self.show_act = QAction(icon.load("open_folder"), "Show File", self, triggered=self._show_directory)
+        self.terminal_act = QAction(icon.load("terminal"), "Open Terminal", self, triggered=self._open_terminal)
+        self.auto_build_act = QAction(icon.load("reload"), "Auto Build", self)
+
+        self.editor_acts = []
+        for name, ed in editor.editors():
+            act = QAction(ed.name, self)
+            act.setIcon(ed.icon)
+            self.editor_acts.append(act)
+
+        # setup ui
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.home_dir = home_dir
-        # self.editor = atom_editor
-        self.editor = vs_code_editor
-
         self.project_list_model = ProjectListModel(parent=self)
 
+        # setup editor menu
+        for act in self.editor_acts:
+            self.ui.menu_editor.addAction(act)
+
+        # setup icon
         self.ui.tool_button_quick_start.setIcon(icon.load("rocket"))
         self.ui.action_quickstart.setIcon(icon.load("rocket"))
         self.ui.action_add_document.setIcon(icon.load("plus"))
-        self.ui.action_setting.setIcon(icon.load("setting"))
+        self.ui.action_settings.setIcon(icon.load("setting"))
         self.ui.action_wizard.setIcon(icon.load("magic"))
 
-        # self.ui.tool_button_quick_start.setDefaultAction(self.ui.action_quickstart)
+        # setup tool button
         self.ui.tool_add_document.setDefaultAction(self.ui.action_add_document)
-        self.ui.tool_setting.setDefaultAction(self.ui.action_setting)
+        self.ui.tool_setting.setDefaultAction(self.ui.action_settings)
 
-        self.ui.tree_view_projects.addAction(self.del_document_act)
+        # setup quick start menu
+        self.quick_start_menu = QMenu(self)
+        self.quick_start_menu.addAction(self.ui.action_wizard)
+        self.quick_start_menu.addAction(self.ui.action_quickstart)
+        self.ui.tool_button_quick_start.setMenu(self.quick_start_menu)
+        self.ui.tool_button_quick_start.setPopupMode(QToolButton.InstantPopup)
 
         # setup project tree view
+        self.ui.tree_view_projects.addAction(self.del_document_act)
         self.ui.tree_view_projects.setIndentation(0)
+        self.ui.tree_view_projects.setHeaderHidden(True)
+        self.ui.tree_view_projects.setModel(self.project_list_model)
+        self.ui.tree_view_projects.resizeColumnToContents(0)
+        self.project_selection_model = self.ui.tree_view_projects.selectionModel()
+        self.project_selection_model.currentChanged.connect(self.onProjectCurrentChanged)
+
+        # setup property view
+        self.ui.table_view_property.setReadOnly(True)
+
+        # setup project model
+        self.project_list_model.sphinxInfoLoaded.connect(self.onSphinxInfoLoaded)
 
         # setup context menu
         self.ui.tree_view_projects.setContextMenuPolicy(Qt.CustomContextMenu)
 
         self.setAcceptDrops(True)
-
         self._setup()
-
-        self.ui.tree_view_projects.setModel(self.project_list_model)
-        self.ui.tree_view_projects.resizeColumnToContents(0)
-        self.project_list_model.sphinxInfoLoaded.connect(self.onSphinxInfoLoaded)
-
-        self.ui.table_view_property.setReadOnly(True)
-        self.ui.tree_view_projects.setHeaderHidden(True)
-
-        self.project_selection_model = self.ui.tree_view_projects.selectionModel()
-        self.project_selection_model.currentChanged.connect(self.onProjectCurrentChanged)
-
         self.ui.tree_view_projects.setFocus()
-
-        self.quick_start_menu = QMenu(self)
-        self.quick_start_menu.addAction(self.ui.action_wizard)
-        self.quick_start_menu.addAction(self.ui.action_quickstart)
-
-        self.ui.tool_button_quick_start.setMenu(self.quick_start_menu)
-        self.ui.tool_button_quick_start.setPopupMode(QToolButton.InstantPopup)
 
         # move to center
         r = self.geometry()
@@ -93,52 +120,34 @@ class MainWindow(QMainWindow):
         r.moveCenter(QApplication.desktop().availableGeometry().center())
         self.setGeometry(r)
 
-        # load extension
-        extension.init(os.path.join(sys_dir, "extension_plugin"))
-
     def _setup(self):
-        if not os.path.isdir(self.home_dir):
-            os.makedirs(self.home_dir)
-
-        json_path = os.path.join(self.home_dir, self.JSON_NAME)
-
-        if os.path.isfile(json_path):
-            load_object = json.load(open(json_path))
-
-            if "projects" in load_object and load_object["projects"]:
-                self.project_list_model.load(load_object["projects"])
+        self.project_list_model.load(self.settings.projects)
 
     def _save(self):
-        json_path = os.path.join(self.home_dir, self.JSON_NAME)
-
-        dump_object = {
-            "projects": self.project_list_model.dump()
-        }
-        json.dump(dump_object, open(json_path, "w"))
+        self.settings.dump(self.project_list_model.dump())
 
     def _create_context_menu(self, item, doc_path):
         # type : (ProjectItem, str) -> QMenu
         menu = QMenu(self)
 
-        open_act = QAction(icon.load("editor"), "Open Editor", menu)
-        show_act = QAction(icon.load("open_folder"), "Show File", menu)
-        terminal_act = QAction(icon.load("terminal"), "Open Terminal", menu)
-        auto_build_act = QAction(icon.load("reload"), "Auto Build", menu)
-
         if not item.can_make():
-            auto_build_act.setEnabled(False)
+            self.auto_build_act.setEnabled(False)
 
-        # noinspection PyUnresolvedReferences
-        open_act.triggered.connect(lambda: self.editor.open_dir(doc_path))
-        # noinspection PyUnresolvedReferences
-        show_act.triggered.connect(lambda: self._show_directory(doc_path))
-        # noinspection PyUnresolvedReferences
-        terminal_act.triggered.connect(lambda: self._open_terminal(doc_path))
+        self.open_act.setData(doc_path)
+        self.show_act.setData(doc_path)
+        self.terminal_act.setData(doc_path)
 
-        menu.addAction(open_act)
-        menu.addAction(show_act)
-        menu.addAction(terminal_act)
-        menu.addAction(auto_build_act)
+        # Warning: don't use lambda to connect!!
+        # Process finished with exit code -1073741819 (0xC0000005) ...
+        #
+        # open_act.triggered.connect(lambda: self.editor.open_dir(doc_path))
+        # show_act.triggered.connect(self._show_directory)
+        # terminal_act.triggered.connect(lambda: self._open_terminal(doc_path))
+
+        menu.addAction(self.open_act)
+        menu.addAction(self.show_act)
+        menu.addAction(self.terminal_act)
+        menu.addAction(self.auto_build_act)
         menu.addAction(self.del_document_act)
 
         return menu
@@ -158,25 +167,48 @@ class MainWindow(QMainWindow):
         for doc_path in dirs:
             self.project_list_model.add_document(doc_path)
 
-    @staticmethod
-    def _show_directory(path):
-        # type: (str) -> None
-        if platform.system() == "Windows":
-            subprocess.Popen(["explorer", os.path.normpath(path)])
-        elif platform.system() == "Darwin":
-            subprocess.Popen(["open", os.path.normpath(path)])
-        else:
-            subprocess.Popen(["xdg-open", os.path.normpath(path)])
+    def _open_dir(self):
+        # type: () -> None
+        path = self.sender().data()
+        if not path:
+            return
+        self.settings.editor().open_dir(path)
 
-    @staticmethod
-    def _open_terminal(path):
-        # type: (str) -> None
+    def _show_directory(self):
+        # type: () -> None
+        path = self.sender().data()
+        if not path:
+            return
+
+        path = os.path.normpath(path)
         if platform.system() == "Windows":
-            subprocess.Popen(["cmd", "/k cd", os.path.normpath(path)])
+            cmd = ["explorer", path]
+        elif platform.system() == "Darwin":
+            cmd = ["open", path]
+        else:
+            cmd = ["xdg-open", path]
+
+        launch(" ".join(cmd), path)
+
+    def _open_terminal(self):
+        # type: (str) -> None
+        path = self.sender().data()
+        if not path:
+            return
+
+        if platform.system() == "Windows":
+            subprocess.Popen("cmd", cwd=os.path.normpath(path))
         elif platform.system() == "Darwin":
             subprocess.Popen(["open", os.path.normpath(path)])
         else:
-            subprocess.Popen(["gnome-terminal", os.path.normpath(path)])
+            subprocess.Popen("gnome-terminal", cwd=os.path.normpath(path))
+
+    @Slot()
+    def on_action_settings_triggered(self):
+        dlg = SettingsDialog(self)
+        dlg.setup(self.settings.default_values)
+        if dlg.exec_() == QDialog.Accepted:
+            self.settings.default_values.update(dlg.settings())
 
     @Slot(QModelIndex, QModelIndex)
     def onProjectCurrentChanged(self, current, _):
@@ -191,14 +223,14 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def on_action_quickstart_triggered(self):
-        dlg = QuickStartDialog(self)
+        dlg = QuickStartDialog(self.settings.default_values, self)
         if dlg.exec_() == QDialog.Accepted:
             print(dlg.dump())
             pass
 
     @Slot()
     def on_action_wizard_triggered(self):
-        quickstart_wizard.main(self)
+        quickstart_wizard.main(self.settings.default_values, self)
 
     @Slot()
     def on_action_add_document_triggered(self):
@@ -235,7 +267,7 @@ class MainWindow(QMainWindow):
         # type: (QModelIndex) -> None
         if index.isValid():
             path = self.project_list_model.path(index)
-            self.editor.open_dir(path)
+            self.settings.editor().open_dir(path)
 
     @Slot(QPoint)
     def on_tree_view_projects_customContextMenuRequested(self, pos):
@@ -266,11 +298,17 @@ class MainWindow(QMainWindow):
             return
 
         item = self.project_list_model.item(index.row())     # type: ProjectItem
-        if item is None or item.info is None:
+        if item is None or item.info is None or not item.info.is_valid():
             return
 
         conf = item.info.conf
         widget.add_property(None, "project", conf.get("project"))
+        widget.add_property(None, "author", conf.get("author"))
+        widget.add_property(None, "version", conf.get("version"))
+        widget.add_property(None, "release", conf.get("release"))
+
+        widget.add_category("Information")
+        widget.add_property(None, "html_theme", conf.get("html_theme"))
 
         widget.add_category("Extensions")
         for ex_name in conf.get("extensions", []):
