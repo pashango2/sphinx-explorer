@@ -16,7 +16,7 @@ import os
 import qdarkstyle
 from .main_window import MainWindow
 
-HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx_explorer")
+HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx-explorer")
 
 
 def main():
@@ -27,4 +27,4 @@ def main():
     window = MainWindow(sys_dir, HOME_DIR)
     window.show()
 
-    app.exec_()
+    sys.exit(app.exec_())

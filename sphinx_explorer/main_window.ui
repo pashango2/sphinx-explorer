@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Sphinx-explorer</string>
+   <string>Sphinx Explorer</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -89,17 +89,23 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile_F">
     <property name="title">
      <string>File(&amp;F)</string>
     </property>
+    <widget class="QMenu" name="menu_editor">
+     <property name="title">
+      <string>Editor</string>
+     </property>
+    </widget>
     <addaction name="action_quickstart"/>
     <addaction name="action_add_document"/>
     <addaction name="separator"/>
-    <addaction name="action_setting"/>
+    <addaction name="action_settings"/>
+    <addaction name="menu_editor"/>
    </widget>
    <addaction name="menuFile_F"/>
   </widget>
@@ -120,12 +126,12 @@
     <string>Add Document</string>
    </property>
   </action>
-  <action name="action_setting">
+  <action name="action_settings">
    <property name="text">
-    <string>Setting</string>
+    <string>Settings...</string>
    </property>
    <property name="toolTip">
-    <string>Setting</string>
+    <string>Settings</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
@@ -144,7 +150,7 @@
   <customwidget>
    <class>PropertyWidget</class>
    <extends>QTableView</extends>
-   <header>property_widget</header>
+   <header>.property_widget</header>
   </customwidget>
  </customwidgets>
  <resources/>

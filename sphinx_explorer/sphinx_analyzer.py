@@ -14,12 +14,15 @@ class SphinxInfo(object):
     def __init__(self, path):
         self.path = path
         self.conf_py_path = None
+        self.source_dir = None
+        self.build_dir = None
         self.conf = {}
 
         self._analyze()
 
     def _analyze(self):
         self.conf_py_path = self._find_conf_py(self.path)
+        self.source_dir = os.path.dirname(self.conf_py_path) if self.conf_py_path else None
 
     def read_conf(self):
         if self.conf_py_path:
@@ -27,7 +30,7 @@ class SphinxInfo(object):
 
     def is_valid(self):
         # type: () -> bool
-        return bool(self.conf_py_path)
+        return bool(self.conf_py_path) and self.conf
 
     @staticmethod
     def _find_conf_py(path):

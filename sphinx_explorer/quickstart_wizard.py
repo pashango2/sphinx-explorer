@@ -8,17 +8,17 @@ from PySide.QtGui import *
 
 from .property_widget import PropertyWidget
 from .quickstart import property_item_iter
-from . import extension
 
 
 class PropertyWizard(QWizardPage):
-    def __init__(self, category_name, params, parent=None):
-        # type: (str, dict, QWidget or None) -> None
+    def __init__(self, category_name, params, default_settings, parent=None):
+        # type: (str, dict, dict, QWidget or None) -> None
         super(PropertyWizard, self).__init__(parent)
 
         self.setTitle(category_name)
 
         property_widget = PropertyWidget(self)
+        property_widget.set_default_dict(default_settings)
         for item in property_item_iter(params):
             property_widget.add_property_item(item)
 
@@ -53,7 +53,7 @@ class PropertyWizard(QWizardPage):
         self.property_widget.setFocus()
 
 
-def main(parent):
+def main(default_settings, parent):
     settings = quickstart.quickstart_settings()
 
     wizard = QWizard(parent)
@@ -63,7 +63,7 @@ def main(parent):
     wizard.setWizardStyle(QWizard.ClassicStyle)
 
     for category_name, params in settings.items():
-        wizard.addPage(PropertyWizard(category_name, params))
+        wizard.addPage(PropertyWizard(category_name, params, default_settings))
 
     wizard.setWindowTitle("Sphinx Quckstart Wizard")
     wizard.resize(QSize(1000, 600).expandedTo(wizard.minimumSizeHint()))

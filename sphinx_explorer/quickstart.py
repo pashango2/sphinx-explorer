@@ -9,9 +9,8 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from . import icon
-from .property_widget import AllTypes, PropertyWidget
+from .property_widget import PropertyWidget, find_value_type
 from .quickstart_dialog_ui import Ui_Dialog
-from .theme_dialog import TypeHtmlTheme
 from . import extension
 
 TOML_PATH = "settings/quickstart.toml"
@@ -23,13 +22,6 @@ def cmd(d):
 
 def quickstart_settings():
     return toml.load(TOML_PATH, OrderedDict)
-
-
-def find_value_type(type_name):
-    for value_type in AllTypes + [TypeHtmlTheme]:
-        if value_type.__name__ == type_name:
-            return value_type
-    return None
 
 
 def _property_iter(params):
@@ -67,8 +59,8 @@ def property_item_iter(params):
 
 
 class QuickStartDialog(QDialog):
-    def __init__(self, parent=None):
-        # type: (QWidget or None) -> None
+    def __init__(self, default_settings, parent=None):
+        # type: (dict, QWidget or None) -> None
         super(QuickStartDialog, self).__init__(parent)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
@@ -76,6 +68,7 @@ class QuickStartDialog(QDialog):
         questions = quickstart_settings()
 
         property_widget = self.ui.table_view_property
+        property_widget.set_default_dict(default_settings)
         for category, params in questions.items():
             property_widget.add_category(category)
 
