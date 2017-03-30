@@ -205,9 +205,9 @@ class MainWindow(QMainWindow):
     @Slot()
     def on_action_settings_triggered(self):
         dlg = SettingsDialog(self)
-        dlg.setup(self.settings.default_values)
+        dlg.setup(self.settings)
         if dlg.exec_() == QDialog.Accepted:
-            self.settings.default_values.update(dlg.settings())
+            dlg.update_settings(self.settings)
 
     @Slot(QModelIndex, QModelIndex)
     def onProjectCurrentChanged(self, current, _):

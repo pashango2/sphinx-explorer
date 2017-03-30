@@ -71,7 +71,7 @@ HTML Theme.
     ["Constitution params".sep]
     name = "Separate directories"
     value_type = "TypeBool"
-    default = false
+    default = true
     description = '''
 You have two options for placing the build directory for Sphinx output.
 Either, you use a directory "_build" within the root path, or you separate

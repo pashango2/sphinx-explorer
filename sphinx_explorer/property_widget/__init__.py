@@ -82,9 +82,6 @@ class PropertyItem(QStandardItem):
         self.setEnabled(True)
         self.validator = None
 
-        if self.value_type and value is None:
-            self.value = self.value_type.default()
-
     def set_indent(self, indent):
         # type: (int) -> None
         self.setText(("    " * indent) + self.text())
@@ -144,6 +141,9 @@ class PropertyWidget(QTableView):
 
         if item.value is None and item.key in self._default_dict:
             item.value = self._default_dict[item.key]
+
+        if item.value_type and item.value is None:
+            item.value = item.value_type.default()
 
         height = item.sizeHint().height()
         if height > 0:

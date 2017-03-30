@@ -19,7 +19,7 @@ class PropertyWizard(QWizardPage):
 
         property_widget = PropertyWidget(self)
         property_widget.set_default_dict(default_settings)
-        for item in property_item_iter(params):
+        for item in property_item_iter(params, default_settings):
             property_widget.add_property_item(item)
 
         layout = QVBoxLayout(self)

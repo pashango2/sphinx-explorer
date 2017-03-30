@@ -27,17 +27,3 @@ class HtmlThemeWidget(RefButtonWidget):
             self.line_edit.setText("\n".join(dlg.selectedItems()))
 
 
-class TypeHtmlTheme(TypeBase):
-    is_persistent_editor = True
-
-    @classmethod
-    def control(cls, parent):
-        return HtmlThemeWidget(parent)
-
-    @classmethod
-    def set_value(cls, control, value):
-        control.setText(value)
-
-    @classmethod
-    def value(cls, control):
-        return control.text()

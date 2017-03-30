@@ -6,8 +6,9 @@ from collections import OrderedDict
 from PySide.QtGui import *
 from .settings_ui import Ui_Form
 from .property_widget import TypeChoice
-from .sphinx_value_types import TypeLanguage
+from .sphinx_value_types import TypeLanguage, TypeHtmlTheme
 from . import editor
+from .quickstart import questions
 import locale
 
 
@@ -51,12 +52,25 @@ class Settings(OrderedDict):
         self["projects"] = {"projects": projects}
         return toml.dump(self, open(self._setting_path, "w"))
 
+    def default_editor(self):
+        return self.get("editor", "atom")
+
+    def set_default_editor(self, editor_name):
+        self["editor"] = editor_name
+
     def editor(self):
         # type: () -> editor.Editor
-        return editor.get(self.default_values.get("editor", "atom"))
+        return editor.get(self.default_editor())
 
 
 class SettingsDialog(QDialog):
+    DEFAULT_SETTING_KEYS = [
+        "author",
+        "language",
+        "html_theme",
+        "sep",
+    ]
+
     def __init__(self, parent=None):
         super(SettingsDialog, self).__init__(parent)
         self.widget = QWidget(self)
@@ -79,6 +93,7 @@ class SettingsDialog(QDialog):
         self.setLayout(self.layout)
 
         self.setWindowTitle("Settings")
+        self.resize(1000, 600)
 
     def setup(self, settings):
         # type: (Settings) -> None
@@ -96,26 +111,29 @@ class SettingsDialog(QDialog):
         widget.add_property(
             "editor",
             "Editor",
-            settings["editor"],
+            settings.default_editor(),
             value_type=editor_choice
         )
 
-        widget.add_property(
-            "author",
-            "Author",
-            settings.get("author"),
-        )
+        widget.add_category("Default values")
+        default_values = settings.default_values
+        for item in questions(default_values, self.DEFAULT_SETTING_KEYS):
+            widget.add_property_item(item)
 
-        widget.add_property(
-            "language",
-            "Language",
-            settings.get("language"),
-            value_type=TypeLanguage,
-        )
-
-    def settings(self):
-        return self.ui.property_widget.dump()
+        widget.resizeColumnToContents(0)
 
 
+    def update_settings(self, settings):
+        # type: (Settings) -> None
+        param = self.ui.property_widget.dump()
+
+        default_param = {
+            key: value
+            for key, value in param.items()
+            if key in self.DEFAULT_SETTING_KEYS
+        }
+        settings.default_values.update(default_param)
+
+        settings.set_default_editor(param["editor"])
 
 

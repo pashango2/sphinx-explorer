@@ -16,6 +16,13 @@ from . import extension
 TOML_PATH = "settings/quickstart.toml"
 
 
+def exec_(cmd, text_edit, parent):
+    process = QProcess(parent)
+
+    process.start(cmd)
+    return process
+
+
 def cmd(d):
     return ""
 
@@ -42,12 +49,26 @@ def _property_iter(params):
             yield param_key, value_dict
 
 
-def property_item_iter(params):
+def questions(default_settings, enables):
+    question_settings = quickstart_settings()
+    for category, params in question_settings.items():
+        for item in property_item_iter(params, default_settings, enables):
+            yield item
+
+
+def property_item_iter(params, default_settings=None, enables=None):
+    default_settings = default_settings or {}
     for param_key, value_dict in _property_iter(params):
+        if enables and param_key not in enables:
+            continue
+
         item = PropertyWidget.create_property(
             param_key,
             value_dict.get("name"),
-            value_dict.get("default"),
+            default_settings.get(
+                param_key,
+                value_dict.get("default")
+            ),
             value_dict.get("description"),
             find_value_type(value_dict.get("value_type")),
         )
@@ -65,14 +86,14 @@ class QuickStartDialog(QDialog):
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
-        questions = quickstart_settings()
+        question_settings = quickstart_settings()
 
         property_widget = self.ui.table_view_property
         property_widget.set_default_dict(default_settings)
-        for category, params in questions.items():
+        for category, params in question_settings.items():
             property_widget.add_category(category)
 
-            for item in property_item_iter(params):
+            for item in property_item_iter(params, default_settings):
                 property_widget.add_property_item(item)
 
         property_widget.resizeColumnsToContents()

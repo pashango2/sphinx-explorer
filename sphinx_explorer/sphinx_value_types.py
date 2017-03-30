@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 from .property_widget import TypeBase, register_value_type
-from .theme_dialog import TypeHtmlTheme
+from .theme_dialog import HtmlThemeWidget
 from PySide.QtGui import *
 
 
@@ -69,6 +69,22 @@ class TypeLanguage(TypeBase):
     def value(cls, combo):
         # type: (QComboBox, str) -> None
         return combo.itemData(combo.currentIndex())
+
+
+class TypeHtmlTheme(TypeBase):
+    is_persistent_editor = True
+
+    @classmethod
+    def control(cls, parent):
+        return HtmlThemeWidget(parent)
+
+    @classmethod
+    def set_value(cls, control, value):
+        control.setText(value)
+
+    @classmethod
+    def value(cls, control):
+        return control.text()
 
 
 def init():
