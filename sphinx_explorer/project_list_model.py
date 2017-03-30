@@ -97,33 +97,10 @@ class ProjectListModel(QStandardItemModel):
         return self.itemFromIndex(index)
 
 
-class ProjectSettings(object):
-    SETTING_NAME = "settings.toml"
-
-    def __init__(self, path):
-        self._path = path
-        self._settings_dict = None
-
-    def get(self, name):
-        if self._settings_dict is None:
-            path = os.path.join(self._path, self.SETTING_NAME)
-            self._settings_dict = toml.load(path)
-
-        return self._settings_dict.get(name)
-
-    def auto_build_cmd(self, target):
-        source = os.path.join(self._path, self.get("autobuild").get("source_dir"))
-        build = os.path.join(self._path, self.get("autobuild").get("build_dir"), target)
-
-        cmd = "sphinx-autobuild -p 0 --open-browser {} {}".format(quote(source), quote(build))
-        return cmd
-
-
 class ProjectItem(QStandardItem):
     def __init__(self, name):
         super(ProjectItem, self).__init__(name)
         self.info = None    # type: SphinxInfo
-        self.settings = ProjectSettings(name)
 
     def path(self):
         return self.text()
@@ -131,7 +108,7 @@ class ProjectItem(QStandardItem):
     def auto_build_command(self, target="html"):
         model = self.model()
         if model:
-            cmd = self.settings.auto_build_cmd(target)
+            cmd = self.info.auto_build_cmd(target)
             return cmd
         return None
 

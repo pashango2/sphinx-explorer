@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'main_window.ui'
+# Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/main_window.ui'
 #
-# Created: Thu Mar 30 17:22:38 2017
+# Created: Thu Mar 30 23:01:25 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -107,5 +107,5 @@ class Ui_MainWindow(object):
         self.action_wizard.setText(QtGui.QApplication.translate("MainWindow", "wizard mode", None, QtGui.QApplication.UnicodeUTF8))
         self.action_wizard.setToolTip(QtGui.QApplication.translate("MainWindow", "wizard mode", None, QtGui.QApplication.UnicodeUTF8))
 
-from .util.QConsoleWidget import QConsoleWidget
 from .property_widget import PropertyWidget
+from .util.QConsoleWidget import QConsoleWidget

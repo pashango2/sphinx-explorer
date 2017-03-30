@@ -61,13 +61,18 @@ def launch(cmd, cwd=None):
         startupinfo.dwFlags |= subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.STARTF_USESHOWWINDOW
         subprocess.Popen(cmd, cwd=cwd, shell=True, startupinfo=startupinfo)
     else:
-        subprocess.Popen(cmd, cwd=cwd, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
+        subprocess.Popen(cmd, cwd=cwd, shell=True)
 
 
 def console(cmd, cwd=None):
+    # type: (str, str) -> None
     if platform.system() == "Windows":
         cmd = 'cmd.exe /K "{}"'.format(_cmd(cmd))
         subprocess.Popen(cmd, cwd=cwd)
+    elif platform.system() == "Linux":
+        cmd = "gnome-terminal -e '/bin/bash -i -c \"{}\"'".format(cmd)
+        subprocess.Popen(cmd, cwd=cwd, shell=True)
     else:
-        cmd = _cmd(cmd)
-        subprocess.Popen(cmd, cwd=cwd, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
+        # cmd = _cmd(cmd)
+        # subprocess.Popen(cmd, cwd=cwd, shell=True)
+        print(platform.system())

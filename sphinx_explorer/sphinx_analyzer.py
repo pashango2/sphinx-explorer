@@ -3,26 +3,35 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 import os
-
+import toml
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .util.exec_sphinx import config
+from .util.exec_sphinx import config, quote
 
 
 class SphinxInfo(object):
+    SETTING_NAME = "settings.toml"
+
     def __init__(self, path):
         self.path = path
         self.conf_py_path = None
         self.source_dir = None
         self.build_dir = None
         self.conf = {}
+        self.settings = {}
 
         self._analyze()
 
     def _analyze(self):
+        # search conf.py
         self.conf_py_path = self._find_conf_py(self.path)
         self.source_dir = os.path.dirname(self.conf_py_path) if self.conf_py_path else None
+
+        path = os.path.join(self.path, self.SETTING_NAME)
+        if os.path.isfile(path):
+            self.settings = toml.load(path)
+        print(self.settings)
 
     def read_conf(self):
         if self.conf_py_path:
@@ -36,11 +45,27 @@ class SphinxInfo(object):
     def _find_conf_py(path):
         # type: (str) -> str or None
         assert path
-        for root, dirs, files in os.walk(path):
-            for file_name in files:
-                if file_name == "conf.py":
-                    return os.path.join(root, file_name)
+
+        _path = os.path.join(path, "conf.py")
+        if os.path.isfile(_path):
+            return _path
+
+        _path = os.path.join(path, "source", "conf.py")
+        if os.path.isfile(_path):
+            return _path
+
         return None
+
+    @property
+    def auto_build_setting(self):
+        return self.settings.get("autobuild", {})
+
+    def auto_build_cmd(self, target):
+        source = os.path.join(self.path, self.auto_build_setting.get("source_dir"))
+        build = os.path.join(self.path, self.auto_build_setting.get("build_dir"), target)
+
+        cmd = "sphinx-autobuild -p 0 --open-browser {} {}".format(quote(source), quote(build))
+        return cmd
 
 
 class QSphinxAnalyzer(QObject, QRunnable):

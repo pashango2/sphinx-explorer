@@ -55,9 +55,9 @@ class MainWindow(QMainWindow):
         self.show_act = QAction(icon.load("open_folder"), "Show File", self, triggered=self._show_directory)
         self.terminal_act = QAction(icon.load("terminal"), "Open Terminal", self, triggered=self._open_terminal)
         self.auto_build_act = QAction(icon.load("reload"), "Auto Build", self, triggered=self._auto_build)
-        self.stop_auto_build_act = QAction(
-            icon.load("reload"), "Stop Auto Build", self, triggered=self._stop_auto_build
-        )
+        # self.stop_auto_build_act = QAction(
+        #     icon.load("reload"), "Stop Auto Build", self, triggered=self._stop_auto_build
+        # )
 
         self.editor_acts = []
         for name, ed in editor.editors():
@@ -139,7 +139,7 @@ class MainWindow(QMainWindow):
         self.show_act.setData(doc_path)
         self.terminal_act.setData(doc_path)
         self.auto_build_act.setData(item.index())
-        self.stop_auto_build_act.setData(item.index())
+        # self.stop_auto_build_act.setData(item.index())
 
         # Warning: don't use lambda to connect!!
         # Process finished with exit code -1073741819 (0xC0000005) ...
@@ -152,7 +152,7 @@ class MainWindow(QMainWindow):
         menu.addAction(self.show_act)
         menu.addAction(self.terminal_act)
         menu.addAction(self.auto_build_act)
-        menu.addAction(self.stop_auto_build_act)
+        # menu.addAction(self.stop_auto_build_act)
         menu.addAction(self.del_document_act)
 
         return menu
@@ -219,9 +219,9 @@ class MainWindow(QMainWindow):
         if item:
             console(item.auto_build_command(), os.path.normpath(item.path()))
 
-    def _stop_auto_build(self):
-        # type: () -> None
-        self.ui.plain_output.terminate()
+    # def _stop_auto_build(self):
+    #     type: () -> None
+    #     self.ui.plain_output.terminate()
 
     @Slot(str, ProjectItem)
     def onAutoBuildRequested(self, cmd, _):
