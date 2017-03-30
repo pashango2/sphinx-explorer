@@ -6,10 +6,13 @@ from PySide.QtGui import *
 from PySide.QtCore import *
 from .sphinx_analyzer import SphinxInfo, QSphinxAnalyzer
 from . import icon
+import toml
+from .util.exec_sphinx import quote
 
 
 class ProjectListModel(QStandardItemModel):
     sphinxInfoLoaded = Signal(QModelIndex)
+    autoBuildRequested = Signal(str, QStandardItem)
 
     def __init__(self, parent=None):
         super(ProjectListModel, self).__init__(parent)
@@ -94,10 +97,49 @@ class ProjectListModel(QStandardItemModel):
         return self.itemFromIndex(index)
 
 
+class ProjectSettings(object):
+    SETTING_NAME = "settings.toml"
+
+    def __init__(self, path):
+        self._path = path
+        self._settings_dict = None
+
+    def get(self, name):
+        if self._settings_dict is None:
+            path = os.path.join(self._path, self.SETTING_NAME)
+            self._settings_dict = toml.load(path)
+
+        return self._settings_dict.get(name)
+
+    def auto_build_cmd(self, target):
+        source = os.path.join(self._path, self.get("autobuild").get("source_dir"))
+        build = os.path.join(self._path, self.get("autobuild").get("build_dir"), target)
+
+        cmd = "sphinx-autobuild -p 0 --open-browser {} {}".format(quote(source), quote(build))
+        return cmd
+
+
 class ProjectItem(QStandardItem):
     def __init__(self, name):
         super(ProjectItem, self).__init__(name)
         self.info = None    # type: SphinxInfo
+        self.settings = ProjectSettings(name)
+
+    def path(self):
+        return self.text()
+
+    def auto_build_command(self, target="html"):
+        model = self.model()
+        if model:
+            cmd = self.settings.auto_build_cmd(target)
+            return cmd
+        return None
+
+    def auto_build(self, target="html"):
+        cmd = self.auto_build_command(target)
+        model = self.model()
+        if model and cmd:
+            model.autoBuildRequested.emit(cmd, self)
 
     def setInfo(self, info):
         # type: (SphinxInfo) -> None

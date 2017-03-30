@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/main_window.ui'
+# Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Wed Mar 29 21:56:19 2017
+# Created: Thu Mar 30 17:22:38 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -60,6 +60,17 @@ class Ui_MainWindow(object):
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
+        self.dock_outputs = QtGui.QDockWidget(MainWindow)
+        self.dock_outputs.setObjectName("dock_outputs")
+        self.dockWidgetContents = QtGui.QWidget()
+        self.dockWidgetContents.setObjectName("dockWidgetContents")
+        self.verticalLayout_2 = QtGui.QVBoxLayout(self.dockWidgetContents)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.plain_output = QConsoleWidget(self.dockWidgetContents)
+        self.plain_output.setObjectName("plain_output")
+        self.verticalLayout_2.addWidget(self.plain_output)
+        self.dock_outputs.setWidget(self.dockWidgetContents)
+        MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(8), self.dock_outputs)
         self.action_quickstart = QtGui.QAction(MainWindow)
         self.action_quickstart.setObjectName("action_quickstart")
         self.action_add_document = QtGui.QAction(MainWindow)
@@ -85,6 +96,7 @@ class Ui_MainWindow(object):
         self.tool_setting.setText(QtGui.QApplication.translate("MainWindow", "Setting", None, QtGui.QApplication.UnicodeUTF8))
         self.menuFile_F.setTitle(QtGui.QApplication.translate("MainWindow", "File(&F)", None, QtGui.QApplication.UnicodeUTF8))
         self.menu_editor.setTitle(QtGui.QApplication.translate("MainWindow", "Editor", None, QtGui.QApplication.UnicodeUTF8))
+        self.dock_outputs.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Outputs", None, QtGui.QApplication.UnicodeUTF8))
         self.action_quickstart.setText(QtGui.QApplication.translate("MainWindow", "quickstart", None, QtGui.QApplication.UnicodeUTF8))
         self.action_quickstart.setToolTip(QtGui.QApplication.translate("MainWindow", "quickstart", None, QtGui.QApplication.UnicodeUTF8))
         self.action_add_document.setText(QtGui.QApplication.translate("MainWindow", "Add Document", None, QtGui.QApplication.UnicodeUTF8))
@@ -95,4 +107,5 @@ class Ui_MainWindow(object):
         self.action_wizard.setText(QtGui.QApplication.translate("MainWindow", "wizard mode", None, QtGui.QApplication.UnicodeUTF8))
         self.action_wizard.setToolTip(QtGui.QApplication.translate("MainWindow", "wizard mode", None, QtGui.QApplication.UnicodeUTF8))
 
+from .util.QConsoleWidget import QConsoleWidget
 from .property_widget import PropertyWidget

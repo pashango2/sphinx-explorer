@@ -5,7 +5,7 @@ from . import TypeBase
 import os
 from PySide.QtCore import *
 from PySide.QtGui import *
-from typing import Type, Optional
+# from typing import Type, Optional
 
 
 class RefButtonWidget(QFrame):

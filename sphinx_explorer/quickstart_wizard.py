@@ -50,13 +50,30 @@ class PropertyWizard(QWizardPage):
         self.property_widget.resizeColumnToContents(0)
 
     def initializePage(self):
+        # type: () -> None
         self.property_widget.setFocus()
+
+    def dump(self):
+        # type: () -> dict
+        return self.property_widget.dump()
+
+
+class QuickStartWizard(QWizard):
+    def accept(self):
+        result = dict()
+
+        for page_id in self.visitedPages():
+            wiz_page = self.page(page_id)       # type: PropertyWizard
+            result.update(wiz_page.dump())
+
+        print(result)
+        super(QuickStartWizard, self).accept()
 
 
 def main(default_settings, parent):
     settings = quickstart.quickstart_settings()
 
-    wizard = QWizard(parent)
+    wizard = QuickStartWizard(parent)
 
     # for Windows
     # For default VistaStyle painting hardcoded in source of QWizard(qwizard.cpp[1805]).
@@ -73,3 +90,4 @@ def main(default_settings, parent):
 
     # noinspection PyUnresolvedReferences
     wizard.show()
+

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/quickstart_dialog.ui'
+# Form implementation generated from reading ui file 'quickstart_dialog.ui'
 #
-# Created: Thu Mar 30 09:00:35 2017
+# Created: Thu Mar 30 14:42:59 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -37,9 +37,19 @@ class Ui_Dialog(object):
         self.splitter.setOrientation(QtCore.Qt.Vertical)
         self.splitter.setObjectName("splitter")
         self.table_view_property = PropertyWidget(self.splitter)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.table_view_property.sizePolicy().hasHeightForWidth())
+        self.table_view_property.setSizePolicy(sizePolicy)
         self.table_view_property.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
         self.table_view_property.setObjectName("table_view_property")
         self.plain_output = QtGui.QPlainTextEdit(self.splitter)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.plain_output.sizePolicy().hasHeightForWidth())
+        self.plain_output.setSizePolicy(sizePolicy)
         self.plain_output.setObjectName("plain_output")
         self.verticalLayout.addWidget(self.splitter)
         self.buttonBox = QtGui.QDialogButtonBox(Dialog)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sphinx_explorer.quickstart import cmd
+from sphinx_explorer import quickstart
 from sphinx_explorer.util.exec_sphinx import exec_
 import os
 
@@ -9,35 +9,17 @@ path = os.path.join(
     "doc"
 )
 
-def test_quickstart():
-    d = {'path': '.', 'ext-todo': True, 'batchfile': True, 'ext-mathjax': True, 'mext-fontawesome': True, 'master': 'index',
-     'ext-viewcode': True, 'ext-doctest': True, 'ext-imgmath': True, 'language': 'ja', 'mext-nbsphinx': True, 'ext-intersphinx': True,
-     'html_theme': 'agogo', 'ext-coverage': True, 'epub': False, 'ext-ifconfig': True, 'suffix': '.rst', 'dot': '_',
-     'mext-blockdiag': True, 'ext-autodoc': True, 'makefile': True, 'sep': True, 'ext-githubpage': True}
 
-    opts = []
-    for key, value in d.items():
-        if key == "path" or not value:
-            continue
+def test_command():
+    d = {u'ext-imgmath': True, u'ext-coverage': True, u'suffix': u'.rst', u'sep': True, u'ext-commonmark': True,
+         u'ext-mathjax': True, u'prefix': u'_', u'html_theme': u'sphinx_rtd_theme',
+         u'path': u'C:\\test doc', u'batchfile': True, u'ext-nbsphinx': True,
+         u'ext-intersphinx': True, u'epub': False, u'ext-viewcode': True, u'ext-todo': True, u'language': u'ja',
+         u'author': u'Toshiyuki Ishii', u'ext-githubpage': True, u'ext-ifconfig': True, u'ext-doctest': True,
+         u'makefile': True, u'project': u'test doc', u'ext-blockdiag': True, u'version': u'0.1', u'master': u'index',
+         u'ext-fontawesome': True, u'release': u'0.1 rc', u'ext-autodoc': True}
 
-        if key.startswith("mext-"):
-            continue
+    qs_cmd = quickstart.cmd(d)
 
-        if key == "html_theme":
-            opts.append("-d " + key + "=" + value)
-            continue
+    print(qs_cmd)
 
-        if value is True:
-            opts.append("--" + key)
-        else:
-            opts.append("--" + key + "=" + value)
-
-    exec_(
-        " ".join([
-            "sphinx-quickstart",
-            "-q",
-            "-p test",
-            "-a author",
-            path,
-        ] + opts)
-    )

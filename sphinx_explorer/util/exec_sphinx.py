@@ -10,6 +10,17 @@ import sys
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
 
+if platform.system() == "Windows":
+    def quote(s):
+        if " " in s:
+            return '"' + s + '"'
+        return s
+else:
+    try:
+        from shlex import quote
+    except ImportError:
+        from pipes import quote
+
 
 def _cmd(cmd):
     # type: (str) -> str
@@ -50,4 +61,13 @@ def launch(cmd, cwd=None):
         startupinfo.dwFlags |= subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.STARTF_USESHOWWINDOW
         subprocess.Popen(cmd, cwd=cwd, shell=True, startupinfo=startupinfo)
     else:
-        subprocess.Popen(cmd, cwd=cwd, shell=True)
+        subprocess.Popen(cmd, cwd=cwd, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
+
+
+def console(cmd, cwd=None):
+    if platform.system() == "Windows":
+        cmd = 'cmd.exe /K "{}"'.format(_cmd(cmd))
+        subprocess.Popen(cmd, cwd=cwd)
+    else:
+        cmd = _cmd(cmd)
+        subprocess.Popen(cmd, cwd=cwd, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)

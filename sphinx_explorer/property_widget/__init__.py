@@ -8,7 +8,7 @@ import markdown
 # noinspection PyUnresolvedReferences
 from PySide.QtCore import *
 from PySide.QtGui import *
-from typing import Iterator, Any
+# from typing import Iterator, Any
 
 CategoryItemType = QStandardItem.UserType + 1
 PropertyItemType = CategoryItemType + 1
@@ -118,7 +118,7 @@ class PropertyWidget(QTableView):
     def clear(self):
         self._model.removeRows(0, self._model.rowCount())
 
-    def index(self, row: int, column: int) -> QModelIndex:
+    def index(self, row, column):
         # type: (int, int) -> QModelIndex
         return self._model.index(row, column)
 
@@ -179,7 +179,7 @@ class PropertyWidget(QTableView):
         obj = json.loads(params)
         return self.load(obj)
 
-    def load(self, params: dict) -> bool:
+    def load(self, params):
         # type: (dict) -> bool
         params_dict = {x.key: x for x in self.properties()}
         for key, value in params.items():
@@ -207,11 +207,11 @@ class PropertyWidget(QTableView):
 
     def html(self, index):
         # type: (QModelIndex) -> str or None
-        description = self.description(index)
-        if description:
+        dec = self.description(index)
+        if dec:
             md = """
             {}
-            """.strip().format(description)
+            """.strip().format(dec)
 
             mdo = markdown.Markdown(extensions=["gfm"])
             html = CssStyle + mdo.convert(md)
@@ -219,7 +219,7 @@ class PropertyWidget(QTableView):
 
         return None
 
-    def closeEditor(self, editor, hint):
+    def closeEditor(self, editor, _):
         # super(PropertyWidget, self).closeEditor(editor, hint)
         super(PropertyWidget, self).closeEditor(editor, QAbstractItemDelegate.EditNextItem)
 

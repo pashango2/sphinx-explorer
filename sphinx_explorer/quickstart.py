@@ -12,6 +12,8 @@ from . import icon
 from .property_widget import PropertyWidget, find_value_type
 from .quickstart_dialog_ui import Ui_Dialog
 from . import extension
+from .util.exec_sphinx import quote
+
 
 TOML_PATH = "settings/quickstart.toml"
 
@@ -24,7 +26,45 @@ def exec_(cmd, text_edit, parent):
 
 
 def cmd(d):
-    return ""
+    # type: (dict) -> basestring
+    ignore_params = ["project", "prefix", "path", "version", "release"]
+    arrow_extension = [
+        "ext-autodoc",
+        "ext-doctest",
+        "ext-intersphinx",
+        "ext-todo",
+        "ext-coverage",
+        "ext-imgmath",
+        "ext-mathjax",
+        "ext-ifconfig",
+        "ext-viewcode",
+    ]
+
+    opts = []
+    for key, value in d.items():
+        if key in ignore_params or not value:
+            continue
+
+        if key == "html_theme":
+            opts.append("-d " + key + "=" + quote(value))
+            continue
+
+        if key.startswith("ext-") and key not in arrow_extension:
+            continue
+
+        if value is True:
+            opts.append("--" + key)
+        else:
+            opts.append("--" + key + "=" + quote(value))
+
+    return " ".join([
+        "sphinx-quickstart",
+        "-q",
+        "-p " + quote(d["project"]),
+        "-a " + quote(d["author"]),
+        "-v " + quote(d["version"]),
+        "-r " + quote(d["release"]) if d.get("release") else "",
+     ] + opts + [quote(d["path"])])
 
 
 def quickstart_settings():

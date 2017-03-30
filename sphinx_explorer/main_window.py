@@ -15,10 +15,9 @@ from .quickstart import QuickStartDialog
 from . import quickstart_wizard
 from . import extension
 from . import editor
-from .util.exec_sphinx import launch
+from .util.exec_sphinx import launch, console
 from .settings import SettingsDialog, Settings
 from . import sphinx_value_types
-
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -55,7 +54,10 @@ class MainWindow(QMainWindow):
         self.open_act = QAction(icon.load("editor"), "Open Editor", self, triggered=self._open_dir)
         self.show_act = QAction(icon.load("open_folder"), "Show File", self, triggered=self._show_directory)
         self.terminal_act = QAction(icon.load("terminal"), "Open Terminal", self, triggered=self._open_terminal)
-        self.auto_build_act = QAction(icon.load("reload"), "Auto Build", self)
+        self.auto_build_act = QAction(icon.load("reload"), "Auto Build", self, triggered=self._auto_build)
+        self.stop_auto_build_act = QAction(
+            icon.load("reload"), "Stop Auto Build", self, triggered=self._stop_auto_build
+        )
 
         self.editor_acts = []
         for name, ed in editor.editors():
@@ -68,6 +70,7 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.project_list_model = ProjectListModel(parent=self)
+        self.project_list_model.autoBuildRequested.connect(self.onAutoBuildRequested)
 
         # setup editor menu
         for act in self.editor_acts:
@@ -135,6 +138,8 @@ class MainWindow(QMainWindow):
         self.open_act.setData(doc_path)
         self.show_act.setData(doc_path)
         self.terminal_act.setData(doc_path)
+        self.auto_build_act.setData(item.index())
+        self.stop_auto_build_act.setData(item.index())
 
         # Warning: don't use lambda to connect!!
         # Process finished with exit code -1073741819 (0xC0000005) ...
@@ -147,12 +152,14 @@ class MainWindow(QMainWindow):
         menu.addAction(self.show_act)
         menu.addAction(self.terminal_act)
         menu.addAction(self.auto_build_act)
+        menu.addAction(self.stop_auto_build_act)
         menu.addAction(self.del_document_act)
 
         return menu
 
     def closeEvent(self, evt):
         self._save()
+        self.ui.plain_output.terminate()
         super(MainWindow, self).closeEvent(evt)
 
     def dragEnterEvent(self, evt):
@@ -190,7 +197,7 @@ class MainWindow(QMainWindow):
         launch(" ".join(cmd), path)
 
     def _open_terminal(self):
-        # type: (str) -> None
+        # type: () -> None
         path = self.sender().data()
         if not path:
             return
@@ -201,6 +208,25 @@ class MainWindow(QMainWindow):
             subprocess.Popen(["open", os.path.normpath(path)])
         else:
             subprocess.Popen("gnome-terminal", cwd=os.path.normpath(path))
+
+    def _auto_build(self):
+        # type: () -> None
+        index = self.sender().data()
+        if not index.isValid():
+            return
+
+        item = self.project_list_model.itemFromIndex(index)  # type: ProjectItem
+        if item:
+            console(item.auto_build_command(), os.path.normpath(item.path()))
+
+    def _stop_auto_build(self):
+        # type: () -> None
+        self.ui.plain_output.terminate()
+
+    @Slot(str, ProjectItem)
+    def onAutoBuildRequested(self, cmd, _):
+        # self.ui.plain_output.exec_command(cmd)
+        launch(cmd)
 
     @Slot()
     def on_action_settings_triggered(self):
@@ -278,16 +304,6 @@ class MainWindow(QMainWindow):
             menu = self._create_context_menu(item, path)
             menu.exec_(self.ui.tree_view_projects.viewport().mapToGlobal(pos))
 
-    @staticmethod
-    def _auto_build(path):
-        # type: (str) -> None
-        """
-        sphinx - autobuild
-        docs
-        docs / _build / html
-        """
-        pass
-
     def _setup_property_widget(self, index):
         # type: (QModelIndex) -> None
         widget = self.ui.table_view_property
@@ -296,7 +312,7 @@ class MainWindow(QMainWindow):
         if not index.isValid():
             return
 
-        item = self.project_list_model.item(index.row())     # type: ProjectItem
+        item = self.project_list_model.item(index.row())  # type: ProjectItem
         if item is None or item.info is None or not item.info.is_valid():
             return
 

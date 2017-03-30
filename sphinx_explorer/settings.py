@@ -65,6 +65,7 @@ class Settings(OrderedDict):
 
 class SettingsDialog(QDialog):
     DEFAULT_SETTING_KEYS = [
+        "path",
         "author",
         "language",
         "html_theme",
