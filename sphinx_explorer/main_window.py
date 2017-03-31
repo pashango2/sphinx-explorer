@@ -15,7 +15,7 @@ from .quickstart import QuickStartDialog
 from . import quickstart_wizard
 from . import extension
 from . import editor
-from .util.exec_sphinx import launch, console
+from .util.exec_sphinx import launch, console, show_directory, open_terminal
 from .settings import SettingsDialog, Settings
 from . import sphinx_value_types
 
@@ -55,9 +55,7 @@ class MainWindow(QMainWindow):
         self.show_act = QAction(icon.load("open_folder"), "Show File", self, triggered=self._show_directory)
         self.terminal_act = QAction(icon.load("terminal"), "Open Terminal", self, triggered=self._open_terminal)
         self.auto_build_act = QAction(icon.load("reload"), "Auto Build", self, triggered=self._auto_build)
-        # self.stop_auto_build_act = QAction(
-        #     icon.load("reload"), "Stop Auto Build", self, triggered=self._stop_auto_build
-        # )
+        self.close_act = QAction("Exit", self, triggered=self.close)
 
         self.editor_acts = []
         for name, ed in editor.editors():
@@ -75,6 +73,10 @@ class MainWindow(QMainWindow):
         # setup editor menu
         for act in self.editor_acts:
             self.ui.menu_editor.addAction(act)
+
+        # setup file menu
+        self.ui.menuFile_F.addSeparator()
+        self.ui.menuFile_F.addAction(self.close_act)
 
         # setup icon
         self.ui.tool_button_quick_start.setIcon(icon.load("rocket"))
@@ -139,7 +141,6 @@ class MainWindow(QMainWindow):
         self.show_act.setData(doc_path)
         self.terminal_act.setData(doc_path)
         self.auto_build_act.setData(item.index())
-        # self.stop_auto_build_act.setData(item.index())
 
         # Warning: don't use lambda to connect!!
         # Process finished with exit code -1073741819 (0xC0000005) ...
@@ -152,7 +153,6 @@ class MainWindow(QMainWindow):
         menu.addAction(self.show_act)
         menu.addAction(self.terminal_act)
         menu.addAction(self.auto_build_act)
-        # menu.addAction(self.stop_auto_build_act)
         menu.addAction(self.del_document_act)
 
         return menu
@@ -183,31 +183,14 @@ class MainWindow(QMainWindow):
     def _show_directory(self):
         # type: () -> None
         path = self.sender().data()
-        if not path:
-            return
-
-        path = os.path.normpath(path)
-        if platform.system() == "Windows":
-            cmd = ["explorer", path]
-        elif platform.system() == "Darwin":
-            cmd = ["open", path]
-        else:
-            cmd = ["xdg-open", path]
-
-        launch(" ".join(cmd), path)
+        if path:
+            show_directory(path)
 
     def _open_terminal(self):
         # type: () -> None
         path = self.sender().data()
-        if not path:
-            return
-
-        if platform.system() == "Windows":
-            subprocess.Popen("cmd", cwd=os.path.normpath(path))
-        elif platform.system() == "Darwin":
-            subprocess.Popen(["open", os.path.normpath(path)])
-        else:
-            subprocess.Popen("gnome-terminal", cwd=os.path.normpath(path))
+        if path:
+            open_terminal(path)
 
     def _auto_build(self):
         # type: () -> None
@@ -218,10 +201,6 @@ class MainWindow(QMainWindow):
         item = self.project_list_model.itemFromIndex(index)  # type: ProjectItem
         if item:
             console(item.auto_build_command(), os.path.normpath(item.path()))
-
-    # def _stop_auto_build(self):
-    #     type: () -> None
-    #     self.ui.plain_output.terminate()
 
     @Slot(str, ProjectItem)
     def onAutoBuildRequested(self, cmd, _):
@@ -248,6 +227,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def on_action_quickstart_triggered(self):
+        # () -> None
         dlg = QuickStartDialog(self.settings.default_values, self)
         if dlg.exec_() == QDialog.Accepted:
             print(dlg.dump())
@@ -255,10 +235,12 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def on_action_wizard_triggered(self):
+        # () -> None
         quickstart_wizard.main(self.settings.default_values, self)
 
     @Slot()
     def on_action_add_document_triggered(self):
+        # () -> None
         # noinspection PyCallByClass
         doc_dir = QFileDialog.getExistingDirectory(
             self,
@@ -271,6 +253,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def on_action_del_document_triggered(self):
+        # () -> None
         indexes = self.ui.tree_view_projects.selectedIndexes()
 
         if indexes:
@@ -292,7 +275,8 @@ class MainWindow(QMainWindow):
         # type: (QModelIndex) -> None
         if index.isValid():
             path = self.project_list_model.path(index)
-            self.settings.editor().open_dir(path)
+            if path:
+                show_directory(path)
 
     @Slot(QPoint)
     def on_tree_view_projects_customContextMenuRequested(self, pos):

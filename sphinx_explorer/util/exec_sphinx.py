@@ -76,3 +76,26 @@ def console(cmd, cwd=None):
         # cmd = _cmd(cmd)
         # subprocess.Popen(cmd, cwd=cwd, shell=True)
         print(platform.system())
+
+
+def show_directory(path):
+    # type: (str) -> None
+    path = os.path.normpath(path)
+    if platform.system() == "Windows":
+        cmd = ["explorer", path]
+    elif platform.system() == "Darwin":
+        cmd = ["open", path]
+    else:
+        cmd = ["xdg-open", path]
+
+    launch(" ".join(cmd), path)
+
+
+def open_terminal(path):
+    # type: (str) -> None
+    if platform.system() == "Windows":
+        subprocess.Popen("cmd", cwd=os.path.normpath(path))
+    elif platform.system() == "Darwin":
+        subprocess.Popen(["open", os.path.normpath(path)])
+    else:
+        subprocess.Popen("gnome-terminal", cwd=os.path.normpath(path))

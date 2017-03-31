@@ -31,7 +31,6 @@ class SphinxInfo(object):
         path = os.path.join(self.path, self.SETTING_NAME)
         if os.path.isfile(path):
             self.settings = toml.load(path)
-        print(self.settings)
 
     def read_conf(self):
         if self.conf_py_path:
