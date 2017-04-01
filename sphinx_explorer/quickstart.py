@@ -67,6 +67,16 @@ def cmd(d):
      ] + opts + [quote(d["path"])])
 
 
+_questions = None
+
+
+def get_questions():
+    global _questions
+    if _questions is None:
+        _questions = Questions(TOML_PATH)
+    return _questions
+
+
 def quickstart_settings():
     return toml.load(TOML_PATH, OrderedDict)
 
@@ -89,26 +99,66 @@ def _property_iter(params):
             yield param_key, value_dict
 
 
-def questions(default_settings, enables):
+class Questions(object):
+    def __init__(self, setting_path):
+        self.settings = toml.load(setting_path, OrderedDict)
+
+        self._property_map = {}
+        for category in self.categories():
+            for key, param in self.properties(category).items():
+                self._property_map[key] = param
+
+    def property(self, keys):
+        for key in keys:
+            yield self._property_map[key]
+
+    def items(self, widget, keys):
+        for key in keys:
+            param = self._property_map[key]
+            yield widget.create_property(key, param.get("name"), None, param.get("description"), param.get("value_type"))
+
+    def categories(self):
+        return self.settings.keys()
+
+    def properties(self, category):
+        params = self.settings[category]
+
+        if "extensions" in params:
+            new_params = {}
+            for ext_name in params["extensions"]:
+                value_dict = extension.get(ext_name)
+                if value_dict is None:
+                    value_dict = {
+                        "default": True,
+                    }
+
+                value_dict["name"] = ext_name
+                value_dict["value_type"] = "TypeBool"
+
+                new_params[ext_name] = value_dict
+
+            return new_params
+        else:
+            return params
+
+
+def questions(enables):
     question_settings = quickstart_settings()
     for category, params in question_settings.items():
-        for item in property_item_iter(params, default_settings, enables):
+        for item in property_item_iter(params, enables):
             yield item
 
 
-def property_item_iter(params, default_settings=None, enables=None):
-    default_settings = default_settings or {}
+def property_item_iter(property_widget, params, enables=None):
+    item_dict = {}
     for param_key, value_dict in _property_iter(params):
         if enables and param_key not in enables:
             continue
 
-        item = PropertyWidget.create_property(
+        item = property_widget.create_property(
             param_key,
             value_dict.get("name"),
-            default_settings.get(
-                param_key,
-                value_dict.get("default")
-            ),
+            None,
             value_dict.get("description"),
             find_value_type(value_dict.get("value_type")),
         )
@@ -116,7 +166,16 @@ def property_item_iter(params, default_settings=None, enables=None):
         if value_dict.get("description"):
             item.setToolTip(value_dict.get("description").strip())
 
+        item_dict[param_key] = item
         yield item
+
+    for param_key, value_dict in _property_iter(params):
+        if enables and param_key not in enables:
+            continue
+        item = item_dict[param_key]
+
+        if value_dict.get("link") and value_dict["link"] in item_dict:
+            item.set_link(item_dict[value_dict["link"]], value_dict.get("link_format"))
 
 
 class QuickStartDialog(QDialog):
@@ -133,7 +192,7 @@ class QuickStartDialog(QDialog):
         for category, params in question_settings.items():
             property_widget.add_category(category)
 
-            for item in property_item_iter(params, default_settings):
+            for item in property_item_iter(property_widget, params):
                 property_widget.add_property_item(item)
 
         property_widget.resizeColumnsToContents()

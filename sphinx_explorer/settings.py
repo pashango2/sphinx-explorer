@@ -8,7 +8,7 @@ from .settings_ui import Ui_Form
 from .property_widget import TypeChoice
 from .sphinx_value_types import TypeLanguage, TypeHtmlTheme
 from . import editor
-from .quickstart import questions
+from .quickstart import get_questions
 import locale
 
 
@@ -116,13 +116,14 @@ class SettingsDialog(QDialog):
             value_type=editor_choice
         )
 
+        questions = get_questions()
         widget.add_category("Default values")
-        default_values = settings.default_values
-        for item in questions(default_values, self.DEFAULT_SETTING_KEYS):
+        for item in questions.items(widget, self.DEFAULT_SETTING_KEYS):
             widget.add_property_item(item)
 
+        default_values = settings.default_values
+        widget.load(default_values)
         widget.resizeColumnToContents(0)
-
 
     def update_settings(self, settings):
         # type: (Settings) -> None
@@ -134,7 +135,6 @@ class SettingsDialog(QDialog):
             if key in self.DEFAULT_SETTING_KEYS
         }
         settings.default_values.update(default_param)
-
         settings.set_default_editor(param["editor"])
 
 

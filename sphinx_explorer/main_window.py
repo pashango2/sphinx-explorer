@@ -300,17 +300,17 @@ class MainWindow(QMainWindow):
         if item is None or item.info is None or not item.info.is_valid():
             return
 
-        conf = item.info.conf
-        widget.add_property(None, "project", conf.get("project"))
-        widget.add_property(None, "author", conf.get("author"))
-        widget.add_property(None, "version", conf.get("version"))
-        widget.add_property(None, "release", conf.get("release"))
-
-        widget.add_category("Information")
-        widget.add_property(None, "html_theme", conf.get("html_theme"))
-
-        widget.add_category("Extensions")
-        for ex_name in conf.get("extensions", []):
-            widget.add_property(None, ex_name, "Yes")
-
-        widget.resizeColumnToContents(0)
+        # conf = item.info.conf
+        # widget.add_property(None, {"name": "project", "value": conf.get("project")})
+        # widget.add_property(None, {"name": "author", "value": conf.get("author")})
+        # widget.add_property(None, {"name": "version", "value": conf.get("version")})
+        # widget.add_property(None, {"name": "release", "value": conf.get("release")})
+        #
+        # widget.add_category("Information")
+        # widget.add_property(None, "html_theme", conf.get("html_theme"))
+        #
+        # widget.add_category("Extensions")
+        # for ex_name in conf.get("extensions", []):
+        #     widget.add_property(None, ex_name, "Yes")
+        #
+        # widget.resizeColumnToContents(0)

@@ -7,7 +7,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .property_widget import PropertyWidget
-from .quickstart import property_item_iter
+from .quickstart import get_questions
 
 
 class PropertyWizard(QWizardPage):
@@ -15,12 +15,15 @@ class PropertyWizard(QWizardPage):
         # type: (str, dict, dict, QWidget or None) -> None
         super(PropertyWizard, self).__init__(parent)
 
+        print(params)
+
         self.setTitle(category_name)
 
         property_widget = PropertyWidget(self)
-        property_widget.set_default_dict(default_settings)
-        for item in property_item_iter(params, default_settings):
-            property_widget.add_property_item(item)
+        property_widget.load_settings(params, default_settings)
+
+        # for item in property_item_iter(property_widget, params):
+        #     property_widget.add_property_item(item)
 
         layout = QVBoxLayout(self)
         text_browser = QTextBrowser(self)
@@ -66,12 +69,11 @@ class QuickStartWizard(QWizard):
             wiz_page = self.page(page_id)       # type: PropertyWizard
             result.update(wiz_page.dump())
 
-        print(result)
         super(QuickStartWizard, self).accept()
 
 
 def main(default_settings, parent):
-    settings = quickstart.quickstart_settings()
+    questions = get_questions()
 
     wizard = QuickStartWizard(parent)
 
@@ -79,8 +81,14 @@ def main(default_settings, parent):
     # For default VistaStyle painting hardcoded in source of QWizard(qwizard.cpp[1805]).
     wizard.setWizardStyle(QWizard.ClassicStyle)
 
-    for category_name, params in settings.items():
-        wizard.addPage(PropertyWizard(category_name, params, default_settings))
+    for category_name in questions.categories():
+        wizard.addPage(
+            PropertyWizard(
+                category_name,
+                questions.properties(category_name),
+                default_settings
+            )
+        )
 
     wizard.setWindowTitle("Sphinx Quckstart Wizard")
     wizard.resize(QSize(1000, 600).expandedTo(wizard.minimumSizeHint()))

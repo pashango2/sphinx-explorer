@@ -8,6 +8,7 @@ import markdown
 # noinspection PyUnresolvedReferences
 from PySide.QtCore import *
 from PySide.QtGui import *
+
 # from typing import Iterator, Any
 
 CategoryItemType = QStandardItem.UserType + 1
@@ -75,12 +76,17 @@ class PropertyItem(QStandardItem):
         # type: (str, str, Any, str, Optional[Type[TypeBase]]) -> None
         super(PropertyItem, self).__init__(label)
         self.key = key
-        self.value = value
+        self._value = value
         self.description = description
         self.value_type = value_type
         self.setFlags(Qt.NoItemFlags)
         self.setEnabled(True)
         self.validator = None
+        self._link = None
+        self._link_format = None
+        self._linked = []
+        self._default_flag = value is None
+        self._default = ""
 
     def set_indent(self, indent):
         # type: (int) -> None
@@ -89,6 +95,50 @@ class PropertyItem(QStandardItem):
     def set_validator(self, validator):
         # type: (QValidator) -> None
         self.validator = validator
+
+    def set_value(self, value):
+        # (Any) -> None
+        self._value = value
+        self._default_flag = self.value is None
+
+        for linked in self._linked:
+            linked.update_link(value)
+
+    def update_link(self, value):
+        if self._link_format:
+            self._default = self._link_format.format(
+                value,
+                _default=self.default_value() or "",
+                _path_sep=os.path.sep,
+            )
+        else:
+            self._default = value or ""
+
+    def update_default(self):
+        self._default = self.default_value()
+
+    def default_value(self):
+        return self.model().default_value(self.key)
+
+    @property
+    def value(self):
+        if self._value is not None:
+            return self._value
+        else:
+            return self._default
+
+    def is_default(self):
+        return self._default_flag
+
+    def set_link(self, link, link_format=None):
+        if link is None:
+            return
+
+        self._link = link
+        self._link_format = link_format
+        # noinspection PyProtectedMember
+        link._linked.append(self)
+        self.update_link(link.value)
 
 
 class PropertyWidget(QTableView):
@@ -110,10 +160,8 @@ class PropertyWidget(QTableView):
         self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.setTabKeyNavigation(False)
 
-        self._default_dict = {}
-
     def set_default_dict(self, default_dict):
-        self._default_dict = default_dict
+        self._model.set_default_dict(default_dict)
 
     def clear(self):
         self._model.removeRows(0, self._model.rowCount())
@@ -129,29 +177,38 @@ class PropertyWidget(QTableView):
         self.setSpan(item.row(), 0, 1, 2)
         return item
 
-    @staticmethod
-    def create_property(item_key, label_name, value, description, value_type=None):
-        # type: (str, str, Any, str, Optional[Type[TypeBase]]) -> PropertyItem
+    def create_property(self, item_key, params):
+        # type: (str, dict) -> PropertyItem
+        label_name = params.get("name")
+        value = params.get("value")
+        description = params.get("description")
+        value_type = params.get("value_type")
+
+        if isinstance(value_type, str):
+            value_type = find_value_type(value_type)
+
         item = PropertyItem(item_key, label_name, value, description, value_type)
+
+        if "default" in params:
+            self._model.set_default_value(item_key, params["default"])
+        item.update_link(self._model.default_value(item_key))
+
+        if params.get("description"):
+            item.setToolTip(params.get("description").strip())
+
         return item
 
     def add_property_item(self, item):
         # type: (PropertyItem) -> None
         self._model.add_property(item)
 
-        if item.value is None and item.key in self._default_dict:
-            item.value = self._default_dict[item.key]
-
-        if item.value_type and item.value is None:
-            item.value = item.value_type.default()
-
         height = item.sizeHint().height()
         if height > 0:
             self.setRowHeight(item.row(), height)
 
-    def add_property(self, item_key, label_name, value, description="", value_type=None):
-        # type: (str, str, Any, str, Optional[Type[TypeBase]]) -> PropertyItem
-        item = PropertyWidget.create_property(item_key, label_name, value, description, value_type)
+    def add_property(self, item_key, params):
+        # type: (str, dict) -> PropertyItem
+        item = self.create_property(item_key, params)
         self.add_property_item(item)
         return item
 
@@ -185,8 +242,42 @@ class PropertyWidget(QTableView):
         for key, value in params.items():
             if key in params_dict:
                 item = params_dict[key]
-                item.value = value
+                item.set_value(value)
         return True
+
+    def _load_settings(self, settings):
+        props = []
+
+        for key, value in settings.items():
+            name = value.get("name")
+            if name is None or isinstance(name, dict):
+                self.add_category(key)
+                props += self._load_settings(value)
+            else:
+                item = self.add_property(key, value)
+                props.append((value, item))
+
+        return props
+
+    def load_settings(self, settings, default_value=None):
+        # (dict) -> [PropertyItem]
+        if default_value:
+            self._model.set_default_dict(default_value)
+
+        props = self._load_settings(settings)
+        prop_map = self.property_map()
+
+        for value, item in props:
+            if "link" in value:
+                item.set_link(prop_map.get(value["link"]), value.get("link_format"))
+
+        return [_[1] for _ in props]
+
+    def property_map(self):
+        return {
+            item.key: item
+            for item in self.properties()
+        }
 
     def properties(self):
         # type: () -> Iterator[PropertyItem]
@@ -272,10 +363,27 @@ class PropertyItemDelegate(QStyledItemDelegate):
 
 
 class PropertyModel(QStandardItemModel):
+    DEFAULT_COLOR = QColor(0x80, 0x80, 0x80)
+
     def __init__(self, parent=None):
         super(PropertyModel, self).__init__(parent)
         self.setHorizontalHeaderLabels(["Property", "Value"])
         self._readonly = False
+        self._use_default = False
+        self._default_dict = {}
+
+    def set_default_dict(self, default_dict):
+        self._default_dict = default_dict
+        self._use_default = bool(default_dict)
+
+    def set_use_default(self, use_default):
+        self._use_default = use_default
+
+    def default_value(self, key):
+        return self._default_dict.get(key)
+
+    def set_default_value(self, key, value):
+        self._default_dict[key] = value
 
     def add_category(self, item):
         # type: (PropertyCategoryItem) -> None
@@ -309,16 +417,22 @@ class PropertyModel(QStandardItemModel):
             if index.column() == 1:
                 item = self._property_item(index)
                 if item:
-                    if item.value_type:
-                        return item.value_type.data(item.value)
-                    else:
-                        return item.value
+                    value = item.value
+                    if value is None:
+                        value = self._default_dict.get(item.key)
+                    return item.value_type.data(value) if item.value_type else value
         elif role == Qt.DecorationRole:
             if index.column() == 1:
                 item = self._property_item(index)
                 if item:
                     if item.value_type:
                         return item.value_type.icon(item.value)
+        elif role == Qt.ForegroundRole:
+            if index.column() == 1 and self._use_default:
+                item = self._property_item(index)
+                if item:
+                    if item.is_default():
+                        return self.DEFAULT_COLOR
 
         return super(PropertyModel, self).data(index, role)
 
@@ -327,7 +441,7 @@ class PropertyModel(QStandardItemModel):
             if index.column() == 1:
                 index = self.index(index.row(), 0)
                 item = self.itemFromIndex(index)
-                item.value = value
+                item.set_value(value)
                 return True
 
         return super(PropertyModel, self).setData(index, value, role)

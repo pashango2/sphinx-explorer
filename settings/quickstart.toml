@@ -1,16 +1,18 @@
 ["Required params"]
-    ["Required params".path]
-    name = "Root path"
-    value_type = "TypeDirPath"
-    default = "."
-    description = """
-Root path for documentation.
-    """
-
     ["Required params".project]
     name = "Project name"
     description = """
 The project name will occur in several places in the built documentation.
+    """
+
+    ["Required params".path]
+    name = "Root path"
+    value_type = "TypeDirPath"
+    link="project"
+    link_format = "{_default}{_path_sep}{}"
+
+    description = """
+Root path for documentation.
     """
 
     ["Required params".author]

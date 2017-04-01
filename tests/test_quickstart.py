@@ -4,10 +4,18 @@ from sphinx_explorer import quickstart
 from sphinx_explorer.util.exec_sphinx import exec_
 import os
 
-path = os.path.join(
+sys_path = os.path.join(
     os.path.dirname(__file__),
-    "doc"
+    "..",
 )
+
+
+def test_question():
+    path = os.path.join(sys_path, "settings", "quickstart.toml")
+    question = quickstart.Questions(path)
+
+    for category in question.categories():
+        print(question.properties(category))
 
 
 def test_command():
