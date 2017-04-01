@@ -102,11 +102,6 @@ class MainWindow(QMainWindow):
         self.ui.tree_view_projects.setHeaderHidden(True)
         self.ui.tree_view_projects.setModel(self.project_list_model)
         self.ui.tree_view_projects.resizeColumnToContents(0)
-        self.project_selection_model = self.ui.tree_view_projects.selectionModel()
-        self.project_selection_model.currentChanged.connect(self.onProjectCurrentChanged)
-
-        # setup property view
-        self.ui.table_view_property.setReadOnly(True)
 
         # setup project model
         self.project_list_model.sphinxInfoLoaded.connect(self.onSphinxInfoLoaded)
@@ -136,6 +131,8 @@ class MainWindow(QMainWindow):
 
         if not item.can_make():
             self.auto_build_act.setEnabled(False)
+
+        self.open_act.setIcon(self.settings.editor_icon())
 
         self.open_act.setData(doc_path)
         self.show_act.setData(doc_path)
@@ -214,16 +211,10 @@ class MainWindow(QMainWindow):
         if dlg.exec_() == QDialog.Accepted:
             dlg.update_settings(self.settings)
 
-    @Slot(QModelIndex, QModelIndex)
-    def onProjectCurrentChanged(self, current, _):
-        # type: (QModelIndex, QModelIndex) -> None
-        self._setup_property_widget(current)
-
     @Slot(QModelIndex)
     def onSphinxInfoLoaded(self, index):
         # type: (QModelIndex) -> None
-        if self.ui.tree_view_projects.currentIndex() == index:
-            self._setup_property_widget(index)
+        pass
 
     @Slot()
     def on_action_quickstart_triggered(self):
@@ -287,30 +278,3 @@ class MainWindow(QMainWindow):
             item = self.project_list_model.rowItem(index)
             menu = self._create_context_menu(item, path)
             menu.exec_(self.ui.tree_view_projects.viewport().mapToGlobal(pos))
-
-    def _setup_property_widget(self, index):
-        # type: (QModelIndex) -> None
-        widget = self.ui.table_view_property
-        widget.clear()
-
-        if not index.isValid():
-            return
-
-        item = self.project_list_model.item(index.row())  # type: ProjectItem
-        if item is None or item.info is None or not item.info.is_valid():
-            return
-
-        # conf = item.info.conf
-        # widget.add_property(None, {"name": "project", "value": conf.get("project")})
-        # widget.add_property(None, {"name": "author", "value": conf.get("author")})
-        # widget.add_property(None, {"name": "version", "value": conf.get("version")})
-        # widget.add_property(None, {"name": "release", "value": conf.get("release")})
-        #
-        # widget.add_category("Information")
-        # widget.add_property(None, "html_theme", conf.get("html_theme"))
-        #
-        # widget.add_category("Extensions")
-        # for ex_name in conf.get("extensions", []):
-        #     widget.add_property(None, ex_name, "Yes")
-        #
-        # widget.resizeColumnToContents(0)

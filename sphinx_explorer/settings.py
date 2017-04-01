@@ -6,7 +6,6 @@ from collections import OrderedDict
 from PySide.QtGui import *
 from .settings_ui import Ui_Form
 from .property_widget import TypeChoice
-from .sphinx_value_types import TypeLanguage, TypeHtmlTheme
 from . import editor
 from .quickstart import get_questions
 import locale
@@ -62,6 +61,10 @@ class Settings(OrderedDict):
         # type: () -> editor.Editor
         return editor.get(self.default_editor())
 
+    def editor_icon(self):
+        # type: () -> QIcon
+        return self.editor().icon if self.editor() else QIcon()
+
 
 class SettingsDialog(QDialog):
     DEFAULT_SETTING_KEYS = [
@@ -111,9 +114,11 @@ class SettingsDialog(QDialog):
         editor_choice = TypeChoice(items)
         widget.add_property(
             "editor",
-            "Editor",
-            settings.default_editor(),
-            value_type=editor_choice
+            {
+                "name": "Editor",
+                "default": settings.default_editor(),
+                "value_type": editor_choice
+            }
         )
 
         questions = get_questions()

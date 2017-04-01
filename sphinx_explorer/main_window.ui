@@ -78,7 +78,6 @@
         <set>QAbstractItemView::NoEditTriggers</set>
        </property>
       </widget>
-      <widget class="PropertyWidget" name="table_view_property"/>
      </widget>
     </item>
    </layout>
@@ -89,7 +88,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>24</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile_F">
@@ -162,11 +161,6 @@
   </action>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>PropertyWidget</class>
-   <extends>QTableView</extends>
-   <header>.property_widget</header>
-  </customwidget>
   <customwidget>
    <class>QConsoleWidget</class>
    <extends>QPlainTextEdit</extends>

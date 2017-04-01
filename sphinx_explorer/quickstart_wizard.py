@@ -15,15 +15,10 @@ class PropertyWizard(QWizardPage):
         # type: (str, dict, dict, QWidget or None) -> None
         super(PropertyWizard, self).__init__(parent)
 
-        print(params)
-
         self.setTitle(category_name)
 
         property_widget = PropertyWidget(self)
         property_widget.load_settings(params, default_settings)
-
-        # for item in property_item_iter(property_widget, params):
-        #     property_widget.add_property_item(item)
 
         layout = QVBoxLayout(self)
         text_browser = QTextBrowser(self)

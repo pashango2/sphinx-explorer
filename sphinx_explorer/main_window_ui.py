@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/main_window.ui'
 #
-# Created: Thu Mar 30 23:01:25 2017
+# Created: Sun Apr  2 03:03:35 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -45,12 +45,10 @@ class Ui_MainWindow(object):
         self.tree_view_projects = QtGui.QTreeView(self.splitter)
         self.tree_view_projects.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.tree_view_projects.setObjectName("tree_view_projects")
-        self.table_view_property = PropertyWidget(self.splitter)
-        self.table_view_property.setObjectName("table_view_property")
         self.verticalLayout.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 24))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 25))
         self.menubar.setObjectName("menubar")
         self.menuFile_F = QtGui.QMenu(self.menubar)
         self.menuFile_F.setObjectName("menuFile_F")
@@ -107,5 +105,4 @@ class Ui_MainWindow(object):
         self.action_wizard.setText(QtGui.QApplication.translate("MainWindow", "wizard mode", None, QtGui.QApplication.UnicodeUTF8))
         self.action_wizard.setToolTip(QtGui.QApplication.translate("MainWindow", "wizard mode", None, QtGui.QApplication.UnicodeUTF8))
 
-from .property_widget import PropertyWidget
 from .util.QConsoleWidget import QConsoleWidget

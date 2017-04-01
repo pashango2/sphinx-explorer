@@ -190,7 +190,7 @@ class PropertyWidget(QTableView):
         item = PropertyItem(item_key, label_name, value, description, value_type)
 
         if "default" in params:
-            self._model.set_default_value(item_key, params["default"])
+            self._model.set_default_value(item_key, params["default"], update=False)
         item.update_link(self._model.default_value(item_key))
 
         if params.get("description"):
@@ -373,7 +373,7 @@ class PropertyModel(QStandardItemModel):
         self._default_dict = {}
 
     def set_default_dict(self, default_dict):
-        self._default_dict = default_dict
+        self._default_dict = default_dict.copy()
         self._use_default = bool(default_dict)
 
     def set_use_default(self, use_default):
@@ -382,7 +382,9 @@ class PropertyModel(QStandardItemModel):
     def default_value(self, key):
         return self._default_dict.get(key)
 
-    def set_default_value(self, key, value):
+    def set_default_value(self, key, value, update=True):
+        if not update and key in self._default_dict:
+            return
         self._default_dict[key] = value
 
     def add_category(self, item):

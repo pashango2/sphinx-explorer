@@ -115,38 +115,43 @@ class Questions(object):
     def items(self, widget, keys):
         for key in keys:
             param = self._property_map[key]
-            yield widget.create_property(key, param.get("name"), None, param.get("description"), param.get("value_type"))
+            yield widget.create_property(
+                key, {
+                    "name": param.get("name"),
+                    "description": param.get("description"),
+                    "value_type": param.get("value_type"),
+                }
+            )
 
     def categories(self):
         return self.settings.keys()
 
-    def properties(self, category):
-        params = self.settings[category]
-
-        if "extensions" in params:
-            new_params = {}
-            for ext_name in params["extensions"]:
-                value_dict = extension.get(ext_name)
-                if value_dict is None:
-                    value_dict = {
-                        "default": True,
-                    }
-
-                value_dict["name"] = ext_name
-                value_dict["value_type"] = "TypeBool"
-
-                new_params[ext_name] = value_dict
-
-            return new_params
-        else:
+    def properties(self, category=None):
+        if category is None:
+            params = OrderedDict()
+            for category in self.categories():
+                params[category] = self.properties(category)
             return params
+        else:
+            params = self.settings[category]
 
+            if "extensions" in params:
+                new_params = OrderedDict()
+                for ext_name in params["extensions"]:
+                    value_dict = extension.get(ext_name)
+                    if value_dict is None:
+                        value_dict = OrderedDict({
+                            "default": True,
+                        })
 
-def questions(enables):
-    question_settings = quickstart_settings()
-    for category, params in question_settings.items():
-        for item in property_item_iter(params, enables):
-            yield item
+                    value_dict["name"] = ext_name
+                    value_dict["value_type"] = "TypeBool"
+
+                    new_params[ext_name] = value_dict
+
+                params = new_params
+
+            return params
 
 
 def property_item_iter(property_widget, params, enables=None):
@@ -185,15 +190,10 @@ class QuickStartDialog(QDialog):
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
-        question_settings = quickstart_settings()
+        questions = get_questions()
 
         property_widget = self.ui.table_view_property
-        property_widget.set_default_dict(default_settings)
-        for category, params in question_settings.items():
-            property_widget.add_category(category)
-
-            for item in property_item_iter(property_widget, params):
-                property_widget.add_property_item(item)
+        property_widget.load_settings(questions.properties(), default_settings)
 
         property_widget.resizeColumnsToContents()
         property_widget.setAlternatingRowColors(True)

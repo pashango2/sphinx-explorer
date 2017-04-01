@@ -23,9 +23,9 @@ def init(plugin_dir):
             Editors[ext_name] = Editor(root, ext_name, setting_dict)
 
 
-def get(ext_name=None):
+def get(editor_name=None):
     # type: (str) -> Editor
-    return Editors.get(ext_name or "vscode")
+    return Editors.get(editor_name or "vscode")
 
 
 def editors():
