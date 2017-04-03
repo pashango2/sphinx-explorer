@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-import os
-import signal
-import platform
-import subprocess
-
+import sys
 from PySide.QtCore import *
 from PySide.QtGui import *
+
+TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
 
 
 class QConsoleWidget(QPlainTextEdit):
@@ -37,7 +35,7 @@ class QConsoleWidget(QPlainTextEdit):
 
         line = self._process.readAllStandardOutput().data()
         self.moveCursor(QTextCursor.End)
-        self.insertPlainText(str(line))
+        self.insertPlainText(line.decode(TERM_ENCODING))
         self.moveCursor(QTextCursor.End)
 
     def terminate(self):
