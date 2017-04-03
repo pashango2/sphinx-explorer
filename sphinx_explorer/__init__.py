@@ -20,6 +20,8 @@ HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx-explorer")
 
 
 def main():
+    # sys.stdout = open("sphinx-exploere.log", "w")
+
     app = QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet())
 

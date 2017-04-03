@@ -27,7 +27,7 @@ def test_command():
          u'makefile': True, u'project': u'test doc', u'ext-blockdiag': True, u'version': u'0.1', u'master': u'index',
          u'ext-fontawesome': True, u'release': u'0.1 rc', u'ext-autodoc': True}
 
-    qs_cmd = quickstart.cmd(d)
+    qs_cmd = quickstart.quickstart_cmd(d)
 
     print(qs_cmd)
 

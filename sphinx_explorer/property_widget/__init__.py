@@ -184,7 +184,7 @@ class PropertyWidget(QTableView):
         description = params.get("description")
         value_type = params.get("value_type")
 
-        if isinstance(value_type, str):
+        if isinstance(value_type, basestring):
             value_type = find_value_type(value_type)
 
         item = PropertyItem(item_key, label_name, value, description, value_type)

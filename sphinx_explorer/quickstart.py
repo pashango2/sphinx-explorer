@@ -15,6 +15,7 @@ from .quickstart_dialog_ui import Ui_Dialog
 from .quickstart_widget_ui import Ui_Form
 from . import extension
 from .util.exec_sphinx import quote, _cmd
+from .sphinx_analyzer import SphinxInfo
 
 
 TOML_PATH = "settings/quickstart.toml"
@@ -27,7 +28,7 @@ def exec_(cmd, text_edit, parent):
     return process
 
 
-def cmd(d):
+def quickstart_cmd(d):
     # type: (dict) -> basestring
     ignore_params = ["project", "prefix", "path", "version", "release"]
     arrow_extension = [
@@ -75,10 +76,27 @@ def cmd(d):
             "-q",
             "-p " + quote(d["project"]),
             "-a " + quote(d["author"]),
-            "-v " + quote(d["version"]),
-            "-r " + quote(d["release"]) if d.get("release") else "",
+            ("-v " + quote(d["version"])) if d.get("version") else "",
+            ("-r " + quote(d["release"])) if d.get("release") else "",
          ] + opts + [quote(d["path"])])
     )
+
+
+def quickstart_ext(d):
+    info = SphinxInfo(d["path"])
+
+    fd = open(info.conf_py_path, "a")
+
+    if d.get("html_theme", "default") != "default":
+        fd.write("html_theme = '{}'\n".format(d["html_theme"]))
+
+    for key in d.keys():
+        if key.startswith("ext-"):
+            ext = extension.get(key)
+            if ext and hasattr(ext, "conf_py"):
+                fd.write(ext.conf_py)
+
+    fd.close()
 
 
 _questions = None
@@ -153,11 +171,9 @@ class Questions(object):
             if "extensions" in params:
                 new_params = OrderedDict()
                 for ext_name in params["extensions"]:
-                    value_dict = extension.get(ext_name)
-                    if value_dict is None:
-                        value_dict = OrderedDict({
-                            "default": True,
-                        })
+                    value_dict = OrderedDict({
+                        "default": True,
+                    })
 
                     value_dict["name"] = ext_name
                     value_dict["value_type"] = "TypeBool"
@@ -207,12 +223,15 @@ class QuickStartWidget(QWidget):
     @Slot()
     def on_button_create_project_clicked(self):
         obj = self.ui.property_widget.dump()
-        qs_cmd = cmd(obj)
+        qs_cmd = quickstart_cmd(obj)
+        print(qs_cmd)
         self.ui.output_widget.finished.connect(self.onFinished)
         self.ui.output_widget.exec_command(qs_cmd)
-        self.ui.output_widget.process().waitForFinished()
+        # self.ui.output_widget.process().waitForFinished()
 
     def onFinished(self, exit_code, status):
+        obj = self.ui.property_widget.dump()
+        quickstart_ext(obj)
         print(exit_code, status)
 
 
