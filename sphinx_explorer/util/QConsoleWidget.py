@@ -11,16 +11,23 @@ from PySide.QtGui import *
 
 
 class QConsoleWidget(QPlainTextEdit):
+    finished = Signal(int, QProcess.ExitStatus)
+
     def __init__(self, parent=None):
         super(QConsoleWidget, self).__init__(parent)
         self._process = None
         self.setReadOnly(True)
+
+    def process(self):
+        # type: () -> QProcess
+        return self._process
 
     def exec_command(self, cmd):
         print(cmd)
         self._process = QProcess(self)
         self._process.readyReadStandardOutput.connect(self._print_output)
         self._process.readyReadStandardError.connect(self._print_output)
+        self._process.finished.connect(self.finished)
         self._process.start(cmd)
 
     @Slot()
@@ -30,7 +37,7 @@ class QConsoleWidget(QPlainTextEdit):
 
         line = self._process.readAllStandardOutput().data()
         self.moveCursor(QTextCursor.End)
-        self.insertPlainText(line)
+        self.insertPlainText(str(line))
         self.moveCursor(QTextCursor.End)
 
     def terminate(self):

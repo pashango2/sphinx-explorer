@@ -11,7 +11,7 @@ from .util.exec_sphinx import config, quote
 
 
 class SphinxInfo(object):
-    SETTING_NAME = "settings.toml"
+    SETTING_NAME = "setting.toml"
 
     def __init__(self, path):
         self.path = path
@@ -27,6 +27,7 @@ class SphinxInfo(object):
         # search conf.py
         self.conf_py_path = self._find_conf_py(self.path)
         self.source_dir = os.path.dirname(self.conf_py_path) if self.conf_py_path else None
+        self.settings = {}
 
         path = os.path.join(self.path, self.SETTING_NAME)
         if os.path.isfile(path):
@@ -60,8 +61,9 @@ class SphinxInfo(object):
         return self.settings.get("autobuild", {})
 
     def auto_build_cmd(self, target):
-        source = os.path.join(self.path, self.auto_build_setting.get("source_dir"))
-        build = os.path.join(self.path, self.auto_build_setting.get("build_dir"), target)
+        print(self.settings)
+        source = os.path.join(self.path, self.settings.get("source_dir"))
+        build = os.path.join(self.path, self.settings.get("build_dir"), target)
 
         cmd = "sphinx-autobuild -p 0 --open-browser {} {}".format(quote(source), quote(build))
         return cmd

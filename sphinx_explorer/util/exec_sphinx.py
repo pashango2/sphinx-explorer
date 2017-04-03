@@ -40,7 +40,7 @@ def config(config_path):
     # type: (str) -> str or None
     result = check_output(
         " ".join([
-            "python", os.path.join("script", "sphinx_config.py"), config_path
+            "python", os.path.join(os.path.dirname(sys.argv[0]), "script", "sphinx_config.py"), config_path
         ])
     )
     return json.loads(result) if result else None

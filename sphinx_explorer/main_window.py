@@ -227,7 +227,11 @@ class MainWindow(QMainWindow):
     @Slot()
     def on_action_wizard_triggered(self):
         # () -> None
-        quickstart_wizard.main(self.settings.default_values, self)
+        quickstart_wizard.main(self.settings.default_values, self.add_document, self)
+
+    @Slot(str)
+    def add_document(self, path):
+        self.project_list_model.add_document(path)
 
     @Slot()
     def on_action_add_document_triggered(self):

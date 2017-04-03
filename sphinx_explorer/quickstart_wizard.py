@@ -2,12 +2,41 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 from . import quickstart
+from .quickstart import Questions
 
 from PySide.QtCore import *
 from PySide.QtGui import *
 
 from .property_widget import PropertyWidget
-from .quickstart import get_questions
+from .quickstart import get_questions, QuickStartWidget
+
+
+class FinishWizard(QWizardPage):
+    def __init__(self, questions, parent=None):
+        # type: (Questions, QWidget) -> None
+        super(FinishWizard, self).__init__(parent)
+        self.questions = questions
+
+        self.widget = QuickStartWidget(parent)
+
+        self.setTitle("Finish")
+        self.property_widget = self.widget.ui.property_widget
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.widget)
+        self.setLayout(layout)
+
+    def initializePage(self):
+        wizard = self.wizard()
+        default_values = wizard.settings()
+
+        self.property_widget.load_settings(self.questions.properties())
+        self.property_widget.load(default_values)
+        self.property_widget.resizeColumnToContents(0)
+
+    # noinspection PyMethodMayBeStatic
+    def dump(self):
+        return {}
 
 
 class PropertyWizard(QWizardPage):
@@ -57,20 +86,28 @@ class PropertyWizard(QWizardPage):
 
 
 class QuickStartWizard(QWizard):
-    def accept(self):
+    def __init__(self, callback, parent):
+        super(QuickStartWizard, self).__init__(parent)
+        self._callback = callback
+
+    def settings(self):
         result = dict()
 
         for page_id in self.visitedPages():
-            wiz_page = self.page(page_id)       # type: PropertyWizard
+            wiz_page = self.page(page_id)  # type: PropertyWizard
             result.update(wiz_page.dump())
 
+        return result
+
+    def accept(self):
+        self._callback(self.settings()["path"])
         super(QuickStartWizard, self).accept()
 
 
-def main(default_settings, parent):
+def main(default_settings, callback, parent):
     questions = get_questions()
 
-    wizard = QuickStartWizard(parent)
+    wizard = QuickStartWizard(callback, parent)
 
     # for Windows
     # For default VistaStyle painting hardcoded in source of QWizard(qwizard.cpp[1805]).
@@ -85,6 +122,8 @@ def main(default_settings, parent):
             )
         )
 
+    wizard.addPage(FinishWizard(questions))
+
     wizard.setWindowTitle("Sphinx Quckstart Wizard")
     wizard.resize(QSize(1000, 600).expandedTo(wizard.minimumSizeHint()))
 
@@ -93,4 +132,5 @@ def main(default_settings, parent):
 
     # noinspection PyUnresolvedReferences
     wizard.show()
+
 

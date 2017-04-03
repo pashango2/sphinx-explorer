@@ -3,7 +3,8 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 from collections import OrderedDict
-
+import sys
+import os
 import toml
 from PySide.QtCore import *
 from PySide.QtGui import *
@@ -11,8 +12,9 @@ from PySide.QtGui import *
 from . import icon
 from .property_widget import PropertyWidget, find_value_type
 from .quickstart_dialog_ui import Ui_Dialog
+from .quickstart_widget_ui import Ui_Form
 from . import extension
-from .util.exec_sphinx import quote
+from .util.exec_sphinx import quote, _cmd
 
 
 TOML_PATH = "settings/quickstart.toml"
@@ -40,6 +42,9 @@ def cmd(d):
         "ext-viewcode",
     ]
 
+    if "ext-imgmath" in d and "ext-mathjax" in d:
+        del d["ext-imgmath"]
+
     opts = []
     for key, value in d.items():
         if key in ignore_params or not value:
@@ -57,20 +62,30 @@ def cmd(d):
         else:
             opts.append("--" + key + "=" + quote(value))
 
-    return " ".join([
-        "sphinx-quickstart",
-        "-q",
-        "-p " + quote(d["project"]),
-        "-a " + quote(d["author"]),
-        "-v " + quote(d["version"]),
-        "-r " + quote(d["release"]) if d.get("release") else "",
-     ] + opts + [quote(d["path"])])
+    path = os.path.join(
+        os.path.dirname(sys.argv[0]),
+        "script",
+        "patched_quickstart.py"
+    )
+
+    return _cmd(
+        " ".join([
+            "python",
+            path,
+            "-q",
+            "-p " + quote(d["project"]),
+            "-a " + quote(d["author"]),
+            "-v " + quote(d["version"]),
+            "-r " + quote(d["release"]) if d.get("release") else "",
+         ] + opts + [quote(d["path"])])
+    )
 
 
 _questions = None
 
 
 def get_questions():
+    # type: () -> Questions
     global _questions
     if _questions is None:
         _questions = Questions(TOML_PATH)
@@ -181,6 +196,24 @@ def property_item_iter(property_widget, params, enables=None):
 
         if value_dict.get("link") and value_dict["link"] in item_dict:
             item.set_link(item_dict[value_dict["link"]], value_dict.get("link_format"))
+
+
+class QuickStartWidget(QWidget):
+    def __init__(self, parent=None):
+        super(QuickStartWidget, self).__init__(parent)
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
+
+    @Slot()
+    def on_button_create_project_clicked(self):
+        obj = self.ui.property_widget.dump()
+        qs_cmd = cmd(obj)
+        self.ui.output_widget.finished.connect(self.onFinished)
+        self.ui.output_widget.exec_command(qs_cmd)
+        self.ui.output_widget.process().waitForFinished()
+
+    def onFinished(self, exit_code, status):
+        print(exit_code, status)
 
 
 class QuickStartDialog(QDialog):
