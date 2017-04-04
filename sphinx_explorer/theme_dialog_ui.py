@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/theme_dialog.ui'
 #
-# Created: Tue Mar 21 09:26:38 2017
+# Created: Sat Mar 25 00:05:37 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -23,6 +23,7 @@ class Ui_Dialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.list_view_theme.sizePolicy().hasHeightForWidth())
         self.list_view_theme.setSizePolicy(sizePolicy)
+        self.list_view_theme.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.list_view_theme.setResizeMode(QtGui.QListView.Adjust)
         self.list_view_theme.setLayoutMode(QtGui.QListView.SinglePass)
         self.list_view_theme.setViewMode(QtGui.QListView.IconMode)

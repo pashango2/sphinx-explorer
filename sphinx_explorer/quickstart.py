@@ -1,195 +1,347 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PySide.QtGui import *
-from PySide.QtCore import *
+from __future__ import division, print_function, absolute_import, unicode_literals
+
+from collections import OrderedDict
+import sys
 import os
+import toml
+from PySide.QtCore import *
+from PySide.QtGui import *
 
-# from sphinx import quickstart
-# from sphinx.quickstart import ask_user, generate, do_prompt, nonempty, boolean
-#
-#
-# def queistions(path):
-#     # type: (str) -> dict
-#     d = {'path': path}
-#
-#     # begin monkey patch
-#     quickstart.do_prompt = _do_prompt
-#
-#     quickstart.ask_user(d)
-#
-#     # end monkey patch
-#     quickstart.do_prompt = do_prompt
-#
-#     return d
-#
-#
-# # def do_prompt(d, key, text, default=None, validator=nonempty):
-# def _do_prompt(d, key, text, default=None, validator=nonempty):
-#     print(d, key, text)
-#     pass
-
-
+from . import icon
+from .property_widget import PropertyWidget, find_value_type
 from .quickstart_dialog_ui import Ui_Dialog
+from .quickstart_widget_ui import Ui_Form
+from . import extension
+from .util.exec_sphinx import quote, _cmd
+from .sphinx_analyzer import SphinxInfo
 
 
-class Param(object):
-    def __init__(self, key, text, param_type, default=None, validator=None):
-        self.key = key
-        self.text = text
-        self.param_type = param_type
-        self.default = default
-        self.validator = validator
-
-    def control(self, parent):
-        return self.param_type.control(self.default, parent)
+TOML_PATH = "settings/quickstart.toml"
 
 
-class ParamType(object):
-    @classmethod
-    def control(cls, default, parent):
-        pass
+def exec_(cmd, text_edit, parent):
+    process = QProcess(parent)
+
+    process.start(cmd)
+    return process
 
 
-class PathParamWidget(QWidget):
-    def __init__(self, parent=None):
-        super(PathParamWidget, self).__init__(parent)
-        self.line_edit = QLineEdit(self)
-        self.ref_button = QToolButton(self)
-        self.ref_button.setText("...")
-        self.ref_button.setAutoRaise(True)
-        # self.ref_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        self.ref_button.setContentsMargins(0, 0, 0, 0)
+def quickstart_cmd(d):
+    # type: (dict) -> basestring
+    ignore_params = ["project", "prefix", "path", "version", "release"]
+    arrow_extension = [
+        "ext-autodoc",
+        "ext-doctest",
+        "ext-intersphinx",
+        "ext-todo",
+        "ext-coverage",
+        "ext-imgmath",
+        "ext-mathjax",
+        "ext-ifconfig",
+        "ext-viewcode",
+    ]
 
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.line_edit)
-        layout.addWidget(self.ref_button)
+    if "ext-imgmath" in d and "ext-mathjax" in d:
+        del d["ext-imgmath"]
 
-        # noinspection PyUnresolvedReferences
-        self.ref_button.clicked.connect(self.onRefButtonClicked)
+    opts = []
+    for key, value in d.items():
+        if key in ignore_params or not value:
+            continue
 
-    def onRefButtonClicked(self):
-        cwd = self.line_edit.text() or os.getcwd()
+        if key == "html_theme":
+            opts.append("-d " + key + "=" + quote(value))
+            continue
 
-        # noinspection PyCallByClass
-        path_dir = QFileDialog.getExistingDirectory(
-            self, "Sphinx root path", cwd
+        if key.startswith("ext-") and key not in arrow_extension:
+            continue
+
+        if value is True:
+            opts.append("--" + key)
+        else:
+            opts.append("--" + key + "=" + quote(value))
+
+    path = os.path.join(
+        os.path.dirname(sys.argv[0]),
+        "script",
+        "patched_quickstart.py"
+    )
+
+    return _cmd(
+        " ".join([
+            "python",
+            path,
+            "-q",
+            "-p " + quote(d["project"]),
+            "-a " + quote(d["author"]),
+            ("-v " + quote(d["version"])) if d.get("version") else "",
+            ("-r " + quote(d["release"])) if d.get("release") else "",
+         ] + opts + [quote(d["path"])])
+    )
+
+
+def quickstart_ext(d):
+    info = SphinxInfo(d["path"])
+
+    fd = open(info.conf_py_path, "a")
+
+    if d.get("html_theme", "default") != "default":
+        fd.write("html_theme = '{}'\n".format(d["html_theme"]))
+
+    for key in d.keys():
+        if key.startswith("ext-"):
+            ext = extension.get(key)
+            if ext and hasattr(ext, "conf_py"):
+                fd.write(ext.conf_py)
+
+    fd.close()
+
+
+_questions = None
+
+
+def get_questions():
+    # type: () -> Questions
+    global _questions
+    if _questions is None:
+        _questions = Questions(TOML_PATH)
+    return _questions
+
+
+def quickstart_settings():
+    return toml.load(TOML_PATH, OrderedDict)
+
+
+def _property_iter(params):
+    if "extensions" in params:
+        for ext_name in params["extensions"]:
+            value_dict = extension.get(ext_name)
+            if value_dict is None:
+                value_dict = {
+                    "default": True,
+                }
+
+            value_dict["name"] = ext_name
+            value_dict["value_type"] = "TypeBool"
+
+            yield ext_name, value_dict
+    else:
+        for param_key, value_dict in params.items():
+            yield param_key, value_dict
+
+
+class Questions(object):
+    def __init__(self, setting_path):
+        self.settings = toml.load(setting_path, OrderedDict)
+
+        self._property_map = {}
+        for category in self.categories():
+            for key, param in self.properties(category).items():
+                self._property_map[key] = param
+
+    def property(self, keys):
+        for key in keys:
+            yield self._property_map[key]
+
+    def items(self, widget, keys):
+        for key in keys:
+            param = self._property_map[key]
+            yield widget.create_property(
+                key, {
+                    "name": param.get("name"),
+                    "description": param.get("description"),
+                    "value_type": param.get("value_type"),
+                }
+            )
+
+    def categories(self):
+        return self.settings.keys()
+
+    def properties(self, category=None):
+        if category is None:
+            params = OrderedDict()
+            for category in self.categories():
+                params[category] = self.properties(category)
+            return params
+        else:
+            params = self.settings[category]
+
+            if "extensions" in params:
+                new_params = OrderedDict()
+                for ext_name in params["extensions"]:
+                    value_dict = OrderedDict({
+                        "default": True,
+                    })
+
+                    value_dict["name"] = ext_name
+                    value_dict["value_type"] = "TypeBool"
+
+                    new_params[ext_name] = value_dict
+
+                params = new_params
+
+            return params
+
+
+def property_item_iter(property_widget, params, enables=None):
+    item_dict = {}
+    for param_key, value_dict in _property_iter(params):
+        if enables and param_key not in enables:
+            continue
+
+        item = property_widget.create_property(
+            param_key,
+            value_dict.get("name"),
+            None,
+            value_dict.get("description"),
+            find_value_type(value_dict.get("value_type")),
         )
-        if path_dir:
-            self.line_edit.setText(path_dir)
 
-    def setText(self, text):
-        self.line_edit.setText(text)
+        if value_dict.get("description"):
+            item.setToolTip(value_dict.get("description").strip())
 
+        item_dict[param_key] = item
+        yield item
 
-class PathParamType(ParamType):
-    @classmethod
-    def control(cls, default, parent):
-        widget = PathParamWidget(parent)
-        widget.setText(default)
-        return widget
+    for param_key, value_dict in _property_iter(params):
+        if enables and param_key not in enables:
+            continue
+        item = item_dict[param_key]
 
-
-class BoolParamType(ParamType):
-    @classmethod
-    def control(cls, default, parent):
-        widget = QCheckBox(parent)
-        if default is not None:
-            widget.setChecked(default)
-        return widget
+        if value_dict.get("link") and value_dict["link"] in item_dict:
+            item.set_link(item_dict[value_dict["link"]], value_dict.get("link_format"))
 
 
-class LineParamType(ParamType):
-    @classmethod
-    def control(cls, default, parent):
-        widget = QLineEdit(parent)
-        widget.setText(default)
-        return widget
+class QuickStartWidget(QWidget):
+    finished = Signal(bool, str)
 
+    def __init__(self, parent=None):
+        super(QuickStartWidget, self).__init__(parent)
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
+        self.path = ""
 
-class LanguageParamType(ParamType):
-    Languages = """
-    bn – ベンガル語
-    ca – カタロニア語
-    cs – チェコ語
-    da – デンマーク語
-    de – ドイツ語
-    en – 英語
-    es – スペイン語
-    et – エストニア語
-    eu – バスク語
-    fa – イラン語
-    fi – フィンランド語
-    fr – フランス語
-    he – ヘブライ語
-    hr – クロアチア語
-    hu – ハンガリー語
-    id – インドネシア
-    it – イタリア語
-    ja – 日本語
-    ko – 韓国語
-    lt – リトアニア語
-    lv – ラトビア語
-    mk – マケドニア
-    nb_NO – ノルウェー語
-    ne – ネパール語
-    nl – オランダ語
-    pl – ポーランド語
-    pt_BR – ブラジルのポーランド語
-    pt_PT – ヨーロッパのポルトガル語
-    ru – ロシア語
-    si – シンハラ
-    sk – スロバキア語
-    sl – スロベニア語
-    sv – スウェーデン語
-    tr – トルコ語
-    uk_UA – ウクライナ語
-    vi – ベトナム語
-    zh_CN – 簡体字中国語
-    zh_TW – 繁体字中国語
-    """.strip()
+    @Slot()
+    def on_button_create_project_clicked(self):
+        obj = self.ui.property_widget.dump()
+        qs_cmd = quickstart_cmd(obj)
+        self.path = obj["path"]
+        print(qs_cmd)
+        self.ui.output_widget.finished.connect(self.onFinished)
+        self.ui.output_widget.exec_command(qs_cmd)
+        # self.ui.output_widget.process().waitForFinished()
 
-    @classmethod
-    def control(cls, default, parent):
-        combo = QComboBox(parent)
-
-        for i, line in enumerate(cls.Languages.splitlines()):
-            combo.addItem(line.strip())
-
-            code = line.split("–")[0].strip()
-            if code == default:
-                combo.setCurrentIndex(i)
-
-        return combo
+    def onFinished(self, exit_code, status):
+        if exit_code == 0:
+            obj = self.ui.property_widget.dump()
+            quickstart_ext(obj)
+            self.finished.emit(True, self.path)
 
 
 class QuickStartDialog(QDialog):
-    Params = [
-        Param("path", "root path", PathParamType, os.getcwd()),
-        Param("sep", "separate source and build dirs", BoolParamType, True),
-        Param("dot", "replacement for dot in _templates etc.", LineParamType),
-        Param("project", "project name", LineParamType),
-        Param("author", "author names", LineParamType),
-        Param("version", "version of project", LineParamType),
-        Param("release", "release of project", LineParamType),
-        Param("language", "document language", LanguageParamType, "ja"),
-        Param("suffix", "source file suffix", LineParamType),
-        Param("master", "master document name", LineParamType),
-        Param("epub", "use epub", BoolParamType, False),
-        Param("makefile", "make Makefile", BoolParamType, True),
-        Param("batchfile", "make command file", BoolParamType, True),
-    ]
-
-    def __init__(self, parent=None):
-        """
-        :type parent: QWidget
-        """
+    def __init__(self, default_settings, parent=None):
+        # type: (dict, QWidget or None) -> None
         super(QuickStartDialog, self).__init__(parent)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
-        for param in self.Params:
-            self.ui.from_layout.addRow(
-                param.text,
-                param.control(self)
-            )
+        questions = get_questions()
+
+        property_widget = self.ui.table_view_property
+        property_widget.load_settings(questions.properties(), default_settings)
+
+        property_widget.resizeColumnsToContents()
+        property_widget.setAlternatingRowColors(True)
+        property_widget.setStyleSheet("alternate-background-color: #2b2b2b;")
+
+        # actions
+        self.ui.action_bookmark.setIcon(icon.load("bookmark"))
+        self.ui.action_export.setIcon(icon.load("export"))
+        self.ui.action_import.setIcon(icon.load("import"))
+
+        self.ui.tool_bookmark.setDefaultAction(self.ui.action_bookmark)
+        self.ui.tool_export.setDefaultAction(self.ui.action_export)
+        self.ui.tool_import.setDefaultAction(self.ui.action_import)
+
+        self.ui.table_view_property.setFocus()
+
+    def dump(self):
+        return self.ui.table_view_property.dump()
+
+    @Slot()
+    def on_action_export_triggered(self):
+        dlg = ImportExportDialog(False, self)
+        dlg.set_text(self.ui.table_view_property.dumps())
+        dlg.exec_()
+
+    @Slot()
+    def on_action_import_triggered(self):
+        dlg = ImportExportDialog(True, self)
+        if dlg.exec_() == QDialog.Accepted:
+            self.ui.table_view_property.loads(dlg.text())
+
+    @Slot()
+    def on_action_bookmark_triggered(self):
+        dlg = QInputDialog(self)
+        dlg.setInputMode(QInputDialog.TextInput)
+        dlg.setWindowFlags(Qt.Popup)
+        geometry = self.ui.tool_bookmark.geometry()
+        pos = self.ui.tool_bookmark.mapToGlobal(geometry.bottomLeft())
+        dlg.setGeometry(QRect(pos, QSize(200, 100)))
+        dlg.setLabelText("Bookmark")
+        dlg.setTextValue("test")
+        dlg.exec_()
+
+
+class BookmarkDialog(QDialog):
+    def __init__(self, parent=None):
+        super(BookmarkDialog, self).__init__(parent)
+
+        self.line_edit = QLineEdit(self)
+        self.add_button = QPushButton("Add", self)
+        self.cancel_button = QPushButton("Cancel", self)
+
+        self.form_layout = QFormLayout()
+        self.form_layout.addWidget(QLabel("Bookmark"))
+        self.form_layout.addRow("Name", self.line_edit)
+
+
+class ImportExportDialog(QDialog):
+    def __init__(self, import_flag, parent=None):
+        super(ImportExportDialog, self).__init__(parent)
+        self.layout = QVBoxLayout(self)
+        self.text_box = QPlainTextEdit(self)
+
+        if import_flag:
+            button_flag = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        else:
+            button_flag = QDialogButtonBox.Ok
+        self.button_box = QDialogButtonBox(button_flag, parent=self)
+
+        self.layout.addWidget(self.text_box)
+        self.layout.addWidget(self.button_box)
+
+        font = QFont(self.text_box.font())
+        font.setPointSize(font.pointSize() + 1)
+        self.text_box.setFont(font)
+
+        # noinspection PyUnresolvedReferences
+        self.button_box.accepted.connect(self.accept)
+        # noinspection PyUnresolvedReferences
+        self.button_box.rejected.connect(self.reject)
+
+        if import_flag:
+            self.setWindowTitle("Import")
+        else:
+            self.setWindowTitle("Export")
+            self.text_box.setReadOnly(True)
+
+    def set_text(self, text):
+        # type: (str) -> None
+        self.text_box.setPlainText(text)
+
+    def text(self):
+        # type: () -> str
+        return self.text_box.toPlainText()

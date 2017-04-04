@@ -10,3 +10,9 @@ def load(icon_name):
     file_path = os.path.join(ICON_DIR, icon_name + ".png")
     icon = QIcon(os.path.join(os.getcwd(), file_path))
     return icon
+
+
+def loading_icon():
+    # type: () -> QMovie
+    file_path = os.path.join(ICON_DIR, "spiffygif_16x16.gif")
+    return QMovie(file_path)

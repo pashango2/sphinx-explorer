@@ -2,7 +2,8 @@
   {
     "Name": "default",
     "ThemeName": "default",
-    "Thumbnail": "default.png"
+    "Thumbnail": "default.png",
+    "Description": "default.md"
   },
   {
     "Name": "basic",

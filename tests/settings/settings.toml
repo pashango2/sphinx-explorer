@@ -1,0 +1,10 @@
+[default_values]
+editor = "vscode"
+author = "Toshiyuki Ishii"
+language = "ja"
+
+[projects]
+projects = [
+    "J:\\r_system_docs",
+    "J:\\sphinx-qsp\\docs"
+]
