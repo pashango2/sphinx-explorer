@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from . import quickstart
 from .quickstart import Questions
 
 from PySide.QtCore import *
@@ -145,5 +144,3 @@ def main(default_settings, callback, parent):
 
     # noinspection PyUnresolvedReferences
     wizard.show()
-
-

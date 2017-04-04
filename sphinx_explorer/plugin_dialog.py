@@ -9,6 +9,7 @@ import toml
 import markdown
 # import CommonMark
 import fnmatch
+import six
 from .theme_dialog_ui import Ui_Dialog
 import typing
 
@@ -38,7 +39,7 @@ a.anchor {
 
 class PluginDialog(QDialog):
     def __init__(self, plugin_dir_path, parent=None):
-        # type: (str, QWidget) -> None
+        # type: (six.string_types, QWidget) -> None
         super(PluginDialog, self).__init__(parent)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)

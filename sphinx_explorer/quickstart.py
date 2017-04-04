@@ -5,31 +5,26 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from collections import OrderedDict
 import sys
 import os
+import six
 import toml
 from PySide.QtCore import *
 from PySide.QtGui import *
 
 from . import icon
-from .property_widget import PropertyWidget, find_value_type
+from .property_widget import find_value_type
 from .quickstart_dialog_ui import Ui_Dialog
 from .quickstart_widget_ui import Ui_Form
 from . import extension
-from .util.exec_sphinx import quote, _cmd
+# noinspection PyProtectedMember
+from .util.exec_sphinx import quote, _cmd, exec_
 from .sphinx_analyzer import SphinxInfo
 
 
 TOML_PATH = "settings/quickstart.toml"
 
 
-def exec_(cmd, text_edit, parent):
-    process = QProcess(parent)
-
-    process.start(cmd)
-    return process
-
-
 def quickstart_cmd(d):
-    # type: (dict) -> basestring
+    # type: (dict) -> six.string_types
     ignore_params = ["project", "prefix", "path", "version", "release"]
     arrow_extension = [
         "ext-autodoc",
@@ -85,18 +80,19 @@ def quickstart_cmd(d):
 def quickstart_ext(d):
     info = SphinxInfo(d["path"])
 
-    fd = open(info.conf_py_path, "a")
+    if info.conf_py_path and os.path.isfile(info.conf_py_path):
+        fd = open(info.conf_py_path, "a")
 
-    if d.get("html_theme", "default") != "default":
-        fd.write("html_theme = '{}'\n".format(d["html_theme"]))
+        if d.get("html_theme", "default") != "default":
+            fd.write(b"html_theme = '{}'\n".format(d["html_theme"]))
 
-    for key in d.keys():
-        if key.startswith("ext-"):
-            ext = extension.get(key)
-            if ext and hasattr(ext, "conf_py"):
-                fd.write(ext.conf_py)
+        for key in d.keys():
+            if key.startswith("ext-"):
+                ext = extension.get(key)
+                if ext and hasattr(ext, "conf_py"):
+                    fd.write(ext.conf_py)
 
-    fd.close()
+        fd.close()
 
 
 _questions = None
@@ -228,12 +224,16 @@ class QuickStartWidget(QWidget):
         obj = self.ui.property_widget.dump()
         qs_cmd = quickstart_cmd(obj)
         self.path = obj["path"]
-        print(qs_cmd)
-        self.ui.output_widget.finished.connect(self.onFinished)
-        self.ui.output_widget.exec_command(qs_cmd)
-        # self.ui.output_widget.process().waitForFinished()
+        # self.ui.output_widget.finished.connect(self.onFinished)
+        # self.ui.output_widget.exec_command(qs_cmd)
+        ret_code = exec_(qs_cmd)
+        # self.ui.output_widget.append(output)
 
-    def onFinished(self, exit_code, status):
+        self.onFinished(ret_code, None)
+
+    def onFinished(self, exit_code, _):
+        # type: (int, int or None) -> None
+
         if exit_code == 0:
             obj = self.ui.property_widget.dump()
             quickstart_ext(obj)

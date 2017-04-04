@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from PySide.QtGui import *
 # from PySide.QtCore import *
 from .plugin_dialog import PluginDialog
-from .property_widget import TypeBase, RefButtonWidget
+from .property_widget import RefButtonWidget
 
 
 ThemePluginDir = "theme_plugin"
@@ -25,5 +25,3 @@ class HtmlThemeWidget(RefButtonWidget):
 
         if result == QDialog.Accepted:
             self.line_edit.setText("\n".join(dlg.selectedItems()))
-
-

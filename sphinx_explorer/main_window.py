@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 import os
-import platform
-import subprocess
 
 from PySide.QtCore import *
 from PySide.QtGui import *
@@ -231,7 +229,9 @@ class MainWindow(QMainWindow):
 
     @Slot(str)
     def add_document(self, path):
-        self.project_list_model.add_document(path)
+        item = self.project_list_model.add_document(path)
+        if item:
+            self.ui.tree_view_projects.setCurrentIndex(item.index())
 
     @Slot()
     def on_action_add_document_triggered(self):

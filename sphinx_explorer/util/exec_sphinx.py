@@ -7,8 +7,10 @@ import os
 import platform
 import subprocess
 import sys
+import six
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
+
 
 if platform.system() == "Windows":
     def quote(s):
@@ -22,8 +24,12 @@ else:
         from pipes import quote
 
 
+def _encoding():
+    return TERM_ENCODING or sys.getfilesystemencoding()
+
+
 def _cmd(cmd):
-    # type: (str) -> str
+    # type: (six.string_types) -> six.string_types
     if platform.system() in ("Windows", "Darwin"):
         return cmd
     else:
@@ -31,14 +37,23 @@ def _cmd(cmd):
 
 
 def check_output(cmd):
-    # type: (str) -> str
+    # type: (six.string_types) -> (int, six.string_types)
     cmd = _cmd(cmd)
-    return subprocess.check_output(cmd, shell=True).decode(TERM_ENCODING)
+
+    try:
+        output = subprocess.check_output(
+            cmd.encode(_encoding()),
+            shell=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        return exc.returncode, exc.output
+
+    return 0, output.decode(_encoding()) if output else None
 
 
 def config(config_path):
     # type: (str) -> str or None
-    result = check_output(
+    _, result = check_output(
         " ".join([
             "python", os.path.join(os.path.dirname(sys.argv[0]), "script", "sphinx_config.py"), config_path
         ])
@@ -48,38 +63,54 @@ def config(config_path):
 
 def exec_(cmd, cwd=None):
     # type: (str, str) -> bool
-    cmd = _cmd(cmd)
-    return subprocess.call(cmd, cwd=cwd, shell=True) == 0
+    cmd = _cmd(('cmd.exe /C "' + cmd + '"').encode(_encoding()))
+    p = subprocess.Popen(
+        cmd,
+        cwd=cwd.encode(_encoding()) if cwd else None,
+        shell=False,
+    )
+    p.wait()
+    return p.returncode
 
 
 def launch(cmd, cwd=None):
-    # type: (str, str) -> None
+    # type: (six.string_types, six.string_types or None) -> None
     cmd = _cmd(cmd)
 
     if platform.system() == "Windows":
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.STARTF_USESHOWWINDOW
-        subprocess.Popen(cmd, cwd=cwd, shell=True, startupinfo=startupinfo)
+        subprocess.Popen(
+            cmd.encode(_encoding()),
+            cwd=cwd.encode(sys.getfilesystemencoding()),
+            shell=True,
+            startupinfo=startupinfo
+        )
     else:
         subprocess.Popen(cmd, cwd=cwd, shell=True)
 
 
 def console(cmd, cwd=None):
-    # type: (str, str) -> None
+    # type: (six.string_types, six.string_types) -> None or subprocess.Popen
     if platform.system() == "Windows":
-        cmd = 'cmd.exe /K "{}"'.format(_cmd(cmd))
-        subprocess.Popen(cmd, cwd=cwd)
+        cmd = _cmd(cmd)
+        return subprocess.Popen(
+            cmd.encode(_encoding()),
+            cwd=cwd,
+            creationflags=subprocess.CREATE_NEW_CONSOLE,
+        )
     elif platform.system() == "Linux":
         cmd = "gnome-terminal -e '/bin/bash -i -c \"{}\"'".format(cmd)
-        subprocess.Popen(cmd, cwd=cwd, shell=True)
+        return subprocess.Popen(cmd, cwd=cwd, shell=True)
     else:
         # cmd = _cmd(cmd)
         # subprocess.Popen(cmd, cwd=cwd, shell=True)
         print(platform.system())
+        return None
 
 
 def show_directory(path):
-    # type: (str) -> None
+    # type: (six.string_types) -> None
     path = os.path.normpath(path)
     if platform.system() == "Windows":
         cmd = ["explorer", path]
@@ -92,9 +123,9 @@ def show_directory(path):
 
 
 def open_terminal(path):
-    # type: (str) -> None
+    # type: (six.string_types) -> None
     if platform.system() == "Windows":
-        subprocess.Popen("cmd", cwd=os.path.normpath(path))
+        subprocess.Popen("cmd", cwd=os.path.normpath(path).encode(_encoding()))
     elif platform.system() == "Darwin":
         subprocess.Popen(["open", os.path.normpath(path)])
     else:

@@ -3,13 +3,12 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 import json
-import six
 import markdown
+from six import string_types
 # noinspection PyUnresolvedReferences
 from PySide.QtCore import *
 from PySide.QtGui import *
-
-# from typing import Iterator, Any
+from typing import Iterator, Any
 
 CategoryItemType = QStandardItem.UserType + 1
 PropertyItemType = CategoryItemType + 1
@@ -73,7 +72,7 @@ class PropertyItem(QStandardItem):
         return PropertyItemType
 
     def __init__(self, key, label, value, description, value_type=None):
-        # type: (str, str, Any, str, Optional[Type[TypeBase]]) -> None
+        # type: (string_types, string_types, Any, string_types, TypeBase) -> None
         super(PropertyItem, self).__init__(label)
         self.key = key
         self._value = value
@@ -184,7 +183,7 @@ class PropertyWidget(QTableView):
         description = params.get("description")
         value_type = params.get("value_type")
 
-        if isinstance(value_type, six.string_types):
+        if isinstance(value_type, string_types):
             value_type = find_value_type(value_type)
 
         item = PropertyItem(item_key, label_name, value, description, value_type)

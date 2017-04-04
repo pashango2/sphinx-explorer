@@ -6,8 +6,6 @@ from PySide.QtGui import *
 from PySide.QtCore import *
 from .sphinx_analyzer import SphinxInfo, QSphinxAnalyzer
 from . import icon
-import toml
-from .util.exec_sphinx import quote
 
 
 class ProjectListModel(QStandardItemModel):
@@ -32,14 +30,14 @@ class ProjectListModel(QStandardItemModel):
         ]
 
     def add_document(self, doc_path):
-        # type: (str) -> bool
+        # type: (str) -> QStandardItem or None
         if self.find(doc_path).isValid():
-            return False
+            return None
 
         item = self._create_item(doc_path)
         self.appendRow(item)
 
-        return True
+        return item
 
     def find(self, doc_path):
         # type: (str) -> QModelIndex

@@ -4,7 +4,6 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import sys
 import os
 import fnmatch
-import toml
 
 Extensions = {}
 sys_path = os.path.dirname(sys.argv[0])

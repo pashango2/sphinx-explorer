@@ -15,12 +15,16 @@ import sys
 import os
 import qdarkstyle
 from .main_window import MainWindow
+import codecs
 
 HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx-explorer")
 
 
 def main():
-    # sys.stdout = open("sphinx-exploere.log", "w")
+    # if sys.stdout.encoding is None:
+    #     sys.stdout = codecs.open("sphinx-exploere.log", "w", "utf-8")
+    # if sys.stderr.encoding is None:
+    #     sys.stderr = codecs.open("sphinx-exploere_error.log", "w", "utf-8")
 
     app = QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet())
