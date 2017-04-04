@@ -18,6 +18,8 @@ class FinishWizard(QWizardPage):
         self.questions = questions
 
         self.widget = QuickStartWidget(parent)
+        self.finished = False
+        self.widget.finished.connect(self.onFinished)
 
         self.setTitle("Finish")
         self.property_widget = self.widget.ui.property_widget
@@ -34,9 +36,21 @@ class FinishWizard(QWizardPage):
         self.property_widget.load(default_values)
         self.property_widget.resizeColumnToContents(0)
 
+        self.wizard().validateCurrentPage()
+
     # noinspection PyMethodMayBeStatic
     def dump(self):
         return {}
+
+    def onFinished(self, success, path):
+        self.finished = success
+        self.wizard().validateCurrentPage()
+
+        if success:
+            self.wizard().finished_callback(path)
+
+    def validatePage(self):
+        return self.finished
 
 
 class PropertyWizard(QWizardPage):
@@ -99,9 +113,8 @@ class QuickStartWizard(QWizard):
 
         return result
 
-    def accept(self):
-        self._callback(self.settings()["path"])
-        super(QuickStartWizard, self).accept()
+    def finished_callback(self, path):
+        self._callback(path)
 
 
 def main(default_settings, callback, parent):

@@ -19,15 +19,17 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="PropertyWidget" name="property_widget"/>
      <widget class="QWidget" name="verticalLayoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="PropertyWidget" name="property_widget"/>
+       </item>
        <item>
         <widget class="QPushButton" name="button_create_project">
          <property name="minimumSize">
@@ -41,11 +43,9 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QConsoleWidget" name="output_widget"/>
-       </item>
       </layout>
      </widget>
+     <widget class="QConsoleWidget" name="output_widget"/>
     </widget>
    </item>
   </layout>
@@ -58,7 +58,7 @@
   </customwidget>
   <customwidget>
    <class>QConsoleWidget</class>
-   <extends>QPlainTextEdit</extends>
+   <extends>QTextEdit</extends>
    <header>.util.QConsoleWidget</header>
   </customwidget>
  </customwidgets>

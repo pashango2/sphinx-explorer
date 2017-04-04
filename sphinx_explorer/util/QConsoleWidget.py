@@ -8,7 +8,7 @@ from PySide.QtGui import *
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
 
 
-class QConsoleWidget(QPlainTextEdit):
+class QConsoleWidget(QTextEdit):
     finished = Signal(int, QProcess.ExitStatus)
 
     def __init__(self, parent=None):
@@ -35,7 +35,7 @@ class QConsoleWidget(QPlainTextEdit):
 
         line = self._process.readAllStandardOutput().data()
         self.moveCursor(QTextCursor.End)
-        self.insertPlainText(line.decode(TERM_ENCODING))
+        self.append(line.decode(TERM_ENCODING))
         self.moveCursor(QTextCursor.End)
 
     def terminate(self):

@@ -3,7 +3,7 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 import json
-
+import six
 import markdown
 # noinspection PyUnresolvedReferences
 from PySide.QtCore import *
@@ -184,7 +184,7 @@ class PropertyWidget(QTableView):
         description = params.get("description")
         value_type = params.get("value_type")
 
-        if isinstance(value_type, basestring):
+        if isinstance(value_type, six.string_types):
             value_type = find_value_type(value_type)
 
         item = PropertyItem(item_key, label_name, value, description, value_type)

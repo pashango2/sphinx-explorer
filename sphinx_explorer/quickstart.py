@@ -215,24 +215,29 @@ def property_item_iter(property_widget, params, enables=None):
 
 
 class QuickStartWidget(QWidget):
+    finished = Signal(bool, str)
+
     def __init__(self, parent=None):
         super(QuickStartWidget, self).__init__(parent)
         self.ui = Ui_Form()
         self.ui.setupUi(self)
+        self.path = ""
 
     @Slot()
     def on_button_create_project_clicked(self):
         obj = self.ui.property_widget.dump()
         qs_cmd = quickstart_cmd(obj)
+        self.path = obj["path"]
         print(qs_cmd)
         self.ui.output_widget.finished.connect(self.onFinished)
         self.ui.output_widget.exec_command(qs_cmd)
         # self.ui.output_widget.process().waitForFinished()
 
     def onFinished(self, exit_code, status):
-        obj = self.ui.property_widget.dump()
-        quickstart_ext(obj)
-        print(exit_code, status)
+        if exit_code == 0:
+            obj = self.ui.property_widget.dump()
+            quickstart_ext(obj)
+            self.finished.emit(True, self.path)
 
 
 class QuickStartDialog(QDialog):
