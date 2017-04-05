@@ -38,7 +38,7 @@ def command(cmd):
 
 def check_output(cmd):
     # type: (six.string_types) -> (int, six.string_types)
-    cmd = _cmd(cmd)
+    cmd = command(cmd)
 
     try:
         output = subprocess.check_output(
@@ -63,7 +63,7 @@ def config(config_path):
 
 def exec_(cmd, cwd=None):
     # type: (str, str) -> bool
-    cmd = _cmd(('cmd.exe /C "' + cmd + '"').encode(_encoding()))
+    cmd = command(('cmd.exe /C "' + cmd + '"').encode(_encoding()))
     p = subprocess.Popen(
         cmd,
         cwd=cwd.encode(_encoding()) if cwd else None,
@@ -75,7 +75,7 @@ def exec_(cmd, cwd=None):
 
 def launch(cmd, cwd=None):
     # type: (six.string_types, six.string_types or None) -> None
-    cmd = _cmd(cmd)
+    cmd = command(cmd)
 
     if platform.system() == "Windows":
         startupinfo = subprocess.STARTUPINFO()
@@ -93,7 +93,7 @@ def launch(cmd, cwd=None):
 def console(cmd, cwd=None):
     # type: (six.string_types, six.string_types) -> None or subprocess.Popen
     if platform.system() == "Windows":
-        cmd = _cmd(cmd)
+        cmd = command(cmd)
         return subprocess.Popen(
             cmd.encode(_encoding()),
             cwd=cwd,
@@ -103,7 +103,7 @@ def console(cmd, cwd=None):
         cmd = "gnome-terminal -e '/bin/bash -i -c \"{}\"'".format(cmd)
         return subprocess.Popen(cmd, cwd=cwd, shell=True)
     else:
-        # cmd = _cmd(cmd)
+        # cmd = command(cmd)
         # subprocess.Popen(cmd, cwd=cwd, shell=True)
         print(platform.system())
         return None
