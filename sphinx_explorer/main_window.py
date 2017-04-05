@@ -127,9 +127,7 @@ class MainWindow(QMainWindow):
         # type : (ProjectItem, str) -> QMenu
         menu = QMenu(self)
 
-        if not item.can_make():
-            self.auto_build_act.setEnabled(False)
-
+        self.auto_build_act.setEnabled(item.can_make())
         self.open_act.setIcon(self.settings.editor_icon())
 
         self.open_act.setData(doc_path)
@@ -219,7 +217,6 @@ class MainWindow(QMainWindow):
         # () -> None
         dlg = QuickStartDialog(self.settings.default_values, self)
         if dlg.exec_() == QDialog.Accepted:
-            print(dlg.dump())
             pass
 
     @Slot()

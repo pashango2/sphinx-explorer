@@ -126,4 +126,4 @@ class ProjectItem(QStandardItem):
 
     def can_make(self):
         # type: () -> bool
-        return self.info and self.info.is_valid()
+        return bool(self.info and self.info.is_valid())

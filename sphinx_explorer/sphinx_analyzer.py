@@ -61,7 +61,6 @@ class SphinxInfo(object):
         return self.settings.get("autobuild", {})
 
     def auto_build_cmd(self, target):
-        print(self.settings)
         source = os.path.join(self.path, self.settings.get("source_dir"))
         build = os.path.join(self.path, self.settings.get("build_dir"), target)
 
