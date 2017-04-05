@@ -1,0 +1,7 @@
+[source_dir]
+name = "Source directory path"
+value_type = "TypeRelDirPath"
+
+[build_dir]
+name = "Source directory path"
+value_type = "TypeRelDirPath"
