@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/main_window.ui'
 #
-# Created: Sun Apr  2 03:03:35 2017
+# Created: Wed Apr  5 08:52:50 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -44,6 +44,7 @@ class Ui_MainWindow(object):
         self.splitter.setObjectName("splitter")
         self.tree_view_projects = QtGui.QTreeView(self.splitter)
         self.tree_view_projects.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.tree_view_projects.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.tree_view_projects.setObjectName("tree_view_projects")
         self.verticalLayout.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)

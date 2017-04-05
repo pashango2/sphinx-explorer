@@ -10,26 +10,20 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from . import icon
-from .property_widget import PropertyWidget, find_value_type
+from .property_widget import find_value_type
 from .quickstart_dialog_ui import Ui_Dialog
 from .quickstart_widget_ui import Ui_Form
 from . import extension
-from .util.exec_sphinx import quote, _cmd
+from .util.exec_sphinx import quote, command
 from .sphinx_analyzer import SphinxInfo
+from six import string_types
 
 
 TOML_PATH = "settings/quickstart.toml"
 
 
-def exec_(cmd, text_edit, parent):
-    process = QProcess(parent)
-
-    process.start(cmd)
-    return process
-
-
 def quickstart_cmd(d):
-    # type: (dict) -> basestring
+    # type: (dict) -> string_types
     ignore_params = ["project", "prefix", "path", "version", "release"]
     arrow_extension = [
         "ext-autodoc",
@@ -69,7 +63,7 @@ def quickstart_cmd(d):
         "patched_quickstart.py"
     )
 
-    return _cmd(
+    return cmd(
         " ".join([
             "python",
             path,
@@ -94,6 +88,10 @@ def quickstart_ext(d):
         if key.startswith("ext-"):
             ext = extension.get(key)
             if ext and hasattr(ext, "conf_py"):
+                comment = "# -- {} ".format(key)
+                comment += "-" * (75 - len(comment))
+                fd.write("\n\n")
+                fd.write(comment + "\n")
                 fd.write(ext.conf_py)
 
     fd.close()
@@ -233,7 +231,7 @@ class QuickStartWidget(QWidget):
         self.ui.output_widget.exec_command(qs_cmd)
         # self.ui.output_widget.process().waitForFinished()
 
-    def onFinished(self, exit_code, status):
+    def onFinished(self, exit_code, _):
         if exit_code == 0:
             obj = self.ui.property_widget.dump()
             quickstart_ext(obj)

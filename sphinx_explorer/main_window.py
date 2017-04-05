@@ -259,11 +259,9 @@ class MainWindow(QMainWindow):
                 "Delete Document?",
                 QMessageBox.Yes | QMessageBox.No,
             )
-            if result != QMessageBox.Yes:
-                return
-
-            for index in sorted(indexes, key=lambda x: x.row()):
-                self.project_list_model.takeRow(index.row())
+            if result == QMessageBox.Yes:
+                for index in sorted(indexes, key=lambda x: x.row()):
+                    self.project_list_model.takeRow(index.row())
 
     @Slot(QModelIndex)
     def on_tree_view_projects_doubleClicked(self, index):

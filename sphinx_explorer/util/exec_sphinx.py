@@ -22,7 +22,7 @@ else:
         from pipes import quote
 
 
-def _cmd(cmd):
+def command(cmd):
     # type: (str) -> str
     if platform.system() in ("Windows", "Darwin"):
         return cmd
@@ -32,7 +32,7 @@ def _cmd(cmd):
 
 def check_output(cmd):
     # type: (str) -> str
-    cmd = _cmd(cmd)
+    cmd = command(cmd)
     return subprocess.check_output(cmd, shell=True).decode(TERM_ENCODING)
 
 
@@ -48,13 +48,13 @@ def config(config_path):
 
 def exec_(cmd, cwd=None):
     # type: (str, str) -> bool
-    cmd = _cmd(cmd)
+    cmd = command(cmd)
     return subprocess.call(cmd, cwd=cwd, shell=True) == 0
 
 
 def launch(cmd, cwd=None):
     # type: (str, str) -> None
-    cmd = _cmd(cmd)
+    cmd = command(cmd)
 
     if platform.system() == "Windows":
         startupinfo = subprocess.STARTUPINFO()
@@ -67,7 +67,7 @@ def launch(cmd, cwd=None):
 def console(cmd, cwd=None):
     # type: (str, str) -> None
     if platform.system() == "Windows":
-        cmd = 'cmd.exe /K "{}"'.format(_cmd(cmd))
+        cmd = 'cmd.exe /K "{}"'.format(command(cmd))
         subprocess.Popen(cmd, cwd=cwd)
     elif platform.system() == "Linux":
         cmd = "gnome-terminal -e '/bin/bash -i -c \"{}\"'".format(cmd)
