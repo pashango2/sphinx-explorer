@@ -15,9 +15,9 @@ from .property_widget import find_value_type
 from .quickstart_dialog_ui import Ui_Dialog
 from .quickstart_widget_ui import Ui_Form
 from . import extension
-# noinspection PyProtectedMember
-from .util.exec_sphinx import quote, _cmd, exec_
+from .util.exec_sphinx import quote, command
 from .sphinx_analyzer import SphinxInfo
+from six import string_types
 
 
 TOML_PATH = "settings/quickstart.toml"
@@ -64,7 +64,7 @@ def quickstart_cmd(d):
         "patched_quickstart.py"
     )
 
-    return _cmd(
+    return command(
         " ".join([
             "python",
             path,
@@ -86,11 +86,15 @@ def quickstart_ext(d):
         if d.get("html_theme", "default") != "default":
             fd.write(b"html_theme = '{}'\n".format(d["html_theme"]))
 
-        for key in d.keys():
-            if key.startswith("ext-"):
-                ext = extension.get(key)
-                if ext and hasattr(ext, "conf_py"):
-                    fd.write(ext.conf_py)
+	    for key in d.keys():
+	        if key.startswith("ext-"):
+	            ext = extension.get(key)
+	            if ext and hasattr(ext, "conf_py"):
+	                comment = "# -- {} ".format(key)
+	                comment += "-" * (75 - len(comment))
+	                fd.write("\n\n")
+	                fd.write(comment + "\n")
+	                fd.write(ext.conf_py)
 
         fd.close()
 

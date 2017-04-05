@@ -28,7 +28,7 @@ def _encoding():
     return TERM_ENCODING or sys.getfilesystemencoding()
 
 
-def _cmd(cmd):
+def command(cmd):
     # type: (six.string_types) -> six.string_types
     if platform.system() in ("Windows", "Darwin"):
         return cmd
