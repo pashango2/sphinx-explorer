@@ -4,10 +4,9 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 
 import os
 import toml
+from six import string_types
 from PySide.QtCore import *
 from PySide.QtGui import *
-
-from .util.exec_sphinx import config, quote
 
 
 class SphinxInfo(object):
@@ -17,8 +16,7 @@ class SphinxInfo(object):
         self.path = path
         self.conf_py_path = None
         self.source_dir = None
-        self.build_dir = None
-        self.conf = {}
+        # self.conf = {}
         self.settings = {}
 
         self._analyze()
@@ -33,13 +31,13 @@ class SphinxInfo(object):
         if os.path.isfile(path):
             self.settings = toml.load(path)
 
-    def read_conf(self):
-        if self.conf_py_path:
-            self.conf = config(self.conf_py_path)
+    # def read_conf(self):
+    #     if self.conf_py_path:
+    #         self.conf = config(self.conf_py_path)
 
     def is_valid(self):
         # type: () -> bool
-        return bool(self.conf_py_path) and self.conf
+        return bool(self.conf_py_path)
 
     @staticmethod
     def _find_conf_py(path):
@@ -60,12 +58,14 @@ class SphinxInfo(object):
     def auto_build_setting(self):
         return self.settings.get("autobuild", {})
 
-    def auto_build_cmd(self, target):
-        source = os.path.join(self.path, self.settings.get("source_dir"))
-        build = os.path.join(self.path, self.settings.get("build_dir"), target)
+    @property
+    def build_dir(self):
+        # type: () -> string_types
+        return os.path.join(self.path, self.settings.get("build_dir"))
 
-        cmd = "sphinx-autobuild -p 0 --open-browser {} {}".format(quote(source), quote(build))
-        return cmd
+    def can_apidoc(self):
+        # type: () -> bool
+        return bool("apidoc" in self.settings and self.settings["apidoc"].get("module_dir"))
 
 
 class QSphinxAnalyzer(QObject, QRunnable):
@@ -81,6 +81,6 @@ class QSphinxAnalyzer(QObject, QRunnable):
 
     def run(self):
         info = SphinxInfo(self.doc_path)
-        if info.conf_py_path:
-            info.read_conf()
+        # if info.conf_py_path:
+        #     info.read_conf()
         self.finished.emit(info, self.item)

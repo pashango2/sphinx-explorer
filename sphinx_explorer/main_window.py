@@ -39,8 +39,8 @@ class MainWindow(QMainWindow):
 
         # load extension
         sphinx_value_types.init()
-        extension.init(os.path.join(sys_dir, "extension_plugin"))
-        editor.init(os.path.join(sys_dir, "editor_plugin"))
+        extension.init(os.path.join(sys_dir, "plugin", "extension"))
+        editor.init(os.path.join(sys_dir, "plugin", "editor"))
 
         # create actions
         self.del_document_act = QAction("Delete Document", self)
@@ -53,6 +53,7 @@ class MainWindow(QMainWindow):
         self.show_act = QAction(icon.load("open_folder"), "Show File", self, triggered=self._show_directory)
         self.terminal_act = QAction(icon.load("terminal"), "Open Terminal", self, triggered=self._open_terminal)
         self.auto_build_act = QAction(icon.load("reload"), "Auto Build", self, triggered=self._auto_build)
+        self.apidoc_act = QAction(icon.load("update"), "Update sphinx-apidoc", self, triggered=self._apidoc)
         self.close_act = QAction("Exit", self, triggered=self.close)
 
         self.editor_acts = []
@@ -128,11 +129,14 @@ class MainWindow(QMainWindow):
         menu = QMenu(self)
 
         self.auto_build_act.setEnabled(item.can_make())
+        can_apidoc = item.can_apidoc()
+
         self.open_act.setIcon(self.settings.editor_icon())
 
         self.open_act.setData(doc_path)
         self.show_act.setData(doc_path)
         self.terminal_act.setData(doc_path)
+        self.apidoc_act.setData(item.index() if can_apidoc else None)
         self.auto_build_act.setData(item.index())
 
         # Warning: don't use lambda to connect!!
@@ -145,7 +149,11 @@ class MainWindow(QMainWindow):
         menu.addAction(self.open_act)
         menu.addAction(self.show_act)
         menu.addAction(self.terminal_act)
+        if can_apidoc:
+            menu.addAction(self.apidoc_act)
+
         menu.addAction(self.auto_build_act)
+        menu.addSeparator()
         menu.addAction(self.del_document_act)
 
         return menu
@@ -195,6 +203,16 @@ class MainWindow(QMainWindow):
         if item:
             console(item.auto_build_command(), os.path.normpath(item.path()))
 
+    def _apidoc(self):
+        # type: () -> None
+        index = self.sender().data()
+        if not index.isValid():
+            return
+
+        item = self.project_list_model.itemFromIndex(index)  # type: ProjectItem
+        if item:
+            item.apidoc_update()
+
     @Slot(str, ProjectItem)
     def onAutoBuildRequested(self, cmd, _):
         # self.ui.plain_output.exec_command(cmd)
@@ -234,11 +252,13 @@ class MainWindow(QMainWindow):
     def on_action_add_document_triggered(self):
         # () -> None
         # noinspection PyCallByClass
+        default_path = os.path.join(self.setting_dir, "..")
         doc_dir = QFileDialog.getExistingDirectory(
             self,
             "add document",
-            os.path.join(self.setting_dir, "..")
+            self.settings.default_root_path(default_path),
         )
+        print(self.settings.default_root_path(default_path))
 
         if doc_dir:
             self.project_list_model.add_document(doc_dir)

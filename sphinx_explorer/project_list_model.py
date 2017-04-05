@@ -6,6 +6,8 @@ from PySide.QtGui import *
 from PySide.QtCore import *
 from .sphinx_analyzer import SphinxInfo, QSphinxAnalyzer
 from . import icon
+from .util.exec_sphinx import quote
+from . import apidoc
 
 
 class ProjectListModel(QStandardItemModel):
@@ -106,7 +108,10 @@ class ProjectItem(QStandardItem):
     def auto_build_command(self, target="html"):
         model = self.model()
         if model:
-            cmd = self.info.auto_build_cmd(target)
+            cmd = "sphinx-autobuild -p 0 --open-browser {} {}".format(
+                quote(self.info.source_dir),
+                quote(os.path.join(self.info.build_dir, target)),
+            )
             return cmd
         return None
 
@@ -116,14 +121,21 @@ class ProjectItem(QStandardItem):
         if model and cmd:
             model.autoBuildRequested.emit(cmd, self)
 
+    def apidoc_update(self):
+        return apidoc.update(
+            os.path.abspath(os.path.join(self.info.source_dir, "..")),
+            self.info.source_dir,
+            {}
+        )
+
     def setInfo(self, info):
         # type: (SphinxInfo) -> None
         self.info = info
 
-    def project(self):
-        # type: () -> str
-        return self.info.conf.get("project") if self.info else None
-
     def can_make(self):
         # type: () -> bool
         return bool(self.info and self.info.is_valid())
+
+    def can_apidoc(self):
+        # type: () -> bool
+        return self.info.can_apidoc()

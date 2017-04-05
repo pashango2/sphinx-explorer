@@ -7,7 +7,7 @@ import os
 import platform
 import subprocess
 import sys
-import six
+from six import string_types
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
 
@@ -29,15 +29,26 @@ def _encoding():
 
 
 def command(cmd):
-    # type: (six.string_types) -> six.string_types
+    # type: (string_types) -> string_types
     if platform.system() in ("Windows", "Darwin"):
         return cmd
     else:
         return " ".join(['/bin/bash', '-i', '-c', '"' + cmd + '"'])
 
 
+def create_cmd(cmds):
+    # type: ([string_types]) -> string_types
+    str_cmd = " ".join([
+        quote(x)
+        for x in cmds
+        if x
+    ])
+
+    return command(str_cmd)
+
+
 def check_output(cmd):
-    # type: (six.string_types) -> (int, six.string_types)
+    # type: (string_types) -> (int, string_types)
     cmd = command(cmd)
 
     try:
@@ -74,7 +85,7 @@ def exec_(cmd, cwd=None):
 
 
 def launch(cmd, cwd=None):
-    # type: (six.string_types, six.string_types or None) -> None
+    # type: (string_types, string_types or None) -> None
     cmd = command(cmd)
 
     if platform.system() == "Windows":
@@ -91,7 +102,7 @@ def launch(cmd, cwd=None):
 
 
 def console(cmd, cwd=None):
-    # type: (six.string_types, six.string_types) -> None or subprocess.Popen
+    # type: (string_types, string_types) -> None or subprocess.Popen
     if platform.system() == "Windows":
         cmd = command(cmd)
         return subprocess.Popen(
@@ -110,7 +121,7 @@ def console(cmd, cwd=None):
 
 
 def show_directory(path):
-    # type: (six.string_types) -> None
+    # type: (string_types) -> None
     path = os.path.normpath(path)
     if platform.system() == "Windows":
         cmd = ["explorer", path]
@@ -123,7 +134,7 @@ def show_directory(path):
 
 
 def open_terminal(path):
-    # type: (six.string_types) -> None
+    # type: (string_types) -> None
     if platform.system() == "Windows":
         subprocess.Popen("cmd", cwd=os.path.normpath(path).encode(_encoding()))
     elif platform.system() == "Darwin":

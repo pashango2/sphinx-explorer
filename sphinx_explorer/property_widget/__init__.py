@@ -9,10 +9,13 @@ from six import string_types
 # noinspection PyUnresolvedReferences
 from PySide.QtCore import *
 from PySide.QtGui import *
-from typing import Iterator, Any
+from typing import Iterator
+from .property_model import PropertyItem, PropertyCategoryItem, PropertyModel
+from .property_model import PropertyItemType
 
-CategoryItemType = QStandardItem.UserType + 1
-PropertyItemType = CategoryItemType + 1
+__all__ = [
+    "PropertyWidget",
+]
 
 CssStyle = """
 <style>
@@ -30,115 +33,6 @@ a.anchor {
 
 </style>
 """
-
-
-class TypeBase(object):
-    @staticmethod
-    def data(value):
-        return value
-
-    @staticmethod
-    def icon(_):
-        return None
-
-    @classmethod
-    def height(cls):
-        return -1
-
-    @classmethod
-    def default(cls):
-        return None
-
-    is_persistent_editor = False
-
-
-class PropertyCategoryItem(QStandardItem):
-    @staticmethod
-    def type():
-        return CategoryItemType
-
-    def __init__(self, name):
-        # type: (str) -> None
-        super(PropertyCategoryItem, self).__init__(name)
-
-        self.setBackground(QBrush(QColor(71, 74, 77)))
-        # self.setFlags(self.flags() & ~(Qt.ItemIsEditable | Qt.ItemIsSelectable))
-        self.setFlags(Qt.NoItemFlags)
-        self.setEnabled(True)
-
-
-class PropertyItem(QStandardItem):
-    @staticmethod
-    def type():
-        return PropertyItemType
-
-    def __init__(self, key, label, value, description, value_type=None):
-        # type: (string_types, string_types, Any, string_types, TypeBase) -> None
-        super(PropertyItem, self).__init__(label)
-        self.key = key
-        self._value = value
-        self.description = description
-        self.value_type = value_type
-        self.setFlags(Qt.NoItemFlags)
-        self.setEnabled(True)
-        self.validator = None
-        self._link = None
-        self._link_format = None
-        self._linked = []
-        self._default_flag = value is None
-        self._default = ""
-
-    def set_indent(self, indent):
-        # type: (int) -> None
-        self.setText(("    " * indent) + self.text())
-
-    def set_validator(self, validator):
-        # type: (QValidator) -> None
-        self.validator = validator
-
-    def set_value(self, value):
-        # (Any) -> None
-        self._value = value
-        self._default_flag = self.value is None
-
-        for linked in self._linked:
-            linked.update_link(value)
-
-    def update_link(self, value):
-        if self._link_format:
-            self._default = self._link_format.format(
-                value,
-                _default=self.default_value() or "",
-                _path_sep=os.path.sep,
-            )
-        else:
-            self._default = value or ""
-
-    def update_default(self):
-        self._default = self.default_value()
-
-    def default_value(self):
-        return self.model().default_value(self.key)
-
-    @property
-    def value(self):
-        if self._value is not None:
-            return self._value
-        else:
-            return self._default
-
-    def is_default(self):
-        return self._default_flag
-
-    def set_link(self, link, link_format=None):
-        if link is None:
-            return
-
-        self._link = link
-        self._link_format = link_format
-        # noinspection PyProtectedMember
-        link._linked.append(self)
-        self.update_link(link.value)
 
 
 class PropertyWidget(QTableView):
@@ -277,7 +171,7 @@ class PropertyWidget(QTableView):
         return {
             item.key: item
             for item in self.properties()
-        }
+            }
 
     def properties(self):
         # type: () -> Iterator[PropertyItem]
@@ -311,7 +205,6 @@ class PropertyWidget(QTableView):
         return None
 
     def closeEditor(self, editor, _):
-        # super(PropertyWidget, self).closeEditor(editor, hint)
         super(PropertyWidget, self).closeEditor(editor, QAbstractItemDelegate.EditNextItem)
 
     def moveCursor(self, action, modifiers):
@@ -360,93 +253,6 @@ class PropertyItemDelegate(QStyledItemDelegate):
         else:
             value = item.value_type.value(editor)
             model.setData(index, value, Qt.EditRole)
-
-
-class PropertyModel(QStandardItemModel):
-    DEFAULT_COLOR = QColor(0x80, 0x80, 0x80)
-
-    def __init__(self, parent=None):
-        super(PropertyModel, self).__init__(parent)
-        self.setHorizontalHeaderLabels(["Property", "Value"])
-        self._readonly = False
-        self._use_default = False
-        self._default_dict = {}
-
-    def set_default_dict(self, default_dict):
-        self._default_dict = default_dict.copy()
-        self._use_default = bool(default_dict)
-
-    def set_use_default(self, use_default):
-        self._use_default = use_default
-
-    def default_value(self, key):
-        return self._default_dict.get(key)
-
-    def set_default_value(self, key, value, update=True):
-        if not update and key in self._default_dict:
-            return
-        self._default_dict[key] = value
-
-    def add_category(self, item):
-        # type: (PropertyCategoryItem) -> None
-        self.appendRow(item)
-
-    def add_property(self, item):
-        # type: (PropertyItem) -> None
-        self.appendRow(item)
-
-    def setReadOnly(self, readonly):
-        # type: (bool) -> None
-        self._readonly = readonly
-
-    def rowItem(self, index):
-        # type: (QModelIndex) -> PropertyItem
-        index = self.index(index.row(), 0) if index.column() != 0 else index
-        return self.itemFromIndex(index)
-
-    def _property_item(self, index):
-        # type: (QModelIndex) -> PropertyItem or None
-        if not index.isValid():
-            return None
-
-        item = self.item(index.row(), 0)
-        if item.type() == PropertyItemType:
-            return item
-        return None
-
-    def data(self, index, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole or role == Qt.EditRole:
-            if index.column() == 1:
-                item = self._property_item(index)
-                if item:
-                    value = item.value
-                    if value is None:
-                        value = self._default_dict.get(item.key)
-                    return item.value_type.data(value) if item.value_type else value
-        elif role == Qt.DecorationRole:
-            if index.column() == 1:
-                item = self._property_item(index)
-                if item:
-                    if item.value_type:
-                        return item.value_type.icon(item.value)
-        elif role == Qt.ForegroundRole:
-            if index.column() == 1 and self._use_default:
-                item = self._property_item(index)
-                if item:
-                    if item.is_default():
-                        return self.DEFAULT_COLOR
-
-        return super(PropertyModel, self).data(index, role)
-
-    def setData(self, index, value, role=Qt.EditRole):
-        if role == Qt.EditRole:
-            if index.column() == 1:
-                index = self.index(index.row(), 0)
-                item = self.itemFromIndex(index)
-                item.set_value(value)
-                return True
-
-        return super(PropertyModel, self).setData(index, value, role)
 
 
 from .value_types import *  # NOQA

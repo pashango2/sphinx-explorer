@@ -1,11 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from . import TypeBase
 import os
 from six import string_types
 from PySide.QtCore import *
 from PySide.QtGui import *
+
+
+class TypeBase(object):
+    @staticmethod
+    def data(value):
+        return value
+
+    @staticmethod
+    def icon(_):
+        return None
+
+    @classmethod
+    def height(cls):
+        return -1
+
+    @classmethod
+    def default(cls):
+        return None
+
+    is_persistent_editor = False
 
 
 class RefButtonWidget(QFrame):

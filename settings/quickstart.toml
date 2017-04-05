@@ -146,5 +146,6 @@ extensions = [
     "ext-nbsphinx",
     "ext-fontawesome",
     "ext-blockdiag",
+    "ext-autosummary",
 ]
 

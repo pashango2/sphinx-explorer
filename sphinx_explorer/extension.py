@@ -6,12 +6,12 @@ import os
 import fnmatch
 
 Extensions = {}
-sys_path = os.path.dirname(sys.argv[0])
-sys.path.insert(0, os.path.join(sys_path, "extension_plugin"))
 
 
 def init(plugin_dir):
     global Extensions
+
+    sys.path.insert(0, plugin_dir)
 
     Extensions = {}
     for root, dirs, files in os.walk(plugin_dir):

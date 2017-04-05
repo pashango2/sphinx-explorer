@@ -29,6 +29,9 @@ class Settings(OrderedDict):
         }
         self["projects"] = {"projects": []}
 
+    def default_root_path(self, default_path):
+        return self["default_values"].get("path") or default_path
+
     @property
     def default_values(self):
         return self["default_values"]
