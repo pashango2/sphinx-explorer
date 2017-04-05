@@ -15,7 +15,6 @@ import sys
 import os
 import qdarkstyle
 from .main_window import MainWindow
-import codecs
 
 HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx-explorer")
 

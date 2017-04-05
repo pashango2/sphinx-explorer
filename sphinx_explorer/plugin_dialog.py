@@ -14,6 +14,7 @@ from .theme_dialog_ui import Ui_Dialog
 import typing
 
 try:
+    # noinspection PyUnresolvedReferences
     if typing.TYPE_CHECKING:
         from typing import Iterator
 except AttributeError:

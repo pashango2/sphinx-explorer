@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from sphinx_explorer import quickstart
-from sphinx_explorer.util.exec_sphinx import exec_
 import os
 
 sys_path = os.path.join(

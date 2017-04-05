@@ -3,9 +3,9 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 from . import TypeBase
 import os
+from six import string_types
 from PySide.QtCore import *
 from PySide.QtGui import *
-# from typing import Type, Optional
 
 
 class RefButtonWidget(QFrame):
@@ -150,13 +150,13 @@ AllTypes = [
 
 
 def register_value_type(value_type):
-    # type: (Type[TypeBase]) -> None
+    # type: (TypeBase) -> None
     global AllTypes
     AllTypes.append(value_type)
 
 
 def find_value_type(type_name):
-    # type: (str) -> Optional[Type[TypeBase]]
+    # type: (string_types) -> TypeBase or None
     for value_type in AllTypes:
         if value_type.__name__ == type_name:
             return value_type

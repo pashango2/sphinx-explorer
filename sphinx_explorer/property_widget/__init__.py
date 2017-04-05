@@ -4,6 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 
 import json
 import markdown
+# noinspection PyUnresolvedReferences
 from six import string_types
 # noinspection PyUnresolvedReferences
 from PySide.QtCore import *

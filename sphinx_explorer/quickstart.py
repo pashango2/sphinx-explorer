@@ -5,8 +5,9 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from collections import OrderedDict
 import sys
 import os
-import six
+from six import string_types
 import toml
+import codecs
 from PySide.QtCore import *
 from PySide.QtGui import *
 
@@ -15,16 +16,15 @@ from .property_widget import find_value_type
 from .quickstart_dialog_ui import Ui_Dialog
 from .quickstart_widget_ui import Ui_Form
 from . import extension
-from .util.exec_sphinx import quote, command
+from .util.exec_sphinx import quote, command, exec_
 from .sphinx_analyzer import SphinxInfo
-from six import string_types
-
 
 TOML_PATH = "settings/quickstart.toml"
+CONF_PY_ENCODING = "utf-8"
 
 
 def quickstart_cmd(d):
-    # type: (dict) -> six.string_types
+    # type: (dict) -> string_types
     ignore_params = ["project", "prefix", "path", "version", "release"]
     arrow_extension = [
         "ext-autodoc",
@@ -66,14 +66,14 @@ def quickstart_cmd(d):
 
     return command(
         " ".join([
-            "python",
-            path,
-            "-q",
-            "-p " + quote(d["project"]),
-            "-a " + quote(d["author"]),
-            ("-v " + quote(d["version"])) if d.get("version") else "",
-            ("-r " + quote(d["release"])) if d.get("release") else "",
-         ] + opts + [quote(d["path"])])
+                     "python",
+                     path,
+                     "-q",
+                     "-p " + quote(d["project"]),
+                     "-a " + quote(d["author"]),
+                     ("-v " + quote(d["version"])) if d.get("version") else "",
+                     ("-r " + quote(d["release"])) if d.get("release") else "",
+                 ] + opts + [quote(d["path"])])
     )
 
 
@@ -81,20 +81,20 @@ def quickstart_ext(d):
     info = SphinxInfo(d["path"])
 
     if info.conf_py_path and os.path.isfile(info.conf_py_path):
-        fd = open(info.conf_py_path, "a")
+        fd = codecs.open(info.conf_py_path, "a", CONF_PY_ENCODING)
 
         if d.get("html_theme", "default") != "default":
             fd.write(b"html_theme = '{}'\n".format(d["html_theme"]))
 
-	    for key in d.keys():
-	        if key.startswith("ext-"):
-	            ext = extension.get(key)
-	            if ext and hasattr(ext, "conf_py"):
-	                comment = "# -- {} ".format(key)
-	                comment += "-" * (75 - len(comment))
-	                fd.write("\n\n")
-	                fd.write(comment + "\n")
-	                fd.write(ext.conf_py)
+        for key in d.keys():
+            if key.startswith("ext-"):
+                ext = extension.get(key)
+                if ext and hasattr(ext, "conf_py"):
+                    comment = "# -- {} ".format(key)
+                    comment += "-" * (75 - len(comment))
+                    fd.write("\n\n")
+                    fd.write(comment + "\n")
+                    fd.write(ext.conf_py)
 
         fd.close()
 

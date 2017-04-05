@@ -3,7 +3,6 @@
 from sphinx_explorer.property_widget import PropertyWidget
 import sys
 import os
-from PySide.QtCore import *
 from PySide.QtGui import *
 
 try:
@@ -42,7 +41,10 @@ def test_property_widget():
 def test_add_item():
     widget = PropertyWidget()
     widget.add_property(
-        "name", value="test"
+        "name",
+        {
+            "value": "test"
+        }
     )
 
     obj = widget.dump()

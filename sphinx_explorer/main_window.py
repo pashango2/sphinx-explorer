@@ -257,7 +257,7 @@ class MainWindow(QMainWindow):
                 QMessageBox.Yes | QMessageBox.No,
             )
             if result == QMessageBox.Yes:
-                for index in sorted(indexes, key=lambda x: x.row()):
+                for index in sorted(indexes, key=lambda x: x.row(), reverse=True):
                     self.project_list_model.takeRow(index.row())
 
     @Slot(QModelIndex)

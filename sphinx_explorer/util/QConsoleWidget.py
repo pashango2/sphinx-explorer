@@ -20,9 +20,8 @@ class QConsoleWidget(QTextEdit):
         # type: () -> QProcess
         return self._process
 
+    # noinspection PyUnresolvedReferences
     def exec_command(self, cmd):
-        print(cmd)
-        self._process = QProcess(self)
         self._process.readyReadStandardOutput.connect(self._print_output)
         self._process.readyReadStandardError.connect(self._print_output)
         self._process.finished.connect(self.finished)
@@ -40,7 +39,7 @@ class QConsoleWidget(QTextEdit):
 
     def terminate(self):
         if self._process:
-            pid = self._process.pid()
+            # pid = self._process.pid()
             # os.kill(pid, signal.SIGINT)
             # print("pid", pid)
             # self._process.kill()

@@ -3,6 +3,7 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 import sys
 import os
+import codecs
 from sphinx import quickstart
 
 
@@ -16,7 +17,7 @@ build_dir = '{rbuilddir}'
 def generate(d, overwrite=True, silent=False, templatedir=None):
     org_generate(d, overwrite, silent, templatedir)
 
-    fd = open(os.path.join(d["path"], "setting.toml"), "w")
+    fd = codecs.open(os.path.join(d["path"], "setting.toml"), "w", "utf-8")
     fd.write(TEMPLATE_SETTING.format(**d))
     fd.close()
 
