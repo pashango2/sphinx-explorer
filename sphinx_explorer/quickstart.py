@@ -126,6 +126,7 @@ def _property_iter(params):
             value_dict["name"] = ext_name
             value_dict["value_type"] = "TypeBool"
 
+
             yield ext_name, value_dict
     else:
         for param_key, value_dict in params.items():
@@ -171,12 +172,15 @@ class Questions(object):
             if "extensions" in params:
                 new_params = OrderedDict()
                 for ext_name in params["extensions"]:
+                    ext = extension.get(ext_name)
                     value_dict = OrderedDict({
                         "default": True,
                     })
 
                     value_dict["name"] = ext_name
                     value_dict["value_type"] = "TypeBool"
+                    if ext:
+                        value_dict["description"] = getattr(ext, "description", "")
 
                     new_params[ext_name] = value_dict
 

@@ -254,7 +254,9 @@ class MainWindow(QMainWindow):
         # () -> None
         toml_path = os.path.join(self.wizard_path, "apidoc.toml")
         questions = toml.load(toml_path, OrderedDict)
-        apidoc_wizard.main(questions, self.settings.default_values, self.add_document, self)
+        wizard = apidoc_wizard.create_wizard(questions, self.settings.default_values, self)
+        if wizard.exec_() == QDialog.Accepted:
+            print("kita-")
 
     @Slot(str)
     def add_document(self, path):

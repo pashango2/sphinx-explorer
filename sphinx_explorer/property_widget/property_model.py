@@ -18,6 +18,9 @@ PropertyItemType = CategoryItemType + 1
 
 
 class PropertyCategoryItem(QStandardItem):
+    BACKGROUND_COLOR = QColor(71, 74, 77)
+    FOREGROUND_COLOR = QColor(0xFF, 0xFF, 0xFF)
+
     @staticmethod
     def type():
         return CategoryItemType
@@ -26,7 +29,11 @@ class PropertyCategoryItem(QStandardItem):
         # type: (str) -> None
         super(PropertyCategoryItem, self).__init__(name)
 
-        self.setBackground(QBrush(QColor(71, 74, 77)))
+        self.setBackground(QBrush(self.BACKGROUND_COLOR))
+        self.setForeground(self.FOREGROUND_COLOR)
+        font = self.font()
+        font.setBold(True)
+        self.setFont(font)
         # self.setFlags(self.flags() & ~(Qt.ItemIsEditable | Qt.ItemIsSelectable))
         self.setFlags(Qt.NoItemFlags)
         self.setEnabled(True)
@@ -51,7 +58,12 @@ class PropertyItem(QStandardItem):
         self._link_format = None
         self._linked = []
         self._default_flag = value is None
+        print("dsafasdfsa", value)
         self._default = ""
+        self._required = False
+
+    def set_required(self, required):
+        self._required = required
 
     def set_indent(self, indent):
         # type: (int) -> None
@@ -66,14 +78,19 @@ class PropertyItem(QStandardItem):
         if value == self._default:
             return
 
+        print("dafdsafasfsa", value, self._value, self.row())
         self._value = value
         self._default_flag = self.value is None
 
         for linked in self._linked:
             linked.update_link(value)
 
-    def update_link(self, value):
+    def update_link(self, value=None):
         # (Any) -> None
+        if self._link is None:
+            return
+
+        value = value or self._link.value
         if self._link_format:
             model_default_value = self.model().default_value(self.key) or ""
             self._default = self._link_format.format(
@@ -110,9 +127,16 @@ class PropertyItem(QStandardItem):
         link._linked.append(self)
         self.update_link(link.value)
 
+    def is_complete(self):
+        # type: () -> bool
+        if not self.value and self._required:
+            return False
+
+        return True
+
 
 class PropertyModel(QStandardItemModel):
-    DEFAULT_COLOR = QColor(0x80, 0x80, 0x80)
+    DEFAULT_VALUE_FOREGROUND_COLOR = QColor(0x80, 0x80, 0x80)
 
     def __init__(self, parent=None):
         super(PropertyModel, self).__init__(parent)
@@ -183,11 +207,11 @@ class PropertyModel(QStandardItemModel):
                     if item.value_type:
                         return item.value_type.icon(item.value)
         elif role == Qt.ForegroundRole:
-            if index.column() == 1 and self._use_default:
+            if index.column() == 1:
                 item = self._property_item(index)
                 if item:
                     if item.was_default():
-                        return self.DEFAULT_COLOR
+                        return self.DEFAULT_VALUE_FOREGROUND_COLOR
 
         return super(PropertyModel, self).data(index, role)
 
@@ -197,6 +221,8 @@ class PropertyModel(QStandardItemModel):
                 index = self.index(index.row(), 0)
                 item = self.itemFromIndex(index)
                 item.set_value(value)
+                # noinspection PyUnresolvedReferences
+                self.itemChanged.emit(item)
                 return True
 
         return super(PropertyModel, self).setData(index, value, role)

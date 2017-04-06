@@ -1,35 +1,61 @@
-[sourcedir]
-name = "Source directory"
+[params]
+[params.outputdir]
+label = "Output directory"
 value_type = "TypeDirPath"
 required = true
 
-[outputdir]
-name = "Output directory"
+[params.sourcedir]
+label = "Module directory"
 value_type = "TypeDirPath"
+relpath_link = "outputdir"
+link = "outputdir"
 required = true
 
-[project]
-name = "Project name"
+[params.project]
+label = "Project name"
 description = """
 The project name will occur in several places in the built documentation.
 """
 required = true
 
-[author]
-name = "Author name"
+
+[params.author]
+label = "Author name"
 description = """
 Author name
 """
 required = true
 
-[separate]
-name = "Separate files"
+
+[params.apidoc-separate]
+label = "Separate files"
 value_type = "TypeBool"
 default = false
 
-[private]
-name = "Include private module"
+
+[params.apidoc-private]
+label = "Include private module"
 value_type = "TypeBool"
 default = false
 
+
+[wizard]
+_order = [
+    "Api document settings",
+    "Settings",
+]
+
+[wizard."Api document settings"]
+params = [
+    "outputdir",
+    "sourcedir",
+]
+
+[wizard."Settings"]
+params = [
+    "project",
+    "author",
+    "apidoc-separate",
+    "apidoc-private",
+]
 

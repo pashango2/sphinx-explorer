@@ -7,6 +7,11 @@ from PySide.QtGui import *
 from sphinx_explorer.property_widget import PropertyWidget
 from sphinx_explorer.quickstart import QuickStartWidget
 
+try:
+    from . import BaseWizard
+except ValueError:
+    from __init__ import BaseWizard
+
 WIZARD_TOML = "apidoc.toml"
 
 
@@ -98,40 +103,23 @@ class PropertyWizard(QWizardPage):
         return self.property_widget.dump()
 
 
-class ApidocWizard(QWizard):
-    def __init__(self, callback, parent):
-        super(ApidocWizard, self).__init__(parent)
-        self._callback = callback
-
-    def settings(self):
-        result = dict()
-
-        for page_id in self.visitedPages():
-            wiz_page = self.page(page_id)  # type: PropertyWizard
-            result.update(wiz_page.dump())
-
-        return result
-
-    def finished_callback(self, path):
-        self._callback(path)
+class ApidocWizard(BaseWizard):
+    def accept(self):
+        return
 
 
-def main(questions, default_settings, callback, parent):
-    wizard = ApidocWizard(callback, parent)
+def create_wizard(wizard_settings, default_settings, parent=None):
+    wizard = ApidocWizard(parent)
 
     # for Windows
     # For default VistaStyle painting hardcoded in source of QWizard(qwizard.cpp[1805]).
     wizard.setWizardStyle(QWizard.ClassicStyle)
 
-    wizard.addPage(
-        PropertyWizard(
-            "Setting",
-            questions,
-            default_settings
-        )
+    wizard.setup(
+        wizard_settings.get("wizard", {}),
+        wizard_settings.get("params", {}),
+        default_dict=default_settings,
     )
-
-    wizard.addPage(FinishWizard(questions))
 
     wizard.setWindowTitle("Sphinx Apidoc Wizard")
     wizard.resize(QSize(1000, 600).expandedTo(wizard.minimumSizeHint()))
@@ -140,6 +128,25 @@ def main(questions, default_settings, callback, parent):
     wizard.setOption(QWizard.NoDefaultButton, True)
 
     # noinspection PyUnresolvedReferences
-    wizard.show()
+    return wizard
 
 
+def main():
+    import os
+    import toml
+    import sys
+
+    app = QApplication(sys.argv)
+
+    setting_path = os.path.abspath(os.path.join("..", "..", "settings", "apidoc.toml"))
+    wizard_settings = toml.load(setting_path)
+    print(wizard_settings)
+
+    wizard = create_wizard(wizard_settings, {}, None)
+    wizard.exec_()
+
+    app.exec_()
+
+
+if __name__ == "__main__":
+    main()

@@ -143,4 +143,6 @@ def main(default_settings, callback, parent):
     wizard.setOption(QWizard.NoDefaultButton, True)
 
     # noinspection PyUnresolvedReferences
-    wizard.show()
+    wizard.exec_()
+
+    return wizard
