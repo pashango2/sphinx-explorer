@@ -1,21 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+
 import os
+import toml
+from collections import OrderedDict
 
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from sphinx_explorer.wizard import quickstart_wizard, apidoc_wizard
+from . import editor
+from . import extension
 from . import icon
+from . import sphinx_value_types
 from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel, ProjectItem
 from .quickstart import QuickStartDialog
-from . import quickstart_wizard
-from . import extension
-from . import editor
-from .util.exec_sphinx import launch, console, show_directory, open_terminal
 from .settings import SettingsDialog, Settings
-from . import sphinx_value_types
+from .util.exec_sphinx import launch, console, show_directory, open_terminal
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -30,6 +33,8 @@ class MainWindow(QMainWindow):
 
     def __init__(self, sys_dir, home_dir, parent=None):
         super(MainWindow, self).__init__(parent)
+
+        self.wizard_path = os.path.join(sys_dir, "settings")
 
         # make setting dir
         self.setting_dir = home_dir
@@ -83,6 +88,7 @@ class MainWindow(QMainWindow):
         self.ui.action_add_document.setIcon(icon.load("plus"))
         self.ui.action_settings.setIcon(icon.load("setting"))
         self.ui.action_wizard.setIcon(icon.load("magic"))
+        self.ui.action_apidoc.setIcon(icon.load("rocket"))
 
         # setup tool button
         self.ui.tool_add_document.setDefaultAction(self.ui.action_add_document)
@@ -92,6 +98,7 @@ class MainWindow(QMainWindow):
         self.quick_start_menu = QMenu(self)
         self.quick_start_menu.addAction(self.ui.action_wizard)
         self.quick_start_menu.addAction(self.ui.action_quickstart)
+        self.quick_start_menu.addAction(self.ui.action_apidoc)
         self.ui.tool_button_quick_start.setMenu(self.quick_start_menu)
         self.ui.tool_button_quick_start.setPopupMode(QToolButton.InstantPopup)
 
@@ -241,6 +248,13 @@ class MainWindow(QMainWindow):
     def on_action_wizard_triggered(self):
         # () -> None
         quickstart_wizard.main(self.settings.default_values, self.add_document, self)
+
+    @Slot()
+    def on_action_apidoc_triggered(self):
+        # () -> None
+        toml_path = os.path.join(self.wizard_path, "apidoc.toml")
+        questions = toml.load(toml_path, OrderedDict)
+        apidoc_wizard.main(questions, self.settings.default_values, self.add_document, self)
 
     @Slot(str)
     def add_document(self, path):

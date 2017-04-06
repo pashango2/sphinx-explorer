@@ -20,7 +20,7 @@
       <item>
        <widget class="QToolButton" name="tool_button_quick_start">
         <property name="text">
-         <string>sphinx- quickstart</string>
+         <string>Create</string>
         </property>
         <property name="toolButtonStyle">
          <enum>Qt::ToolButtonTextBesideIcon</enum>
@@ -103,13 +103,20 @@
       <string>Editor</string>
      </property>
     </widget>
-    <addaction name="action_quickstart"/>
     <addaction name="action_add_document"/>
     <addaction name="separator"/>
     <addaction name="action_settings"/>
     <addaction name="menu_editor"/>
    </widget>
+   <widget class="QMenu" name="menuCreate_C">
+    <property name="title">
+     <string>Create(&amp;C)</string>
+    </property>
+    <addaction name="action_quickstart"/>
+    <addaction name="action_apidoc"/>
+   </widget>
    <addaction name="menuFile_F"/>
+   <addaction name="menuCreate_C"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dock_outputs">
@@ -160,6 +167,14 @@
    </property>
    <property name="toolTip">
     <string>wizard mode</string>
+   </property>
+  </action>
+  <action name="action_apidoc">
+   <property name="text">
+    <string>apidoc</string>
+   </property>
+   <property name="toolTip">
+    <string>apidoc</string>
    </property>
   </action>
  </widget>

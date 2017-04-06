@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from .quickstart import Questions
+from sphinx_explorer.quickstart import Questions
 
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from .property_widget import PropertyWidget
-from .quickstart import get_questions, QuickStartWidget
+from sphinx_explorer.property_widget import PropertyWidget
+from sphinx_explorer.quickstart import get_questions, QuickStartWidget
 
 
 class FinishWizard(QWizardPage):

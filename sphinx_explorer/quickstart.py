@@ -84,7 +84,7 @@ def quickstart_ext(d):
         fd = codecs.open(info.conf_py_path, "a", CONF_PY_ENCODING)
 
         if d.get("html_theme", "default") != "default":
-            fd.write(b"html_theme = '{}'\n".format(d["html_theme"]))
+            fd.write("html_theme = '{}'\n".format(d["html_theme"]))
 
         for key in d.keys():
             if key.startswith("ext-"):

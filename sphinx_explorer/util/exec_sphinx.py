@@ -63,7 +63,7 @@ def check_output(cmd):
 
 
 def config(config_path):
-    # type: (str) -> str or None
+    # type: (string_types) -> string_types or None
     _, result = check_output(
         " ".join([
             "python", os.path.join(os.path.dirname(sys.argv[0]), "script", "sphinx_config.py"), config_path
@@ -73,12 +73,17 @@ def config(config_path):
 
 
 def exec_(cmd, cwd=None):
-    # type: (str, str) -> bool
-    cmd = command(('cmd.exe /C "' + cmd + '"').encode(_encoding()))
+    # type: (string_types, string_types) -> int
+    shell = True
+
+    if platform.system() == "Windows":
+        cmd = command(('cmd.exe /C "' + cmd + '"')).encode(_encoding())
+        shell = False
+
     p = subprocess.Popen(
         cmd,
         cwd=cwd.encode(_encoding()) if cwd else None,
-        shell=False,
+        shell=shell,
     )
     p.wait()
     return p.returncode
