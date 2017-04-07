@@ -9,9 +9,11 @@ from six import string_types
 # noinspection PyUnresolvedReferences
 from PySide.QtCore import *
 from PySide.QtGui import *
-from typing import Iterator
 from .property_model import PropertyItem, PropertyCategoryItem, PropertyModel
 from .property_model import PropertyItemType
+
+if False:
+    from typing import Dict, Iterator
 
 __all__ = [
     "PropertyWidget",
@@ -65,43 +67,37 @@ class PropertyWidget(QTableView):
         self.setTabKeyNavigation(False)
         self._first_property_index = QModelIndex()
 
+    def clear(self):
+        self._model.removeRows(0, self._model.rowCount())
+
     # noinspection PyUnresolvedReferences
     def _connect(self):
         self.selection_model.currentChanged.connect(self.currentChanged.emit)
         self._model.itemChanged.connect(self.itemChanged.emit)
-
-    def set_default_dict(self, default_dict):
-        self._model.set_default_dict(default_dict)
-
-    def clear(self):
-        self._model.removeRows(0, self._model.rowCount())
 
     def index(self, row, column):
         # type: (int, int) -> QModelIndex
         return self._model.index(row, column)
 
     def add_category(self, category_name):
-        # type: (str) -> PropertyCategoryItem
+        # type: (string_types) -> PropertyCategoryItem
         item = PropertyCategoryItem(category_name)
         self._model.add_category(item)
         self.setSpan(item.row(), 0, 1, 2)
         return item
 
-    def create_property(self, item_key, params, label_name=None):
-        # type: (str, dict, str or None) -> PropertyItem
-        label_name = label_name or params.get("name")
+    def create_property(self, key, params, label_name=None):
+        # type: (string_types, dict, string_types or None) -> PropertyItem
+        label_name = label_name or params.get("label") or key
         value = params.get("value")
-        description = params.get("description")
-        value_type = params.get("value_type")
+        default_value = self.default_value(key) or params.get("default")
 
-        if isinstance(value_type, string_types):
-            value_type = find_value_type(value_type, params)
+        item = PropertyItem(key, label_name, value, params, default_value)
 
-        item = PropertyItem(item_key, label_name, value, description, value_type)
+        # if "default" in params:
+        #     self._model.set_default_value(key, params["default"], update=False)
 
-        if "default" in params:
-            self._model.set_default_value(item_key, params["default"], update=False)
-        item.update_link(self._model.default_value(item_key))
+        item.update_link(self._model.default_value(key))
         item.set_required(params.get("required", False))
 
         if params.get("description"):
@@ -121,14 +117,15 @@ class PropertyWidget(QTableView):
         if not self._first_property_index.isValid():
             self._first_property_index = self.index(item.row(), 1)
 
-    def first_property_index(self):
-        return self._first_property_index
-
     def add_property(self, item_key, params, label_name=None):
         # type: (str, dict, str or None) -> PropertyItem
         item = self.create_property(item_key, params, label_name)
         self.add_property_item(item)
         return item
+
+    def first_property_index(self):
+        # type: () -> QModelIndex
+        return self._first_property_index
 
     def setReadOnly(self, readonly):
         # type: (bool) -> None
@@ -163,44 +160,48 @@ class PropertyWidget(QTableView):
                 item.set_value(value)
         return True
 
-    def _load_settings(self, settings):
-        props = []
+    def _load_settings(self, settings, params_dict):
+        key_item_map = {}
 
-        for key, value in settings.items():
-            name = value.get("name")
-            if name is None or isinstance(name, dict):
-                self.add_category(key)
-                props += self._load_settings(value)
+        for setting in settings:
+            if isinstance(setting, string_types):
+                if "#" == setting[0]:
+                    self.add_category(setting[1:])
+                    continue
+                else:
+                    key = setting
+                    params = params_dict.get(setting, {})
+            elif isinstance(setting, dict):
+                key = setting.get("key")
+                params = setting
             else:
-                item = self.add_property(key, value)
-                props.append((value, item))
+                raise ValueError(setting)
 
-        return props
+            item = self.add_property(key, params)
+            key_item_map[key] = [item, params]
 
-    def load_settings(self, settings, default_value=None):
-        # (dict) -> [PropertyItem]
-        if default_value:
-            self._model.set_default_dict(default_value)
+        return key_item_map
 
-        props = self._load_settings(settings)
-        self.setup_link(settings)
+    def load_settings(self, settings, params_dict=None):
+        # (dict) -> None
+        params_dict = params_dict or {}
 
-        return [_[1] for _ in props]
+        key_item_map = self._load_settings(settings, params_dict)
 
-    def setup_link(self, settings):
+        # setup link
         prop_map = self.property_map()
-        for key, value in settings.items():
-            if "link" not in value:
+        for key, (item, params) in key_item_map.items():
+            if "link" not in params:
                 continue
-
             item = prop_map[key]
-            item.set_link(prop_map.get(value["link"]), value.get("link_format"))
+            item.set_link(prop_map.get(params["link"]), params.get("link_format"))
 
     def property_map(self):
+        # type: () -> Dict[string_types, PropertyItem]
         return {
             item.key: item
             for item in self.properties()
-        }
+            }
 
     def properties(self):
         # type: () -> Iterator[PropertyItem]
@@ -219,7 +220,8 @@ class PropertyWidget(QTableView):
             return item.description
         return None
 
-    def _html(self, dec, title, title_prefix="#"):
+    @staticmethod
+    def _html(dec, title, title_prefix="#"):
         md = """
 {title_prefix} {title}
 {}
@@ -270,9 +272,15 @@ class PropertyWidget(QTableView):
     def set_default_value(self, key, value, update=True):
         self._model.set_default_value(key, value, update)
 
+    def default_value(self, key):
+        return self._model.default_value(key)
+
     def update_default(self):
         for prop in self.properties():
             prop.update_default()
+
+    def set_default_dict(self, default_dict):
+        self._model.set_default_dict(default_dict)
 
 
 class PropertyItemDelegate(QStyledItemDelegate):

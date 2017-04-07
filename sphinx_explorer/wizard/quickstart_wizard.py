@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from sphinx_explorer.quickstart import Questions
 
 from PySide.QtCore import *
 from PySide.QtGui import *
 
 from sphinx_explorer.property_widget import PropertyWidget
 from sphinx_explorer.quickstart import get_questions, QuickStartWidget
+from .base_wizard import PropertyPage, BaseWizard
 
 
 class FinishWizard(QWizardPage):
@@ -98,51 +98,96 @@ class PropertyWizard(QWizardPage):
         return self.property_widget.dump()
 
 
-class QuickStartWizard(QWizard):
-    def __init__(self, callback, parent):
+class QuickStartWizard(BaseWizard):
+    def __init__(self, parent):
         super(QuickStartWizard, self).__init__(parent)
-        self._callback = callback
-
-    def settings(self):
-        result = dict()
-
-        for page_id in self.visitedPages():
-            wiz_page = self.page(page_id)  # type: PropertyWizard
-            result.update(wiz_page.dump())
-
-        return result
-
-    def finished_callback(self, path):
-        self._callback(path)
 
 
-def main(default_settings, callback, parent):
-    questions = get_questions()
+Questions = [
+    [
+        "Required params",
+        [
+            "project",
+            "path",
+            "author",
+            "version",
+            "release",
+        ]
+    ],
+    [
+        "Document params",
+        [
+            "language",
+            "path",
+            "html_theme",
+            "epub",
+        ]
+    ],
+    [
+        "Options",
+        [
+            "sep",
+            "prefix",
+            "suffix",
+            "master",
+            "#Build params",
+            "makefile",
+            "batchfile",
+            '#Extensions',
+            "ext-autodoc",
+            "ext-doctest",
+            "ext-intersphinx",
+            "ext-todo",
+            "ext-coverage",
+            "ext-imgmath",
+            "ext-mathjax",
+            "ext-ifconfig",
+            "ext-viewcode",
+            "ext-githubpage",
+        ]
+    ],
+    [
+        "More Extensions",
+        [
+            "ext-commonmark",
+            "ext-nbsphinx",
+            "ext-fontawesome",
+            "ext-blockdiag",
+            "ext-autosummary",
+        ]
+    ],
+]
 
-    wizard = QuickStartWizard(callback, parent)
+
+def create_wizard(params_dict, default_settings, parent=None):
+    wizard = QuickStartWizard(parent)
 
     # for Windows
     # For default VistaStyle painting hardcoded in source of QWizard(qwizard.cpp[1805]).
     wizard.setWizardStyle(QWizard.ClassicStyle)
 
-    for category_name in questions.categories():
+    for category_name, params in Questions:
         wizard.addPage(
-            PropertyWizard(
+            PropertyPage(
+                params_dict,
                 category_name,
-                questions.properties(category_name),
+                params,
                 default_settings
             )
         )
 
-    wizard.addPage(FinishWizard(questions))
+    # wizard.addPage(FinishWizard(questions))
+    # wizard.setup(
+    #     wizard_settings.get("wizard", {}),
+    #     wizard_settings.get("params", {}),
+    #     default_dict=default_settings,
+    # )
 
-    wizard.setWindowTitle("Sphinx Quckstart Wizard")
+    wizard.setWindowTitle("Sphinx Apidoc Wizard")
     wizard.resize(QSize(1000, 600).expandedTo(wizard.minimumSizeHint()))
 
     # disable default button
     wizard.setOption(QWizard.NoDefaultButton, True)
 
     # noinspection PyUnresolvedReferences
-    wizard.exec_()
-
     return wizard

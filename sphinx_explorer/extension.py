@@ -23,3 +23,8 @@ def init(plugin_dir):
 
 def get(ext_name):
     return Extensions.get(ext_name)
+
+
+def list_iter():
+    for ext_name, ext in Extensions.items():
+        yield ext_name, ext

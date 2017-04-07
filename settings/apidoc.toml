@@ -4,12 +4,6 @@ label = "Output directory"
 value_type = "TypeDirPath"
 required = true
 
-[params.sourcedir]
-label = "Module directory"
-value_type = "TypeDirPath"
-required = true
-link="outputdir"
-
 [params.project]
 label = "Project name"
 description = """

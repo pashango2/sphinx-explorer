@@ -68,7 +68,7 @@ class SecondPropertyPage(PropertyPage):
 
         self.property_widget.set_default_value(
             "project",
-            os.path.basename(self.wizard().value("sourcedir"))
+            os.path.basename(self.wizard().value("apidoc-sourcedir"))
         )
         self.property_widget.update_default()
 
@@ -84,8 +84,8 @@ def create_wizard(params_dict, default_settings, parent=None):
         params_dict,
         "First setting",
         [
-            "outputdir",
-            "sourcedir",
+            "path",
+            "apidoc-sourcedir",
             "html_theme",
             "apidoc-separate",
             "apidoc-private",

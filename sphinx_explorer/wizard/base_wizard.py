@@ -30,44 +30,46 @@ class PropertyPage(QWizardPage):
         self.property_widget.currentChanged.connect(self._onCurrentChanged)
         self.property_widget.setCurrentIndex(self.property_widget.index(0, 1))
 
-        item_params = {}
-        for item in items:
-            if isinstance(item, string_types):
-                if item[0] == "#":
-                    label, item_key = item[1:], None
-                else:
-                    param = params_dict.get(item)
-                    if param is None:
-                        raise ValueError(item)
-                    label, item_key = param["label"], item
+        self.property_widget.load_settings(
+            items,
+            params_dict=params_dict,
+        )
+        # item_params = {}
+        # for item in items:
+        #     if isinstance(item, string_types):
+        #         if item[0] == "#":
+        #             label, item_key = item[1:], None
+        #         else:
+        #             param = params_dict.get(item)
+        #             if param is None:
+        #                 raise ValueError(item)
+        #             label, item_key = param["label"], item
+        #
+        #     elif isinstance(item, list):
+        #         label, item_key = item
+        #     else:
+        #         raise
+        #
+        #     if item_key is None:
+        #         self.property_widget.add_category(label)
+        #         continue
+        #
+        #     if isinstance(item_key, dict):
+        #         key = item_key["key"]
+        #         param = params_dict.get(key).copy()
+        #         param.update(item_key)
+        #         item_key = key
+        #     else:
+        #         param = params_dict.get(item_key)
+        #
+        #     self.property_widget.add_property(
+        #         item_key,
+        #         param,
+        #         label,
+        #     )
+        #     item_params[item_key] = param
 
-            elif isinstance(item, list):
-                label, item_key = item
-            else:
-                raise
-
-            if item_key is None:
-                self.property_widget.add_category(label)
-                continue
-
-            if isinstance(item_key, dict):
-                key = item_key["key"]
-                param = params_dict.get(key).copy()
-                param.update(item_key)
-                item_key = key
-            else:
-                param = params_dict.get(item_key)
-
-            self.property_widget.add_property(
-                item_key,
-                param,
-                label,
-            )
-            item_params[item_key] = param
-
-        self.property_widget.setup_link(item_params)
         self.property_widget.resizeColumnsToContents()
-
         self.property_widget.itemChanged.connect(self._onItemChanged)
 
         self.setTitle(title)

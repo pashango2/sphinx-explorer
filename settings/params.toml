@@ -9,7 +9,7 @@ required = true
 label = "Root path"
 value_type = "TypeDirPath"
 link="project"
-link_format = "{_default}{_path_sep}{}"
+link_format = "{_default}{_path_sep}{_link}"
 
 description = """
 Root path for documentation.
@@ -122,12 +122,6 @@ A Makefile and a Windows command file can be generated for you so that you
 only have to run e.g. `make html' instead of invoking sphinx-build directly.
 '''
 
-
-[apidoc-sourcedir]
-label = "Module directory"
-value_type = "TypeDirPath"
-required = true
-
 [apidoc-separate]
 label = "Separate files"
 value_type = "TypeBool"
@@ -139,20 +133,43 @@ label = "Include private module"
 value_type = "TypeBool"
 default = false
 
+[apidoc-sourcedir]
+label = "Module directory"
+value_type = "TypeDirPath"
+required = true
+link="path"
 
-["Extensions"]
-extensions = [
-    "ext-autodoc",
-    "ext-doctest",
-    "ext-intersphinx",
-    "ext-todo",
-    "ext-coverage",
-    "ext-imgmath",
-    "ext-mathjax",
-    "ext-ifconfig",
-    "ext-viewcode",
-    "ext-githubpage",
-]
+
+[ext-autodoc]
+value_type = "TypeBool"
+default = true
+[ext-doctest]
+value_type = "TypeBool"
+default = true
+[ext-intersphinx]
+value_type = "TypeBool"
+default = true
+[ext-todo]
+value_type = "TypeBool"
+default = true
+[ext-coverage]
+value_type = "TypeBool"
+default = true
+[ext-imgmath]
+value_type = "TypeBool"
+default = true
+[ext-mathjax]
+value_type = "TypeBool"
+default = true
+[ext-ifconfig]
+value_type = "TypeBool"
+default = true
+[ext-viewcode]
+value_type = "TypeBool"
+default = true
+[ext-githubpage]
+value_type = "TypeBool"
+default = true
 
 ["More Extensions"]
 extensions = [

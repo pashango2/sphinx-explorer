@@ -47,6 +47,16 @@ class MainWindow(QMainWindow):
         extension.init(os.path.join(sys_dir, "plugin", "extension"))
         editor.init(os.path.join(sys_dir, "plugin", "editor"))
 
+        # setup params dict
+        toml_path = os.path.join(self.wizard_path, "params.toml")
+        self.params_dict = toml.load(toml_path, OrderedDict)
+
+        for ext_name, ext in extension.list_iter():
+            self.params_dict[ext_name] = {
+                "value_type": "TypeBool",
+                "default": True
+            }
+
         # create actions
         self.del_document_act = QAction("Delete Document", self)
         self.del_document_act.setIcon(icon.load("remove"))
@@ -247,14 +257,15 @@ class MainWindow(QMainWindow):
     @Slot()
     def on_action_wizard_triggered(self):
         # () -> None
-        quickstart_wizard.main(self.settings.default_values, self.add_document, self)
+        # quickstart_wizard.main(self.settings.default_values, self.add_document, self)
+        wizard = quickstart_wizard.create_wizard(self.params_dict, self.settings.default_values, self)
+        if wizard.exec_() == QDialog.Accepted:
+            print("kita-")
 
     @Slot()
     def on_action_apidoc_triggered(self):
         # () -> None
-        toml_path = os.path.join(self.wizard_path, "params.toml")
-        params_dict = toml.load(toml_path, OrderedDict)
-        wizard = apidoc_wizard.create_wizard(params_dict, self.settings.default_values, self)
+        wizard = apidoc_wizard.create_wizard(self.params_dict, self.settings.default_values, self)
         if wizard.exec_() == QDialog.Accepted:
             print("kita-")
 
