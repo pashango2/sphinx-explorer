@@ -4,8 +4,36 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 # from PySide.QtCore import *
 from PySide.QtGui import *
 from six import string_types
+from sphinx_explorer.util.QConsoleWidget import QConsoleWidget
 
 from sphinx_explorer import property_widget
+
+
+class ExecCommandPage(QWizardPage):
+    def __init__(self, title, parent=None):
+        super(ExecCommandPage, self).__init__(parent)
+        self.console_widget = QConsoleWidget(self)
+        self.console_widget.finished.connect(self.finished)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.console_widget)
+        self.setLayout(layout)
+
+        self.setTitle(title)
+        self.can_finished = False
+
+    def validatePage(self):
+        return self.can_finished
+
+    def exec_command(self, cmd, cwd=None):
+        self.console_widget.exec_command(cmd, cwd)
+
+    def finished(self, returncode, exit_status):
+        self.can_finished = returncode == 0
+        self.validatePage()
+
+        if self.can_finished is False:
+            self.wizard().button(QWizard.BackButton).setEnabled(True)
 
 
 class PropertyPage(QWizardPage):
@@ -34,49 +62,11 @@ class PropertyPage(QWizardPage):
             items,
             params_dict=params_dict,
         )
-        # item_params = {}
-        # for item in items:
-        #     if isinstance(item, string_types):
-        #         if item[0] == "#":
-        #             label, item_key = item[1:], None
-        #         else:
-        #             param = params_dict.get(item)
-        #             if param is None:
-        #                 raise ValueError(item)
-        #             label, item_key = param["label"], item
-        #
-        #     elif isinstance(item, list):
-        #         label, item_key = item
-        #     else:
-        #         raise
-        #
-        #     if item_key is None:
-        #         self.property_widget.add_category(label)
-        #         continue
-        #
-        #     if isinstance(item_key, dict):
-        #         key = item_key["key"]
-        #         param = params_dict.get(key).copy()
-        #         param.update(item_key)
-        #         item_key = key
-        #     else:
-        #         param = params_dict.get(item_key)
-        #
-        #     self.property_widget.add_property(
-        #         item_key,
-        #         param,
-        #         label,
-        #     )
-        #     item_params[item_key] = param
 
         self.property_widget.resizeColumnsToContents()
         self.property_widget.itemChanged.connect(self._onItemChanged)
 
         self.setTitle(title)
-
-    # def validatePage(self):
-    #     print("validatePage")
-    #     return False
 
     def _onCurrentChanged(self, current, _):
         html = self.property_widget.html(current)
@@ -89,6 +79,7 @@ class PropertyPage(QWizardPage):
         return self.property_widget.is_complete()
 
     def _onItemChanged(self, _):
+        # noinspection PyUnresolvedReferences
         self.completeChanged.emit()
 
     def initializePage(self):
@@ -139,3 +130,6 @@ class BaseWizard(QWizard):
 
     def value(self, key):
         return self._value_dict[key]
+
+    def dump(self):
+        return self._value_dict

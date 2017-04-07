@@ -118,7 +118,6 @@ Questions = [
         "Document params",
         [
             "language",
-            "path",
             "html_theme",
             "epub",
         ]

@@ -7,13 +7,15 @@ from PySide.QtGui import *
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
 
+QTextCodec.setCodecForCStrings(QTextCodec.codecForLocale())
+
 
 class QConsoleWidget(QTextEdit):
     finished = Signal(int, QProcess.ExitStatus)
 
     def __init__(self, parent=None):
         super(QConsoleWidget, self).__init__(parent)
-        self._process = None
+        self._process = QProcess(self)
         self.setReadOnly(True)
 
     def process(self):
@@ -21,11 +23,14 @@ class QConsoleWidget(QTextEdit):
         return self._process
 
     # noinspection PyUnresolvedReferences
-    def exec_command(self, cmd):
+    def exec_command(self, cmd, cwd=None):
+        if cwd:
+            self._process.setWorkingDirectory(cwd.encode(sys.getfilesystemencoding()))
+
         self._process.readyReadStandardOutput.connect(self._print_output)
         self._process.readyReadStandardError.connect(self._print_output)
         self._process.finished.connect(self.finished)
-        self._process.start(cmd)
+        self._process.start(cmd.encode(sys.getfilesystemencoding()))
 
     @Slot()
     def _print_output(self):
@@ -34,7 +39,7 @@ class QConsoleWidget(QTextEdit):
 
         line = self._process.readAllStandardOutput().data()
         self.moveCursor(QTextCursor.End)
-        self.append(line.decode(TERM_ENCODING))
+        self.append(line)
         self.moveCursor(QTextCursor.End)
 
     def terminate(self):

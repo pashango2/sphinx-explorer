@@ -157,7 +157,7 @@ class PropertyWidget(QTableView):
         for key, value in params.items():
             if key in params_dict:
                 item = params_dict[key]
-                item.set_value(value)
+                item.set_value(value, force_update=True)
         return True
 
     def _load_settings(self, settings, params_dict):
@@ -272,12 +272,16 @@ class PropertyWidget(QTableView):
     def set_default_value(self, key, value, update=True):
         self._model.set_default_value(key, value, update)
 
+        for param_key, item in self.property_map().items():
+            if param_key == "key" and item.was_default():
+                item.update_link()
+
     def default_value(self, key):
         return self._model.default_value(key)
 
     def update_default(self):
         for prop in self.properties():
-            prop.update_default()
+            prop.update_link()
 
     def set_default_dict(self, default_dict):
         self._model.set_default_dict(default_dict)

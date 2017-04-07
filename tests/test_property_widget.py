@@ -186,7 +186,6 @@ def test_link_format():
     widget.set_default_dict(default_values)
 
 
-
 def test_add_item():
     widget = PropertyWidget()
     widget.add_property(

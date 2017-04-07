@@ -6,7 +6,8 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from sphinx_explorer.quickstart import QuickStartWidget
-from .base_wizard import BaseWizard, PropertyPage
+from .base_wizard import BaseWizard, PropertyPage, ExecCommandPage
+from .. import apidoc
 
 WIZARD_TOML = "apidoc.toml"
 
@@ -54,8 +55,20 @@ class FinishWizard(QWizardPage):
 
 
 class ApidocWizard(BaseWizard):
-    def accept(self):
-        return
+    # def accept(self):
+    #     self.validateCurrentPage()
+    #
+    #     settings = self.dump()
+    #     result = apidoc.create(
+    #         settings["path"],
+    #         settings["apidoc-sourcedir"],
+    #         settings,
+    #         cwd=settings["path"],
+    #     )
+    #     if result == 0:
+    #         super(ApidocWizard, self).accept()
+    def path(self):
+        return self._value_dict.get("path")
 
 
 class FirstPage(PropertyPage):
@@ -73,12 +86,29 @@ class SecondPropertyPage(PropertyPage):
         self.property_widget.update_default()
 
 
+class ApiDocExecCommandPage(ExecCommandPage):
+    def initializePage(self):
+        self.validatePage()
+        self.console_widget.clear()
+
+        settings = self.wizard().dump()
+        cmd = apidoc.create_command(
+            settings["path"],
+            settings["apidoc-sourcedir"],
+            settings,
+        )
+        self.exec_command(cmd, cwd=settings["path"])
+
+
 def create_wizard(params_dict, default_settings, parent=None):
     wizard = ApidocWizard(parent)
 
     # for Windows
     # For default VistaStyle painting hardcoded in source of QWizard(qwizard.cpp[1805]).
     wizard.setWizardStyle(QWizard.ClassicStyle)
+
+    # last page is disable back button.
+    wizard.setOption(QWizard.DisabledBackButtonOnLastPage, True)
 
     page = FirstPage(
         params_dict,
@@ -106,6 +136,8 @@ def create_wizard(params_dict, default_settings, parent=None):
         parent=wizard,
     )
     wizard.addPage(page)
+
+    wizard.addPage(ApiDocExecCommandPage("create api doc", parent=wizard))
 
     # wizard.setup(
     #     wizard_settings.get("wizard", {}),

@@ -14,6 +14,7 @@ from . import editor
 from . import extension
 from . import icon
 from . import sphinx_value_types
+from . import apidoc
 from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel, ProjectItem
 from .quickstart import QuickStartDialog
@@ -107,8 +108,8 @@ class MainWindow(QMainWindow):
         # setup quick start menu
         self.quick_start_menu = QMenu(self)
         self.quick_start_menu.addAction(self.ui.action_wizard)
-        self.quick_start_menu.addAction(self.ui.action_quickstart)
         self.quick_start_menu.addAction(self.ui.action_apidoc)
+        self.quick_start_menu.addAction(self.ui.action_quickstart)
         self.ui.tool_button_quick_start.setMenu(self.quick_start_menu)
         self.ui.tool_button_quick_start.setPopupMode(QToolButton.InstantPopup)
 
@@ -238,7 +239,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def on_action_settings_triggered(self):
         dlg = SettingsDialog(self)
-        dlg.setup(self.settings)
+        dlg.setup(self.settings, self.params_dict)
         if dlg.exec_() == QDialog.Accepted:
             dlg.update_settings(self.settings)
 
@@ -260,14 +261,14 @@ class MainWindow(QMainWindow):
         # quickstart_wizard.main(self.settings.default_values, self.add_document, self)
         wizard = quickstart_wizard.create_wizard(self.params_dict, self.settings.default_values, self)
         if wizard.exec_() == QDialog.Accepted:
-            print("kita-")
+            pass
 
     @Slot()
     def on_action_apidoc_triggered(self):
         # () -> None
         wizard = apidoc_wizard.create_wizard(self.params_dict, self.settings.default_values, self)
         if wizard.exec_() == QDialog.Accepted:
-            print("kita-")
+            self.add_document(wizard.path())
 
     @Slot(str)
     def add_document(self, path):

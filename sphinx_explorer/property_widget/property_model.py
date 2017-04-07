@@ -179,9 +179,9 @@ class PropertyItem(QStandardItem):
         # type: (QValidator) -> None
         self.validator = validator
 
-    def set_value(self, value):
+    def set_value(self, value, force_update=False):
         # (Any) -> None
-        if value == self._default:
+        if value == self._default and force_update is False:
             return
 
         self._value = value
@@ -193,6 +193,9 @@ class PropertyItem(QStandardItem):
     def update_link(self, value=None):
         # (Any) -> None
         if self.link is None:
+            if self.model():
+                self._default = self.model().default_value(self.key) or self._default
+                self._default_cache = self._default
             return
 
         link_value = value or self.link.value
