@@ -7,7 +7,6 @@ from PySide.QtGui import *
 from .settings_ui import Ui_Form
 from .property_widget import TypeChoice
 from . import editor
-from .quickstart import get_questions
 import locale
 
 

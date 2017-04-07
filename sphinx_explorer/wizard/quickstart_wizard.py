@@ -6,7 +6,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from sphinx_explorer.property_widget import PropertyWidget
-from sphinx_explorer.quickstart import get_questions, QuickStartWidget
+from sphinx_explorer.quickstart import QuickStartWidget
 from .base_wizard import PropertyPage, BaseWizard
 
 

@@ -6,6 +6,7 @@ from .theme_dialog import HtmlThemeWidget
 from PySide.QtGui import *
 
 
+# noinspection PyMethodOverriding
 class TypeLanguage(TypeBase):
     Languages = """
     bn – ベンガル語
@@ -71,6 +72,7 @@ class TypeLanguage(TypeBase):
         return combo.itemData(combo.currentIndex())
 
 
+# noinspection PyMethodOverriding
 class TypeHtmlTheme(TypeBase):
     is_persistent_editor = True
 
@@ -87,6 +89,7 @@ class TypeHtmlTheme(TypeBase):
         return control.text()
 
 
+# noinspection PyTypeChecker
 def init():
     register_value_type(TypeLanguage)
     register_value_type(TypeHtmlTheme)

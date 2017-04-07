@@ -8,6 +8,8 @@ required = true
 [path]
 label = "Root path"
 value_type = "TypeDirPath"
+require_input = true
+required = true
 link="project"
 link_format = "{_default}{_path_sep}{_link}"
 
@@ -137,6 +139,7 @@ default = false
 label = "Module directory"
 value_type = "TypeDirPath"
 required = true
+require_input = true
 link="path"
 
 

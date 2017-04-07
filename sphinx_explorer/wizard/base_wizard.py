@@ -11,6 +11,7 @@ from sphinx_explorer import property_widget
 
 class ExecCommandPage(QWizardPage):
     def __init__(self, title, parent=None):
+        # type: (string_types, QWidget) -> None
         super(ExecCommandPage, self).__init__(parent)
         self.console_widget = QConsoleWidget(self)
         self.console_widget.finished.connect(self.finished)
@@ -28,7 +29,7 @@ class ExecCommandPage(QWizardPage):
     def exec_command(self, cmd, cwd=None):
         self.console_widget.exec_command(cmd, cwd)
 
-    def finished(self, returncode, exit_status):
+    def finished(self, returncode, _):
         self.can_finished = returncode == 0
         self.validatePage()
 

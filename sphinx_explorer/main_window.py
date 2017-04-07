@@ -14,7 +14,6 @@ from . import editor
 from . import extension
 from . import icon
 from . import sphinx_value_types
-from . import apidoc
 from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel, ProjectItem
 from .quickstart import QuickStartDialog
@@ -279,14 +278,14 @@ class MainWindow(QMainWindow):
     @Slot()
     def on_action_add_document_triggered(self):
         # () -> None
-        # noinspection PyCallByClass
         default_path = os.path.join(self.setting_dir, "..")
+
+        # noinspection PyCallByClass
         doc_dir = QFileDialog.getExistingDirectory(
             self,
             "add document",
             self.settings.default_root_path(default_path),
         )
-        print(self.settings.default_root_path(default_path))
 
         if doc_dir:
             self.project_list_model.add_document(doc_dir)

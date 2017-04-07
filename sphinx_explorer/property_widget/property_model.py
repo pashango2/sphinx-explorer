@@ -119,7 +119,7 @@ class PropertyCategoryItem(QStandardItem):
         return CategoryItemType
 
     def __init__(self, name):
-        # type: (str) -> None
+        # type: (string_types) -> None
         super(PropertyCategoryItem, self).__init__(name)
 
         self.setBackground(QBrush(self.BACKGROUND_COLOR))
@@ -132,6 +132,10 @@ class PropertyCategoryItem(QStandardItem):
 
 
 class PropertyItem(QStandardItem):
+    REQUIRED_FOREGROUND_COLOR = QColor("#f8b862")
+    BOLD_FONT = QFont()
+    BOLD_FONT.setBold(True)
+
     @staticmethod
     def type():
         return PropertyItemType
@@ -143,6 +147,7 @@ class PropertyItem(QStandardItem):
         self._value = value
         self.description = params.get("description")
         self.required = params.get("required", False)
+        self.require_input = params.get("require_input", False)
 
         # value type
         value_type = params.get("value_type")
@@ -168,6 +173,16 @@ class PropertyItem(QStandardItem):
         # reserved
         self.validator = None
 
+        self.update_bg_color()
+
+    def update_bg_color(self):
+        if not self.is_complete():
+            self.setForeground(self.REQUIRED_FOREGROUND_COLOR)
+            self.setFont(self.BOLD_FONT)
+        else:
+            self.setData(None, Qt.ForegroundRole)
+            self.setFont(QFont())
+
     def set_required(self, required):
         self.required = required
 
@@ -181,7 +196,7 @@ class PropertyItem(QStandardItem):
 
     def set_value(self, value, force_update=False):
         # (Any) -> None
-        if value == self._default and force_update is False:
+        if value == self._default and not force_update and not self.require_input:
             return
 
         self._value = value
@@ -190,12 +205,15 @@ class PropertyItem(QStandardItem):
         for linked in self._linked:
             linked.update_link(value)
 
+        self.update_bg_color()
+
     def update_link(self, value=None):
         # (Any) -> None
         if self.link is None:
             if self.model():
                 self._default = self.model().default_value(self.key) or self._default
                 self._default_cache = self._default
+                self.update_bg_color()
             return
 
         link_value = value or self.link.value
@@ -209,6 +227,7 @@ class PropertyItem(QStandardItem):
             )
         else:
             self._default_cache = link_value or default_value
+        self.update_bg_color()
 
     @property
     def value(self):
@@ -235,7 +254,11 @@ class PropertyItem(QStandardItem):
 
     def is_complete(self):
         # type: () -> bool
-        if not self.value and self.required:
-            return False
+        if self.required:
+            if not self.value:
+                return False
+
+            if not self._value and self.require_input:
+                return False
 
         return True
