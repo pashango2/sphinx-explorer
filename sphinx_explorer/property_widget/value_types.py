@@ -25,13 +25,12 @@ class TypeBase(object):
         return -1
 
     @classmethod
-    def default(cls):
-        return None
+    def default(cls, value):
+        return value
 
     @classmethod
     def control(cls, delegate, parent):
         return None
-
 
     is_persistent_editor = False
 
@@ -170,10 +169,14 @@ class TypeRelDirPath(TypeDirPath):
         return cls(params)
 
     def __init__(self, params):
-        self.path = params.get("path")
+        self.relpath = params.get("relpath")
 
     def control(self, delegate, parent):
-        return RelPathParamWidget(delegate, relpath=self.path, parent=parent)
+        return RelPathParamWidget(delegate, relpath=self.relpath, parent=parent)
+
+    def default(self, path):
+        self.relpath = path
+        return "."
 
 
 class TypeChoice(TypeBase):
@@ -200,10 +203,6 @@ class TypeChoice(TypeBase):
     def value(cls, combo):
         # type: (QComboBox, str) -> None
         return combo.itemData(combo.currentIndex())
-
-    @classmethod
-    def default(cls):
-        return None
 
     # noinspection PyMethodOverriding
     def data(self, value):

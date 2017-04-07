@@ -7,9 +7,8 @@ required = true
 [params.sourcedir]
 label = "Module directory"
 value_type = "TypeDirPath"
-relpath_link = "outputdir"
-link = "outputdir"
 required = true
+link="outputdir"
 
 [params.project]
 label = "Project name"

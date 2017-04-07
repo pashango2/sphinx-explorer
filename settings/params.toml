@@ -122,6 +122,24 @@ A Makefile and a Windows command file can be generated for you so that you
 only have to run e.g. `make html' instead of invoking sphinx-build directly.
 '''
 
+
+[apidoc-sourcedir]
+label = "Module directory"
+value_type = "TypeDirPath"
+required = true
+
+[apidoc-separate]
+label = "Separate files"
+value_type = "TypeBool"
+default = false
+
+
+[apidoc-private]
+label = "Include private module"
+value_type = "TypeBool"
+default = false
+
+
 ["Extensions"]
 extensions = [
     "ext-autodoc",

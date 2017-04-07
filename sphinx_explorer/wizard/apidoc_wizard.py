@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+import os
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from sphinx_explorer.property_widget import PropertyWidget
 from sphinx_explorer.quickstart import QuickStartWidget
-
-try:
-    from . import BaseWizard
-except ValueError:
-    from __init__ import BaseWizard
+from .base_wizard import BaseWizard, PropertyPage
 
 WIZARD_TOML = "apidoc.toml"
 
@@ -57,69 +53,65 @@ class FinishWizard(QWizardPage):
         return self.finished
 
 
-class PropertyWizard(QWizardPage):
-    def __init__(self, category_name, params, default_settings, parent=None):
-        # type: (str, dict, dict, QWidget or None) -> None
-        super(PropertyWizard, self).__init__(parent)
-
-        self.setTitle(category_name)
-
-        property_widget = PropertyWidget(self)
-        property_widget.load_settings(params, default_settings)
-
-        layout = QVBoxLayout(self)
-        text_browser = QTextBrowser(self)
-        splitter = QSplitter(self)
-        splitter.addWidget(property_widget)
-        splitter.addWidget(text_browser)
-        splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
-        layout.addWidget(splitter)
-        self.setLayout(layout)
-
-        def _onCurrentChanged(current, _):
-            html = property_widget.html(current)
-            if html:
-                text_browser.setHtml(html)
-            else:
-                text_browser.clear()
-
-        property_widget.currentChanged.connect(_onCurrentChanged)
-        property_widget.setCurrentIndex(property_widget.index(0, 1))
-
-        self.property_widget = property_widget
-        text_browser.setFocusPolicy(Qt.NoFocus)
-
-        self.setTabOrder(self.property_widget, None)
-
-        self.property_widget.resizeColumnToContents(0)
-
-    def initializePage(self):
-        # type: () -> None
-        self.property_widget.setFocus()
-
-    def dump(self):
-        # type: () -> dict
-        return self.property_widget.dump()
-
-
 class ApidocWizard(BaseWizard):
     def accept(self):
         return
 
 
-def create_wizard(wizard_settings, default_settings, parent=None):
+class FirstPage(PropertyPage):
+    pass
+
+
+class SecondPropertyPage(PropertyPage):
+    def initializePage(self):
+        super(SecondPropertyPage, self).initializePage()
+
+        self.property_widget.set_default_value(
+            "project",
+            os.path.basename(self.wizard().value("sourcedir"))
+        )
+        self.property_widget.update_default()
+
+
+def create_wizard(params_dict, default_settings, parent=None):
     wizard = ApidocWizard(parent)
 
     # for Windows
     # For default VistaStyle painting hardcoded in source of QWizard(qwizard.cpp[1805]).
     wizard.setWizardStyle(QWizard.ClassicStyle)
 
-    wizard.setup(
-        wizard_settings.get("wizard", {}),
-        wizard_settings.get("params", {}),
-        default_dict=default_settings,
+    page = FirstPage(
+        params_dict,
+        "First setting",
+        [
+            "outputdir",
+            "sourcedir",
+            "html_theme",
+            "apidoc-separate",
+            "apidoc-private",
+        ],
+        default_settings,
+        parent=wizard,
     )
+    wizard.addPage(page)
+
+    page = SecondPropertyPage(
+        params_dict,
+        "Second setting",
+        [
+            "project",
+            "author",
+        ],
+        default_settings,
+        parent=wizard,
+    )
+    wizard.addPage(page)
+
+    # wizard.setup(
+    #     wizard_settings.get("wizard", {}),
+    #     wizard_settings.get("params", {}),
+    #     default_dict=default_settings,
+    # )
 
     wizard.setWindowTitle("Sphinx Apidoc Wizard")
     wizard.resize(QSize(1000, 600).expandedTo(wizard.minimumSizeHint()))
@@ -131,22 +123,3 @@ def create_wizard(wizard_settings, default_settings, parent=None):
     return wizard
 
 
-def main():
-    import os
-    import toml
-    import sys
-
-    app = QApplication(sys.argv)
-
-    setting_path = os.path.abspath(os.path.join("..", "..", "settings", "apidoc.toml"))
-    wizard_settings = toml.load(setting_path)
-    print(wizard_settings)
-
-    wizard = create_wizard(wizard_settings, {}, None)
-    wizard.exec_()
-
-    app.exec_()
-
-
-if __name__ == "__main__":
-    main()

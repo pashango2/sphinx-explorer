@@ -200,7 +200,7 @@ class PropertyWidget(QTableView):
         return {
             item.key: item
             for item in self.properties()
-            }
+        }
 
     def properties(self):
         # type: () -> Iterator[PropertyItem]
@@ -266,6 +266,13 @@ class PropertyWidget(QTableView):
     def update_link(self):
         for property_item in self.properties():
             property_item.update_link()
+
+    def set_default_value(self, key, value, update=True):
+        self._model.set_default_value(key, value, update)
+
+    def update_default(self):
+        for prop in self.properties():
+            prop.update_default()
 
 
 class PropertyItemDelegate(QStyledItemDelegate):

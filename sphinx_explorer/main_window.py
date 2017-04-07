@@ -252,9 +252,9 @@ class MainWindow(QMainWindow):
     @Slot()
     def on_action_apidoc_triggered(self):
         # () -> None
-        toml_path = os.path.join(self.wizard_path, "apidoc.toml")
-        questions = toml.load(toml_path, OrderedDict)
-        wizard = apidoc_wizard.create_wizard(questions, self.settings.default_values, self)
+        toml_path = os.path.join(self.wizard_path, "params.toml")
+        params_dict = toml.load(toml_path, OrderedDict)
+        wizard = apidoc_wizard.create_wizard(params_dict, self.settings.default_values, self)
         if wizard.exec_() == QDialog.Accepted:
             print("kita-")
 

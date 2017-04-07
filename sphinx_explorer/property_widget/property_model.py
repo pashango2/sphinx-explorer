@@ -58,8 +58,7 @@ class PropertyItem(QStandardItem):
         self._link_format = None
         self._linked = []
         self._default_flag = value is None
-        print("dsafasdfsa", value)
-        self._default = ""
+        self._default = None
         self._required = False
 
     def set_required(self, required):
@@ -78,7 +77,6 @@ class PropertyItem(QStandardItem):
         if value == self._default:
             return
 
-        print("dafdsafasfsa", value, self._value, self.row())
         self._value = value
         self._default_flag = self.value is None
 
@@ -91,15 +89,7 @@ class PropertyItem(QStandardItem):
             return
 
         value = value or self._link.value
-        if self._link_format:
-            model_default_value = self.model().default_value(self.key) or ""
-            self._default = self._link_format.format(
-                value,
-                _default=model_default_value,
-                _path_sep=os.path.sep,
-            )
-        else:
-            self._default = value or ""
+        self._default = self.value_type.default(value)
 
     def update_default(self):
         self._default = self.model().default_value(self.key)
@@ -197,7 +187,7 @@ class PropertyModel(QStandardItemModel):
                 item = self._property_item(index)
                 if item:
                     value = item.value
-                    if value is None:
+                    if not value:
                         value = self._default_dict.get(item.key)
                     return item.value_type.data(value) if item.value_type else value
         elif role == Qt.DecorationRole:
