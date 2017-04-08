@@ -90,7 +90,6 @@ class MainWindow(QMainWindow):
 
         # setup icon
         self.ui.tool_button_quick_start.setIcon(icon.load("rocket"))
-        self.ui.action_quickstart.setIcon(icon.load("rocket"))
         self.ui.action_add_document.setIcon(icon.load("plus"))
         self.ui.action_settings.setIcon(icon.load("setting"))
         self.ui.action_wizard.setIcon(icon.load("magic"))
@@ -104,7 +103,6 @@ class MainWindow(QMainWindow):
         self.quick_start_menu = QMenu(self)
         self.quick_start_menu.addAction(self.ui.action_wizard)
         self.quick_start_menu.addAction(self.ui.action_apidoc)
-        self.quick_start_menu.addAction(self.ui.action_quickstart)
         self.ui.tool_button_quick_start.setMenu(self.quick_start_menu)
         self.ui.tool_button_quick_start.setPopupMode(QToolButton.InstantPopup)
 
@@ -242,13 +240,6 @@ class MainWindow(QMainWindow):
     def onSphinxInfoLoaded(self, index):
         # type: (QModelIndex) -> None
         pass
-
-    @Slot()
-    def on_action_quickstart_triggered(self):
-        # () -> None
-        dlg = QuickStartDialog(self.settings.default_values, self)
-        if dlg.exec_() == QDialog.Accepted:
-            pass
 
     @Slot()
     def on_action_wizard_triggered(self):

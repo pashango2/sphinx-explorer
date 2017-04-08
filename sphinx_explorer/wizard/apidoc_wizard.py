@@ -42,8 +42,8 @@ class ApiDocExecCommandPage(ExecCommandPage):
 
     def finished(self, returncode, _):
         super(ApiDocExecCommandPage, self).finished(returncode, _)
-
         settings = self.wizard().dump()
+        print(settings)
         apidoc.fix_apidoc(
             settings["path"],
             settings["apidoc-sourcedir"],

@@ -126,10 +126,12 @@ class ProjectItem(QStandardItem):
         if not module_dir or not self.info.source_dir:
             return 1
 
-        module_dir = os.path.abspath(os.path.join(self.info.source_dir, module_dir))
+        project_dir = self.text()
+        source_dir = os.path.join(project_dir, self.info.source_dir)
+        module_dir = os.path.join(source_dir, module_dir)
         return apidoc.update(
             module_dir,
-            self.info.source_dir,
+            source_dir,
             {}
         )
 

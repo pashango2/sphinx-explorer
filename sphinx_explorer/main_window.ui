@@ -104,7 +104,6 @@
     <property name="title">
      <string>Create(&amp;C)</string>
     </property>
-    <addaction name="action_quickstart"/>
     <addaction name="action_apidoc"/>
    </widget>
    <addaction name="menuFile_F"/>
@@ -126,14 +125,6 @@
     </layout>
    </widget>
   </widget>
-  <action name="action_quickstart">
-   <property name="text">
-    <string>quickstart</string>
-   </property>
-   <property name="toolTip">
-    <string>quickstart</string>
-   </property>
-  </action>
   <action name="action_add_document">
    <property name="text">
     <string>Add Document</string>

@@ -12,6 +12,7 @@ CONF_PY_ENCODING = "utf-8"
 def extend_conf_py(source_dir, extensions=None, html_theme=None):
     conf_py_path = os.path.join(source_dir, "conf.py")
     extensions = extensions or []
+    print(conf_py_path, os.path.isfile(conf_py_path))
 
     if os.path.isfile(conf_py_path):
         fd = codecs.open(conf_py_path, "a", CONF_PY_ENCODING)

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/main_window.ui'
 #
-# Created: Sat Apr  8 23:34:34 2017
+# Created: Sun Apr  9 00:27:58 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -70,8 +70,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.plain_output)
         self.dock_outputs.setWidget(self.dockWidgetContents)
         MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(8), self.dock_outputs)
-        self.action_quickstart = QtGui.QAction(MainWindow)
-        self.action_quickstart.setObjectName("action_quickstart")
         self.action_add_document = QtGui.QAction(MainWindow)
         self.action_add_document.setObjectName("action_add_document")
         self.action_settings = QtGui.QAction(MainWindow)
@@ -81,7 +79,6 @@ class Ui_MainWindow(object):
         self.action_apidoc = QtGui.QAction(MainWindow)
         self.action_apidoc.setObjectName("action_apidoc")
         self.menuFile_F.addAction(self.action_settings)
-        self.menuCreate_C.addAction(self.action_quickstart)
         self.menuCreate_C.addAction(self.action_apidoc)
         self.menubar.addAction(self.menuFile_F.menuAction())
         self.menubar.addAction(self.menuCreate_C.menuAction())
@@ -97,8 +94,6 @@ class Ui_MainWindow(object):
         self.menuFile_F.setTitle(QtGui.QApplication.translate("MainWindow", "File(&F)", None, QtGui.QApplication.UnicodeUTF8))
         self.menuCreate_C.setTitle(QtGui.QApplication.translate("MainWindow", "Create(&C)", None, QtGui.QApplication.UnicodeUTF8))
         self.dock_outputs.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Outputs", None, QtGui.QApplication.UnicodeUTF8))
-        self.action_quickstart.setText(QtGui.QApplication.translate("MainWindow", "quickstart", None, QtGui.QApplication.UnicodeUTF8))
-        self.action_quickstart.setToolTip(QtGui.QApplication.translate("MainWindow", "quickstart", None, QtGui.QApplication.UnicodeUTF8))
         self.action_add_document.setText(QtGui.QApplication.translate("MainWindow", "Add Document", None, QtGui.QApplication.UnicodeUTF8))
         self.action_add_document.setToolTip(QtGui.QApplication.translate("MainWindow", "Add Document", None, QtGui.QApplication.UnicodeUTF8))
         self.action_settings.setText(QtGui.QApplication.translate("MainWindow", "Settings...", None, QtGui.QApplication.UnicodeUTF8))

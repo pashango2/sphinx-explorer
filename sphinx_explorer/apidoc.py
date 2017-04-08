@@ -10,6 +10,7 @@ from .control_conf import extend_conf_py
 TEMPLATE_SETTING = """
 source_dir = '{rsrcdir}'
 build_dir = '{rbuilddir}'
+
 [apidoc]
 module_dir = '{module_dir}'
 """.strip()
@@ -36,16 +37,21 @@ def create_command(project_path, source_dir, settings):
         cmds += ["-R", settings.get("release")]
 
     cmds += settings.get("pathnames", [])
+    print(" ".join(cmds))
     return " ".join(cmds)
 
 
 def fix_apidoc(project_path, source_dir, params):
     # type: (string_types, string_types, dict) -> None
-    try:
-        module_dir = os.path.relpath(source_dir, project_path)
-    except ValueError:
-        module_dir = os.path.abspath(source_dir)
+    if os.path.abspath(source_dir):
+        module_dir = source_dir
+    else:
+        try:
+            module_dir = os.path.relpath(source_dir, project_path)
+        except ValueError:
+            module_dir = os.path.abspath(source_dir)
 
+    print(source_dir, project_path, module_dir)
     fd = codecs.open(os.path.join(project_path, "setting.toml"), "w", "utf-8")
     fd.write(
         TEMPLATE_SETTING.format(
@@ -56,7 +62,7 @@ def fix_apidoc(project_path, source_dir, params):
     )
     fd.close()
 
-    extend_conf_py(source_dir, html_theme=params.get("html_theme"))
+    extend_conf_py(project_path, html_theme=params.get("html_theme"))
 
 
 def create(project_path, source_dir, settings, cwd=None):
