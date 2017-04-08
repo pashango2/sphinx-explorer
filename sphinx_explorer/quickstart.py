@@ -126,7 +126,6 @@ def _property_iter(params):
             value_dict["name"] = ext_name
             value_dict["value_type"] = "TypeBool"
 
-
             yield ext_name, value_dict
     else:
         for param_key, value_dict in params.items():

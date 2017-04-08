@@ -39,6 +39,13 @@ class SphinxInfo(object):
         # type: () -> bool
         return bool(self.conf_py_path)
 
+    def can_autobuild(self):
+        # type: () -> bool
+        return bool(
+            self.settings.get("build_dir") and
+            self.settings.get("source_dir")
+        )
+
     @staticmethod
     def _find_conf_py(path):
         # type: (str) -> str or None
@@ -63,9 +70,20 @@ class SphinxInfo(object):
         # type: () -> string_types
         return os.path.join(self.path, self.settings.get("build_dir"))
 
+    @property
+    def module_dir(self):
+        # type: () -> string_types
+        try:
+            return self.settings["apidoc"].get("module_dir")
+        except KeyError:
+            return ""
+
     def can_apidoc(self):
         # type: () -> bool
-        return bool("apidoc" in self.settings and self.settings["apidoc"].get("module_dir"))
+        try:
+            return bool(self.settings["apidoc"].get("module_dir"))
+        except KeyError:
+            return False
 
 
 class QSphinxAnalyzer(QObject, QRunnable):

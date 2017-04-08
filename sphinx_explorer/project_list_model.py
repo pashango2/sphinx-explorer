@@ -122,8 +122,13 @@ class ProjectItem(QStandardItem):
             model.autoBuildRequested.emit(cmd, self)
 
     def apidoc_update(self):
+        module_dir = self.info.module_dir
+        if not module_dir or not self.info.source_dir:
+            return 1
+
+        module_dir = os.path.abspath(os.path.join(self.info.source_dir, module_dir))
         return apidoc.update(
-            os.path.abspath(os.path.join(self.info.source_dir, "..")),
+            module_dir,
             self.info.source_dir,
             {}
         )

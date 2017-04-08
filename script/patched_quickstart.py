@@ -23,7 +23,7 @@ def generate(d, overwrite=True, silent=False, templatedir=None):
 
 
 def main(argv):
-    quickstart.TERM_ENCODING = quickstart.TERM_ENCODING or "cp932"
+    quickstart.TERM_ENCODING = quickstart.TERM_ENCODING or sys.getfilesystemencoding()
     quickstart.generate = generate
     quickstart.main(argv)
 

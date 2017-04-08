@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 import sys
+import six
 from PySide.QtCore import *
 from PySide.QtGui import *
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
 
+# noinspection PyArgumentList
 QTextCodec.setCodecForCStrings(QTextCodec.codecForLocale())
 
 
@@ -25,12 +27,16 @@ class QConsoleWidget(QTextEdit):
     # noinspection PyUnresolvedReferences
     def exec_command(self, cmd, cwd=None):
         if cwd:
-            self._process.setWorkingDirectory(cwd.encode(sys.getfilesystemencoding()))
+            if six.PY2:
+                cwd = cwd.encode(sys.getfilesystemencoding())
+            self._process.setWorkingDirectory(cwd)
 
         self._process.readyReadStandardOutput.connect(self._print_output)
         self._process.readyReadStandardError.connect(self._print_output)
         self._process.finished.connect(self.finished)
-        self._process.start(cmd.encode(sys.getfilesystemencoding()))
+        if six.PY2:
+            cmd = cmd.encode(sys.getfilesystemencoding())
+        self._process.start(cmd)
 
     @Slot()
     def _print_output(self):
@@ -39,6 +45,8 @@ class QConsoleWidget(QTextEdit):
 
         line = self._process.readAllStandardOutput().data()
         self.moveCursor(QTextCursor.End)
+        if six.PY3:
+            line = line.decode(sys.getfilesystemencoding())
         self.append(line)
         self.moveCursor(QTextCursor.End)
 

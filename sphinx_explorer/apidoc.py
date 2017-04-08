@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+import os
+import codecs
 from six import string_types
 from .util.exec_sphinx import create_cmd, exec_
 
-DEFAULT_SETTING = {
-    "separate": True,
-}
+TEMPLATE_SETTING = """
+source_dir = '{rsrcdir}'
+build_dir = '{rbuilddir}'
+[apidoc]
+module_dir = '{module_dir}'
+""".strip()
 
 
 def create_command(project_path, source_dir, settings):
@@ -30,8 +35,22 @@ def create_command(project_path, source_dir, settings):
         cmds += ["-R", settings.get("release")]
 
     cmds += settings.get("pathnames", [])
-
     return " ".join(cmds)
+
+
+def create_setting_toml(project_path, source_dir):
+    try:
+        module_dir = os.path.relpath(source_dir, project_path)
+    except ValueError:
+        module_dir = os.path.abspath(source_dir)
+
+    fd = codecs.open(os.path.join(project_path, "setting.toml"), "w", "utf-8")
+    fd.write(TEMPLATE_SETTING.format(
+        rsrcdir=".",
+        rbuilddir=".build",
+        module_dir=module_dir
+    ))
+    fd.close()
 
 
 def create(project_path, source_dir, settings, cwd=None):
@@ -46,7 +65,7 @@ def update(source_dir, output_dir, settings, cwd=None):
                "sphinx-apidoc",
                source_dir,
                "-o", output_dir,
-               "-e" if settings.get("separate", True) else "",
+               # "-e" if settings.get("separate", True) else "",
                "-f",
            ] + settings.get("pathnames", [])
     print(create_cmd(cmds))
