@@ -5,6 +5,7 @@ import os
 import codecs
 from six import string_types
 from .util.exec_sphinx import create_cmd, exec_
+from .control_conf import extend_conf_py
 
 TEMPLATE_SETTING = """
 source_dir = '{rsrcdir}'
@@ -38,19 +39,24 @@ def create_command(project_path, source_dir, settings):
     return " ".join(cmds)
 
 
-def create_setting_toml(project_path, source_dir):
+def fix_apidoc(project_path, source_dir, params):
+    # type: (string_types, string_types, dict) -> None
     try:
         module_dir = os.path.relpath(source_dir, project_path)
     except ValueError:
         module_dir = os.path.abspath(source_dir)
 
     fd = codecs.open(os.path.join(project_path, "setting.toml"), "w", "utf-8")
-    fd.write(TEMPLATE_SETTING.format(
-        rsrcdir=".",
-        rbuilddir=".build",
-        module_dir=module_dir
-    ))
+    fd.write(
+        TEMPLATE_SETTING.format(
+            rsrcdir=".",
+            rbuilddir=".build",
+            module_dir=module_dir
+        )
+    )
     fd.close()
+
+    extend_conf_py(source_dir, html_theme=params.get("html_theme"))
 
 
 def create(project_path, source_dir, settings, cwd=None):
@@ -68,5 +74,4 @@ def update(source_dir, output_dir, settings, cwd=None):
                # "-e" if settings.get("separate", True) else "",
                "-f",
            ] + settings.get("pathnames", [])
-    print(create_cmd(cmds))
     return exec_(create_cmd(cmds), cwd)

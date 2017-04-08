@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from .value_types import find_value_type
+from .value_types import find_value_type, TypeBase
 from six import string_types
 import os
 from PySide.QtCore import *
@@ -199,7 +199,7 @@ class PropertyItem(QStandardItem):
         if value == self._default and not force_update and not self.require_input:
             return
 
-        self._value = value
+        self._value = self.type_class().filter(value)
         self._default_flag = self.value is None
 
         for linked in self._linked:
@@ -220,13 +220,16 @@ class PropertyItem(QStandardItem):
         default_value = self.model().default_value(self.key) or self._default
 
         if self._link_format:
-            self._default_cache = self._link_format.format(
+            cache = self._link_format.format(
                 _default=default_value or "",
                 _link=link_value or "",
                 _path_sep=os.path.sep,
             )
         else:
-            self._default_cache = link_value or default_value
+            cache = link_value or default_value
+
+        self.type_class().set_link(link_value)
+        self._default_cache = self.type_class().filter(cache)
         self.update_bg_color()
 
     @property
@@ -262,3 +265,6 @@ class PropertyItem(QStandardItem):
                 return False
 
         return True
+
+    def type_class(self):
+        return self.value_type or TypeBase

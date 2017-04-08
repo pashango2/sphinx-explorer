@@ -165,6 +165,8 @@ def create_wizard(params_dict, default_settings, parent=None):
     # For default VistaStyle painting hardcoded in source of QWizard(qwizard.cpp[1805]).
     wizard.setWizardStyle(QWizard.ClassicStyle)
 
+    params_dict["path"]["require_input"] = False
+
     for category_name, params in Questions:
         wizard.addPage(
             PropertyPage(
@@ -174,6 +176,8 @@ def create_wizard(params_dict, default_settings, parent=None):
                 default_settings
             )
         )
+
+    params_dict["path"]["require_input"] = True
 
     # wizard.addPage(FinishWizard(questions))
     # wizard.setup(

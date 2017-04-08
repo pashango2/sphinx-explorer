@@ -98,15 +98,7 @@
     <property name="title">
      <string>File(&amp;F)</string>
     </property>
-    <widget class="QMenu" name="menu_editor">
-     <property name="title">
-      <string>Editor</string>
-     </property>
-    </widget>
-    <addaction name="action_add_document"/>
-    <addaction name="separator"/>
     <addaction name="action_settings"/>
-    <addaction name="menu_editor"/>
    </widget>
    <widget class="QMenu" name="menuCreate_C">
     <property name="title">

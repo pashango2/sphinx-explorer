@@ -44,9 +44,10 @@ class ApiDocExecCommandPage(ExecCommandPage):
         super(ApiDocExecCommandPage, self).finished(returncode, _)
 
         settings = self.wizard().dump()
-        apidoc.create_setting_toml(
+        apidoc.fix_apidoc(
             settings["path"],
             settings["apidoc-sourcedir"],
+            settings,
         )
 
 

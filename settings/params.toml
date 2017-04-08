@@ -137,7 +137,7 @@ default = false
 
 [apidoc-sourcedir]
 label = "Module directory"
-value_type = "TypeDirPath"
+value_type = "TypeRelDirPath"
 required = true
 require_input = true
 link="path"

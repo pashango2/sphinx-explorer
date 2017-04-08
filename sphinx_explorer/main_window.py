@@ -84,10 +84,6 @@ class MainWindow(QMainWindow):
         self.project_list_model = ProjectListModel(parent=self)
         self.project_list_model.autoBuildRequested.connect(self.onAutoBuildRequested)
 
-        # setup editor menu
-        for act in self.editor_acts:
-            self.ui.menu_editor.addAction(act)
-
         # setup file menu
         self.ui.menuFile_F.addSeparator()
         self.ui.menuFile_F.addAction(self.close_act)

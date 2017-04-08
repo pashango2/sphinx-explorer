@@ -32,6 +32,14 @@ class TypeBase(object):
     def control(cls, delegate, parent):
         return None
 
+    @classmethod
+    def filter(cls, value):
+        return value
+
+    @classmethod
+    def set_link(cls, value):
+        pass
+
     is_persistent_editor = False
 
 
@@ -101,8 +109,8 @@ class PathParamWidget(RefButtonWidget):
             self.delegate.commitData.emit(self)
             self.delegate.closeEditor.emit(self, QAbstractItemDelegate.EditNextItem)
 
-    def get_path(self):
-        cwd = self.line_edit.text() or os.getcwd()
+    def get_path(self, cwd=None):
+        cwd = cwd or self.line_edit.text() or os.getcwd()
         # noinspection PyCallByClass
         path_dir = QFileDialog.getExistingDirectory(
             self, self.title, cwd
@@ -116,7 +124,7 @@ class RelPathParamWidget(PathParamWidget):
         self.relpath = relpath
 
     def onRefButtonClicked(self):
-        path_dir = self.get_path()
+        path_dir = self.get_path(self.relpath)
         if path_dir:
             if self.relpath:
                 try:
@@ -169,7 +177,7 @@ class TypeRelDirPath(TypeDirPath):
         return cls(params)
 
     def __init__(self, params):
-        self.relpath = params.get("relpath")
+        self.relpath = params.get("relpath", ".")
 
     def control(self, delegate, parent):
         return RelPathParamWidget(delegate, relpath=self.relpath, parent=parent)
@@ -177,6 +185,18 @@ class TypeRelDirPath(TypeDirPath):
     def default(self, path):
         self.relpath = path
         return "."
+
+    def set_link(self, value):
+        self.relpath = value
+
+    def filter(self, value):
+        try:
+            if os.path.isabs(value):
+                return os.path.relpath(value, self.relpath)
+            else:
+                return value
+        except ValueError:
+            return "."
 
 
 class TypeChoice(TypeBase):
