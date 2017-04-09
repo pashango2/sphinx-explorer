@@ -160,6 +160,17 @@
     <string>apidoc</string>
    </property>
   </action>
+  <action name="action_reload">
+   <property name="text">
+    <string>リロード</string>
+   </property>
+   <property name="toolTip">
+    <string>リロード</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

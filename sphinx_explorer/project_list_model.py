@@ -56,26 +56,24 @@ class ProjectListModel(QStandardItemModel):
         item = ProjectItem(os.path.normpath(project_path))
         item.setIcon(icon.load("eye"))
 
-        ana = QSphinxAnalyzer(project_path, item)
-        ana.finished.connect(self.onAnalyzeFinished)
-
-        # noinspection PyArgumentList
-        thread_pool = QThreadPool.globalInstance()
-        thread_pool.start(ana)
+        self._analyze_item(item)
 
         return item
 
     def update_items(self):
         for row in range(self.rowCount()):
             item = self.item(row, 0)
-            project_path = item.text()
+            self._analyze_item(item)
 
-            ana = QSphinxAnalyzer(project_path, item)
-            ana.finished.connect(self.onAnalyzeFinished)
+    def _analyze_item(self, item):
+        project_path = item.text()
 
-            # noinspection PyArgumentList
-            thread_pool = QThreadPool.globalInstance()
-            thread_pool.start(ana)
+        ana = QSphinxAnalyzer(project_path, item)
+        ana.finished.connect(self.onAnalyzeFinished)
+
+        # noinspection PyArgumentList
+        thread_pool = QThreadPool.globalInstance()
+        thread_pool.start(ana)
 
     def onAnalyzeFinished(self, info, item):
         # type: (SphinxInfo, ProjectItem) -> None

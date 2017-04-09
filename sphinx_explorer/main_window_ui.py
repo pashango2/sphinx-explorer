@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/main_window.ui'
 #
-# Created: Sun Apr  9 00:27:58 2017
+# Created: Mon Apr 10 08:32:04 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -78,6 +78,8 @@ class Ui_MainWindow(object):
         self.action_wizard.setObjectName("action_wizard")
         self.action_apidoc = QtGui.QAction(MainWindow)
         self.action_apidoc.setObjectName("action_apidoc")
+        self.action_reload = QtGui.QAction(MainWindow)
+        self.action_reload.setObjectName("action_reload")
         self.menuFile_F.addAction(self.action_settings)
         self.menuCreate_C.addAction(self.action_apidoc)
         self.menubar.addAction(self.menuFile_F.menuAction())
@@ -103,5 +105,8 @@ class Ui_MainWindow(object):
         self.action_wizard.setToolTip(QtGui.QApplication.translate("MainWindow", "wizard mode", None, QtGui.QApplication.UnicodeUTF8))
         self.action_apidoc.setText(QtGui.QApplication.translate("MainWindow", "apidoc", None, QtGui.QApplication.UnicodeUTF8))
         self.action_apidoc.setToolTip(QtGui.QApplication.translate("MainWindow", "apidoc", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_reload.setText(QtGui.QApplication.translate("MainWindow", "リロード", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_reload.setToolTip(QtGui.QApplication.translate("MainWindow", "リロード", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_reload.setShortcut(QtGui.QApplication.translate("MainWindow", "F5", None, QtGui.QApplication.UnicodeUTF8))
 
 from .util.QConsoleWidget import QConsoleWidget

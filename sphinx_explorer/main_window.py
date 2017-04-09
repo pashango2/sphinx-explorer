@@ -96,6 +96,10 @@ class MainWindow(QMainWindow):
         self.ui.tool_add_document.setDefaultAction(self.ui.action_add_document)
         self.ui.tool_setting.setDefaultAction(self.ui.action_settings)
 
+        # connect
+        self.ui.action_reload.triggered.connect(self.reload)
+        self.ui.tree_view_projects.addAction(self.ui.action_reload)
+
         # setup quick start menu
         self.quick_start_menu = QMenu(self)
         self.quick_start_menu.addAction(self.ui.action_wizard)
@@ -178,10 +182,10 @@ class MainWindow(QMainWindow):
 
     def event(self, evt):
         if evt.type() == QEvent.WindowActivate:
-            self._on_activate_window()
+            self.reload()
         return super(MainWindow, self).event(evt)
 
-    def _on_activate_window(self):
+    def reload(self):
         self.project_list_model.update_items()
 
     def dragEnterEvent(self, evt):
