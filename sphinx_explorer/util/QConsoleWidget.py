@@ -15,6 +15,8 @@ QTextCodec.setCodecForCStrings(QTextCodec.codecForLocale())
 class QConsoleWidget(QTextEdit):
     finished = Signal(int, QProcess.ExitStatus)
 
+    COMMAND_COLOR = QColor("#706caa")
+
     def __init__(self, parent=None):
         super(QConsoleWidget, self).__init__(parent)
         self._process = QProcess(self)
@@ -38,7 +40,7 @@ class QConsoleWidget(QTextEdit):
         if six.PY2:
             cmd = cmd.encode(sys.getfilesystemencoding())
 
-        self._output("> " + cmd + "\n", Qt.blue)
+        self._output("> " + cmd + "\n", self.COMMAND_COLOR)
         self._process.start(cmd)
 
     @Slot()
@@ -53,28 +55,19 @@ class QConsoleWidget(QTextEdit):
         self._output(line, Qt.red)
 
     def _output(self, line, color=None):
-        tc = self.textColor()
-        if color:
-            print("setColor", color)
-            # self.setTextColor(color)
-
         if six.PY3 and isinstance(line, bytes):
             line = line.decode(sys.getfilesystemencoding())
 
         self.moveCursor(QTextCursor.End)
+
+        cursor = self.textCursor()
+        char_format = QTextCharFormat()
         if color:
-            cursor = self.textCursor()
-            char_format = QTextCharFormat()
             char_format.setForeground(QBrush(color))
-            cursor.setCharFormat(char_format)
+        cursor.setCharFormat(char_format)
+        cursor.insertText(line)
 
-        self.insertPlainText(line)
         self.moveCursor(QTextCursor.End)
-
-        if color:
-            self.setTextColor(tc)
-
-        self.setTextColor(Qt.red)
 
     def terminate(self):
         if self._process:
