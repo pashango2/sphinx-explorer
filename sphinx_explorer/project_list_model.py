@@ -9,6 +9,7 @@ from . import icon
 from .util.exec_sphinx import quote
 from .util.QConsoleWidget import QConsoleWidget
 from . import apidoc
+from six import string_types
 
 
 class ProjectListModel(QStandardItemModel):
@@ -64,6 +65,18 @@ class ProjectListModel(QStandardItemModel):
 
         return item
 
+    def update_items(self):
+        for row in range(self.rowCount()):
+            item = self.item(row, 0)
+            project_path = item.text()
+
+            ana = QSphinxAnalyzer(project_path, item)
+            ana.finished.connect(self.onAnalyzeFinished)
+
+            # noinspection PyArgumentList
+            thread_pool = QThreadPool.globalInstance()
+            thread_pool.start(ana)
+
     def onAnalyzeFinished(self, info, item):
         # type: (SphinxInfo, ProjectItem) -> None
         item.setInfo(info)
@@ -104,10 +117,11 @@ class ProjectItem(QStandardItem):
         self.info = None    # type: SphinxInfo
 
     def path(self):
+        # type: () -> string_types
         return self.text()
 
     def html_path(self):
-        # type: () -> strint_types
+        # type: () -> string_types
         if self.info.build_dir:
             return os.path.join(
                 self.info.build_dir,

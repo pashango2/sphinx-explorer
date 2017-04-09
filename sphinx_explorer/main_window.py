@@ -159,6 +159,8 @@ class MainWindow(QMainWindow):
         menu.addAction(self.open_act)
         menu.addAction(self.show_act)
         menu.addAction(self.terminal_act)
+
+        menu.addSeparator()
         if can_apidoc:
             menu.addAction(self.apidoc_act)
 
@@ -173,6 +175,14 @@ class MainWindow(QMainWindow):
         self._save()
         self.ui.plain_output.terminate()
         super(MainWindow, self).closeEvent(evt)
+
+    def event(self, evt):
+        if evt.type() == QEvent.WindowActivate:
+            self._on_activate_window()
+        return super(MainWindow, self).event(evt)
+
+    def _on_activate_window(self):
+        self.project_list_model.update_items()
 
     def dragEnterEvent(self, evt):
         if evt.mimeData().hasFormat("text/uri-list"):
