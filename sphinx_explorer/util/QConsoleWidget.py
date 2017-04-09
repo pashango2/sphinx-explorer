@@ -19,6 +19,7 @@ class QConsoleWidget(QTextEdit):
         super(QConsoleWidget, self).__init__(parent)
         self._process = QProcess(self)
         self.setReadOnly(True)
+        self.setAcceptRichText(True)
 
     def process(self):
         # type: () -> QProcess
@@ -67,7 +68,7 @@ class QConsoleWidget(QTextEdit):
             char_format.setForeground(QBrush(color))
             cursor.setCharFormat(char_format)
 
-        self.insertHtml(line)
+        self.insertPlainText(line)
         self.moveCursor(QTextCursor.End)
 
         if color:
