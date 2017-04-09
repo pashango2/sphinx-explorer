@@ -106,6 +106,19 @@ class ProjectItem(QStandardItem):
     def path(self):
         return self.text()
 
+    def html_path(self):
+        # type: () -> strint_types
+        if self.info.build_dir:
+            return os.path.join(
+                self.info.build_dir,
+                "html", "index.html"
+            )
+        return None
+
+    def has_html(self):
+        # type: () -> bool
+        return bool(self.html_path() and os.path.isfile(self.html_path()))
+
     def auto_build_command(self, target="html"):
         model = self.model()
         if model:

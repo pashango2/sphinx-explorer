@@ -4,6 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 
 import os
 import toml
+import webbrowser
 from collections import OrderedDict
 
 from PySide.QtCore import *
@@ -16,16 +17,11 @@ from . import icon
 from . import sphinx_value_types
 from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel, ProjectItem
-from .quickstart import QuickStartDialog
 from .settings import SettingsDialog, Settings
 from .util.exec_sphinx import launch, console, show_directory, open_terminal
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
-
-
-# from .theme_dialog import ThemeDialog
-# from .sphinx_analyzer import SphinxInfo
 
 
 class MainWindow(QMainWindow):
@@ -69,6 +65,7 @@ class MainWindow(QMainWindow):
         self.terminal_act = QAction(icon.load("terminal"), "Open Terminal", self, triggered=self._open_terminal)
         self.auto_build_act = QAction(icon.load("reload"), "Auto Build", self, triggered=self._auto_build)
         self.apidoc_act = QAction(icon.load("update"), "Update sphinx-apidoc", self, triggered=self._apidoc)
+        self.open_html_act = QAction(icon.load("chrome"), "Open browser", self, triggered=self._open_browser)
         self.close_act = QAction("Exit", self, triggered=self.close)
 
         self.editor_acts = []
@@ -149,7 +146,9 @@ class MainWindow(QMainWindow):
         self.terminal_act.setData(doc_path)
         self.apidoc_act.setData(item.index() if can_apidoc else None)
         self.auto_build_act.setData(item.index())
+        self.open_html_act.setData(item.index())
 
+        self.open_html_act.setEnabled(item.has_html())
         # Warning: don't use lambda to connect!!
         # Process finished with exit code -1073741819 (0xC0000005) ...
         #
@@ -163,6 +162,7 @@ class MainWindow(QMainWindow):
         if can_apidoc:
             menu.addAction(self.apidoc_act)
 
+        menu.addAction(self.open_html_act)
         menu.addAction(self.auto_build_act)
         menu.addSeparator()
         menu.addAction(self.del_document_act)
@@ -213,6 +213,18 @@ class MainWindow(QMainWindow):
         item = self.project_list_model.itemFromIndex(index)  # type: ProjectItem
         if item:
             console(item.auto_build_command(), os.path.normpath(item.path()))
+
+    def _open_browser(self):
+        # type: () -> None
+        index = self.sender().data()
+        if not index.isValid():
+            return
+
+        item = self.project_list_model.itemFromIndex(index)  # type: ProjectItem
+        if item:
+            html_path = item.html_path()
+            if os.path.isfile(html_path):
+                webbrowser.open(html_path)
 
     def _apidoc(self):
         # type: () -> None

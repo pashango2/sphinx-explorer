@@ -68,7 +68,10 @@ class SphinxInfo(object):
     @property
     def build_dir(self):
         # type: () -> string_types
-        return os.path.join(self.path, self.settings.get("build_dir"))
+        try:
+            return os.path.join(self.path, self.settings.get("build_dir"))
+        except AttributeError:
+            return None
 
     @property
     def module_dir(self):
