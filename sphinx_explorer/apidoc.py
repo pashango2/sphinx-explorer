@@ -37,7 +37,7 @@ def create_command(project_path, source_dir, settings):
         cmds += ["-R", settings.get("release")]
 
     cmds += settings.get("pathnames", [])
-    print(" ".join(cmds))
+    # print(" ".join(cmds))
     return " ".join(cmds)
 
 
@@ -51,7 +51,7 @@ def fix_apidoc(project_path, source_dir, params):
         except ValueError:
             module_dir = os.path.abspath(source_dir)
 
-    print(source_dir, project_path, module_dir)
+    # print(source_dir, project_path, module_dir)
     fd = codecs.open(os.path.join(project_path, "setting.toml"), "w", "utf-8")
     fd.write(
         TEMPLATE_SETTING.format(
@@ -71,7 +71,7 @@ def create(project_path, source_dir, settings, cwd=None):
     return exec_(create_cmd(cmd), cwd)
 
 
-def update(source_dir, output_dir, settings, cwd=None):
+def update_cmd(source_dir, output_dir, settings):
     # type: (string_types, string_types, dict, string_types or None) -> int
     cmds = [
                "sphinx-apidoc",
@@ -80,4 +80,5 @@ def update(source_dir, output_dir, settings, cwd=None):
                # "-e" if settings.get("separate", True) else "",
                "-f",
            ] + settings.get("pathnames", [])
-    return exec_(create_cmd(cmds), cwd)
+
+    return create_cmd(cmds)

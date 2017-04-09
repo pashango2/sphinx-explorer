@@ -222,7 +222,7 @@ class MainWindow(QMainWindow):
 
         item = self.project_list_model.itemFromIndex(index)  # type: ProjectItem
         if item:
-            item.apidoc_update()
+            item.apidoc_update(self.ui.plain_output)
 
     @Slot(str, ProjectItem)
     def onAutoBuildRequested(self, cmd, _):

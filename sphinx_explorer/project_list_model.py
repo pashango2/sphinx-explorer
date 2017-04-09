@@ -7,6 +7,7 @@ from PySide.QtCore import *
 from .sphinx_analyzer import SphinxInfo, QSphinxAnalyzer
 from . import icon
 from .util.exec_sphinx import quote
+from .util.QConsoleWidget import QConsoleWidget
 from . import apidoc
 
 
@@ -121,7 +122,8 @@ class ProjectItem(QStandardItem):
         if model and cmd:
             model.autoBuildRequested.emit(cmd, self)
 
-    def apidoc_update(self):
+    def apidoc_update(self, output_widget):
+        # type: (QConsoleWidget) -> None
         module_dir = self.info.module_dir
         if not module_dir or not self.info.source_dir:
             return 1
@@ -129,11 +131,13 @@ class ProjectItem(QStandardItem):
         project_dir = self.text()
         source_dir = os.path.join(project_dir, self.info.source_dir)
         module_dir = os.path.join(source_dir, module_dir)
-        return apidoc.update(
+        cmd = apidoc.update_cmd(
             module_dir,
             source_dir,
             {}
         )
+
+        output_widget.exec_command(cmd, cwd=self.info.source_dir)
 
     def setInfo(self, info):
         # type: (SphinxInfo) -> None

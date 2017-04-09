@@ -36,6 +36,8 @@ class QConsoleWidget(QTextEdit):
         self._process.finished.connect(self.finished)
         if six.PY2:
             cmd = cmd.encode(sys.getfilesystemencoding())
+
+        self._output("> " + cmd + "\n", Qt.blue)
         self._process.start(cmd)
 
     @Slot()
@@ -44,11 +46,34 @@ class QConsoleWidget(QTextEdit):
             return
 
         line = self._process.readAllStandardOutput().data()
-        self.moveCursor(QTextCursor.End)
-        if six.PY3:
+        self._output(line)
+
+        line = self._process.readAllStandardError().data()
+        self._output(line, Qt.red)
+
+    def _output(self, line, color=None):
+        tc = self.textColor()
+        if color:
+            print("setColor", color)
+            # self.setTextColor(color)
+
+        if six.PY3 and isinstance(line, bytes):
             line = line.decode(sys.getfilesystemencoding())
-        self.append(line)
+
         self.moveCursor(QTextCursor.End)
+        if color:
+            cursor = self.textCursor()
+            char_format = QTextCharFormat()
+            char_format.setForeground(QBrush(color))
+            cursor.setCharFormat(char_format)
+
+        self.insertHtml(line)
+        self.moveCursor(QTextCursor.End)
+
+        if color:
+            self.setTextColor(tc)
+
+        self.setTextColor(Qt.red)
 
     def terminate(self):
         if self._process:
