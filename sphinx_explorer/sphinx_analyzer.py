@@ -70,7 +70,7 @@ class SphinxInfo(object):
         # type: () -> string_types
         try:
             return os.path.join(self.path, self.settings.get("build_dir"))
-        except AttributeError:
+        except (AttributeError, TypeError):
             return None
 
     @property
