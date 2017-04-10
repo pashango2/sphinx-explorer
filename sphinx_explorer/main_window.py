@@ -248,6 +248,7 @@ class MainWindow(QMainWindow):
 
         item = self.project_list_model.itemFromIndex(index)  # type: ProjectItem
         if item:
+            self.ui.plain_output.clear()
             item.apidoc_update(self.ui.plain_output)
 
     @Slot(str, ProjectItem)
