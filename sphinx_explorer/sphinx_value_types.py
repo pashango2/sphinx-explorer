@@ -50,7 +50,7 @@ class TypeLanguage(TypeBase):
     """.strip()
 
     @classmethod
-    def control(cls, parent):
+    def control(cls, _, parent):
         combo = QComboBox(parent)
 
         for i, line in enumerate(cls.Languages.splitlines()):
@@ -77,7 +77,7 @@ class TypeHtmlTheme(TypeBase):
     is_persistent_editor = True
 
     @classmethod
-    def control(cls, parent):
+    def control(cls, _, parent):
         return HtmlThemeWidget(parent)
 
     @classmethod
