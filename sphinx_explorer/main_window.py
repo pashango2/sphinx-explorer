@@ -54,12 +54,6 @@ class MainWindow(QMainWindow):
             }
 
         # create actions
-        self.del_document_act = QAction("Delete Document", self)
-        self.del_document_act.setIcon(icon.load("remove"))
-        self.del_document_act.setShortcut(QKeySequence.Delete)
-        self.del_document_act.setShortcutContext(Qt.WidgetShortcut)
-        self.del_document_act.setObjectName("action_del_document")
-
         self.open_act = QAction(icon.load("editor"), "Open Editor", self, triggered=self._open_dir)
         self.show_act = QAction(icon.load("open_folder"), "Show File", self, triggered=self._show_directory)
         self.terminal_act = QAction(icon.load("terminal"), "Open Terminal", self, triggered=self._open_terminal)
@@ -86,19 +80,28 @@ class MainWindow(QMainWindow):
         self.ui.menuFile_F.addAction(self.close_act)
 
         # setup icon
-        self.ui.tool_button_quick_start.setIcon(icon.load("rocket"))
+        self.ui.tool_button_quick_start.setIcon(icon.load("book"))
         self.ui.action_add_document.setIcon(icon.load("plus"))
         self.ui.action_settings.setIcon(icon.load("setting"))
         self.ui.action_wizard.setIcon(icon.load("magic"))
-        self.ui.action_apidoc.setIcon(icon.load("rocket"))
+        self.ui.action_apidoc.setIcon(icon.load("book"))
+        self.ui.action_move_up.setIcon(icon.load("arrow_up"))
+        self.ui.action_move_down.setIcon(icon.load("arrow_down"))
+        self.ui.action_delete_document.setIcon(icon.load("remove"))
 
         # setup tool button
-        self.ui.tool_add_document.setDefaultAction(self.ui.action_add_document)
         self.ui.tool_setting.setDefaultAction(self.ui.action_settings)
+        self.ui.button_add.setDefaultAction(self.ui.action_add_document)
+        self.ui.button_up.setDefaultAction(self.ui.action_move_up)
+        self.ui.button_down.setDefaultAction(self.ui.action_move_down)
+        self.ui.button_del.setDefaultAction(self.ui.action_delete_document)
+
+        self.ui.action_delete_document.setShortcutContext(Qt.WidgetShortcut)
+        self.ui.action_move_up.setShortcutContext(Qt.WidgetShortcut)
+        self.ui.action_move_down.setShortcutContext(Qt.WidgetShortcut)
 
         # connect
         self.ui.action_reload.triggered.connect(self.reload)
-        self.ui.tree_view_projects.addAction(self.ui.action_reload)
 
         # setup quick start menu
         self.quick_start_menu = QMenu(self)
@@ -108,7 +111,11 @@ class MainWindow(QMainWindow):
         self.ui.tool_button_quick_start.setPopupMode(QToolButton.InstantPopup)
 
         # setup project tree view
-        self.ui.tree_view_projects.addAction(self.del_document_act)
+        self.ui.tree_view_projects.addAction(self.ui.action_move_up)
+        self.ui.tree_view_projects.addAction(self.ui.action_move_down)
+        self.ui.tree_view_projects.addAction(self.ui.action_delete_document)
+        self.ui.tree_view_projects.addAction(self.ui.action_reload)
+
         self.ui.tree_view_projects.setIndentation(0)
         self.ui.tree_view_projects.setHeaderHidden(True)
         self.ui.tree_view_projects.setModel(self.project_list_model)
@@ -171,7 +178,7 @@ class MainWindow(QMainWindow):
         menu.addAction(self.open_html_act)
         menu.addAction(self.auto_build_act)
         menu.addSeparator()
-        menu.addAction(self.del_document_act)
+        menu.addAction(self.ui.action_delete_document)
 
         return menu
 
@@ -306,7 +313,7 @@ class MainWindow(QMainWindow):
             self.project_list_model.add_document(doc_dir)
 
     @Slot()
-    def on_action_del_document_triggered(self):
+    def on_action_delete_document_triggered(self):
         # () -> None
         indexes = self.ui.tree_view_projects.selectedIndexes()
 
@@ -321,6 +328,49 @@ class MainWindow(QMainWindow):
             if result == QMessageBox.Yes:
                 for index in sorted(indexes, key=lambda x: x.row(), reverse=True):
                     self.project_list_model.takeRow(index.row())
+
+    def _move(self, up_flag):
+        # type: (bool) -> None
+        indexes = self.ui.tree_view_projects.selectedIndexes()
+        if indexes:
+            indexes.sort(key=lambda x: x.row(), reverse=not up_flag)
+
+            selection_model = self.ui.tree_view_projects.selectionModel()
+            selection = QItemSelection()
+
+            stop_idx = -1 if up_flag else self.project_list_model.rowCount()
+
+            for index in indexes:
+                item = self.project_list_model.itemFromIndex(index)
+                if up_flag:
+                    insert_row = item.row() - 1
+                    movable = stop_idx < insert_row
+                else:
+                    insert_row = item.row() + 1
+                    movable = insert_row < stop_idx
+
+                if movable:
+                    self.project_list_model.takeRow(item.row())
+                    self.project_list_model.insertRow(insert_row, item)
+                else:
+                    stop_idx = item.row()
+
+                selection.select(item.index(), item.index())
+
+            selection_model.select(
+                selection,
+                QItemSelectionModel.ClearAndSelect
+            )
+
+    @Slot()
+    def on_action_move_up_triggered(self):
+        # () -> None
+        self._move(True)
+
+    @Slot()
+    def on_action_move_down_triggered(self):
+        # () -> None
+        self._move(False)
 
     @Slot(QModelIndex)
     def on_tree_view_projects_doubleClicked(self, index):
