@@ -79,7 +79,7 @@ class ProjectListModel(QStandardItemModel):
         # type: (SphinxInfo, ProjectItem) -> None
         item.setInfo(info)
         if info.is_valid():
-            item.setIcon(icon.load("open_folder"))
+            item.setIcon(icon.load("book"))
             self.sphinxInfoLoaded.emit(item.index())
         else:
             item.setIcon(icon.load("error"))
