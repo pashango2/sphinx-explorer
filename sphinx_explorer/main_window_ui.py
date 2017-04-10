@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Mon Apr 10 19:07:13 2017
+# Created: Mon Apr 10 19:39:53 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -105,6 +105,7 @@ class Ui_MainWindow(object):
         self.action_delete_document = QtGui.QAction(MainWindow)
         self.action_delete_document.setObjectName("action_delete_document")
         self.menuFile_F.addAction(self.action_settings)
+        self.menuCreate_C.addAction(self.action_wizard)
         self.menuCreate_C.addAction(self.action_apidoc)
         self.menubar.addAction(self.menuFile_F.menuAction())
         self.menubar.addAction(self.menuCreate_C.menuAction())

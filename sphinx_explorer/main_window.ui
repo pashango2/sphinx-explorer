@@ -153,6 +153,7 @@
     <property name="title">
      <string>Create(&amp;C)</string>
     </property>
+    <addaction name="action_wizard"/>
     <addaction name="action_apidoc"/>
    </widget>
    <addaction name="menuFile_F"/>
