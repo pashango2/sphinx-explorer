@@ -29,8 +29,8 @@ class ExecCommandPage(QWizardPage):
     def exec_command(self, cmd, cwd=None):
         self.console_widget.exec_command(cmd, cwd)
 
-    def finished(self, returncode, _):
-        self.can_finished = returncode == 0
+    def finished(self, return_code):
+        self.can_finished = return_code == 0
         self.validatePage()
 
         if self.can_finished is False:

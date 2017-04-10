@@ -183,6 +183,7 @@ class MainWindow(QMainWindow):
     def event(self, evt):
         if evt.type() == QEvent.WindowActivate:
             self.reload()
+
         return super(MainWindow, self).event(evt)
 
     def reload(self):
@@ -274,7 +275,7 @@ class MainWindow(QMainWindow):
         # quickstart_wizard.main(self.settings.default_values, self.add_document, self)
         wizard = quickstart_wizard.create_wizard(self.params_dict, self.settings.default_values, self)
         if wizard.exec_() == QDialog.Accepted:
-            pass
+            self.add_document(wizard.path())
 
     @Slot()
     def on_action_apidoc_triggered(self):

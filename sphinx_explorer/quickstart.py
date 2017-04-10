@@ -22,6 +22,11 @@ from .sphinx_analyzer import SphinxInfo
 TOML_PATH = "settings/quickstart.toml"
 CONF_PY_ENCODING = "utf-8"
 
+TEMPLATE_SETTING = """
+source_dir = '{rsrcdir}'
+build_dir = '{rbuilddir}'
+""".strip()
+
 
 def quickstart_cmd(d):
     # type: (dict) -> string_types
@@ -65,23 +70,41 @@ def quickstart_cmd(d):
     )
 
     return command(
-        " ".join([
-                     "python",
-                     path,
-                     "-q",
-                     "-p " + quote(d["project"]),
-                     "-a " + quote(d["author"]),
-                     ("-v " + quote(d["version"])) if d.get("version") else "",
-                     ("-r " + quote(d["release"])) if d.get("release") else "",
-                 ] + opts + [quote(d["path"])])
+        " ".join(
+        [
+             "sphinx-quickstart",
+             "-q",
+             "-p " + quote(d["project"]),
+             "-a " + quote(d["author"]),
+             ("-v " + quote(d["version"])) if d.get("version") else "",
+             ("-r " + quote(d["release"])) if d.get("release") else "",
+         ] + opts + [quote(d["path"])])
     )
 
 
-def quickstart_ext(d):
-    info = SphinxInfo(d["path"])
+def get_source_and_build(d):
+    source_dir = "source" if d.get("sep", False) else "."
+    build_dir = "build" if d.get("sep", False) else "{}build".format(d.get("prefix", "_"))
 
-    if info.conf_py_path and os.path.isfile(info.conf_py_path):
-        fd = codecs.open(info.conf_py_path, "a", CONF_PY_ENCODING)
+    return source_dir, build_dir
+
+
+def fix(d):
+    source_dir, build_dir = get_source_and_build(d)
+    conf_py_path = os.path.abspath(os.path.join(d["path"], source_dir, "conf.py"))
+    project_path = d["path"]
+
+    fd = codecs.open(os.path.join(project_path, "setting.toml"), "w", "utf-8")
+    fd.write(
+        TEMPLATE_SETTING.format(
+            rsrcdir=source_dir,
+            rbuilddir=build_dir,
+        )
+    )
+    fd.close()
+
+    if conf_py_path and os.path.isfile(conf_py_path):
+        fd = codecs.open(conf_py_path, "a", CONF_PY_ENCODING)
 
         if d.get("html_theme", "default") != "default":
             fd.write("html_theme = '{}'\n".format(d["html_theme"]))
@@ -243,7 +266,7 @@ class QuickStartWidget(QWidget):
 
         if exit_code == 0:
             obj = self.ui.property_widget.dump()
-            quickstart_ext(obj)
+            fix(obj)
             self.finished.emit(True, self.path)
 
 

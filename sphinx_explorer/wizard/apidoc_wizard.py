@@ -16,9 +16,9 @@ class ApidocWizard(BaseWizard):
         return self._value_dict.get("path")
 
 
-class ApiDOcSecondPropertyPage(PropertyPage):
+class ApiDocSecondPropertyPage(PropertyPage):
     def initializePage(self):
-        super(ApiDOcSecondPropertyPage, self).initializePage()
+        super(ApiDocSecondPropertyPage, self).initializePage()
 
         self.property_widget.set_default_value(
             "project",
@@ -40,10 +40,9 @@ class ApiDocExecCommandPage(ExecCommandPage):
         )
         self.exec_command(cmd, cwd=settings["path"])
 
-    def finished(self, returncode, _):
-        super(ApiDocExecCommandPage, self).finished(returncode, _)
+    def finished(self, return_code):
+        super(ApiDocExecCommandPage, self).finished(return_code)
         settings = self.wizard().dump()
-        print(settings)
         apidoc.fix_apidoc(
             settings["path"],
             settings["apidoc-sourcedir"],
@@ -72,7 +71,7 @@ def create_wizard(params_dict, default_settings, parent=None):
         parent=wizard,
     )
 
-    sec_page = ApiDOcSecondPropertyPage(
+    sec_page = ApiDocSecondPropertyPage(
         params_dict,
         "Project setting",
         [

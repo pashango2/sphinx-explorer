@@ -7,100 +7,29 @@ from PySide.QtGui import *
 
 from sphinx_explorer.property_widget import PropertyWidget
 from sphinx_explorer.quickstart import QuickStartWidget
-from .base_wizard import PropertyPage, BaseWizard
+from .base_wizard import PropertyPage, BaseWizard, ExecCommandPage
+from sphinx_explorer import quickstart
 
 
-class FinishWizard(QWizardPage):
-    def __init__(self, questions, parent=None):
-        # type: (Questions, QWidget) -> None
-        super(FinishWizard, self).__init__(parent)
-        self.questions = questions
-
-        self.widget = QuickStartWidget(parent)
-        self.finished = False
-        self.widget.finished.connect(self.onFinished)
-
-        self.setTitle("Finish")
-        self.property_widget = self.widget.ui.property_widget
-
-        layout = QVBoxLayout(self)
-        layout.addWidget(self.widget)
-        self.setLayout(layout)
-
+class QuickstartExecCommandPage(ExecCommandPage):
     def initializePage(self):
-        wizard = self.wizard()
-        default_values = wizard.settings()
+        self.validatePage()
+        self.console_widget.clear()
 
-        self.property_widget.load_settings(self.questions.properties())
-        self.property_widget.load(default_values)
-        self.property_widget.resizeColumnToContents(0)
+        settings = self.wizard().dump()
+        cmd = quickstart.quickstart_cmd(settings)
+        self.exec_command(cmd)
 
-        self.wizard().validateCurrentPage()
-
-    # noinspection PyMethodMayBeStatic
-    def dump(self):
-        return {}
-
-    def onFinished(self, success, path):
-        self.finished = success
-        self.wizard().validateCurrentPage()
-
-        if success:
-            self.wizard().finished_callback(path)
-
-    def validatePage(self):
-        return self.finished
-
-
-class PropertyWizard(QWizardPage):
-    def __init__(self, category_name, params, default_settings, parent=None):
-        # type: (str, dict, dict, QWidget or None) -> None
-        super(PropertyWizard, self).__init__(parent)
-
-        self.setTitle(category_name)
-
-        property_widget = PropertyWidget(self)
-        property_widget.load_settings(params, default_settings)
-
-        layout = QVBoxLayout(self)
-        text_browser = QTextBrowser(self)
-        splitter = QSplitter(self)
-        splitter.addWidget(property_widget)
-        splitter.addWidget(text_browser)
-        splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
-        layout.addWidget(splitter)
-        self.setLayout(layout)
-
-        def _onCurrentChanged(current, _):
-            html = property_widget.html(current)
-            if html:
-                text_browser.setHtml(html)
-            else:
-                text_browser.clear()
-
-        property_widget.currentChanged.connect(_onCurrentChanged)
-        property_widget.setCurrentIndex(property_widget.index(0, 1))
-
-        self.property_widget = property_widget
-        text_browser.setFocusPolicy(Qt.NoFocus)
-
-        self.setTabOrder(self.property_widget, None)
-
-        self.property_widget.resizeColumnToContents(0)
-
-    def initializePage(self):
-        # type: () -> None
-        self.property_widget.setFocus()
-
-    def dump(self):
-        # type: () -> dict
-        return self.property_widget.dump()
+    def finished(self, return_code):
+        super(QuickstartExecCommandPage, self).finished(return_code)
+        if return_code == 0:
+            settings = self.wizard().dump()
+            quickstart.fix(settings)
 
 
 class QuickStartWizard(BaseWizard):
-    def __init__(self, parent):
-        super(QuickStartWizard, self).__init__(parent)
+    def path(self):
+        return self._value_dict.get("path")
 
 
 Questions = [
@@ -176,6 +105,8 @@ def create_wizard(params_dict, default_settings, parent=None):
                 default_settings
             )
         )
+
+    wizard.addPage(QuickstartExecCommandPage("finish", wizard))
 
     params_dict["path"]["require_input"] = True
 

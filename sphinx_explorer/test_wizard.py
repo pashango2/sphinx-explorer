@@ -12,7 +12,6 @@ def main():
     settings = toml.load(setting_path)
     params_dict = toml.load(os.path.join("..", "settings", "params.toml"))
     params_dict.update(settings["params"])
-    print(settings)
 
     wizard = create_wizard(params_dict, {}, None)
     wizard.exec_()

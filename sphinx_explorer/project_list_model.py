@@ -68,15 +68,20 @@ class ProjectListModel(QStandardItemModel):
     def _analyze_item(self, item):
         project_path = item.text()
 
-        ana = QSphinxAnalyzer(project_path, item)
+        ana = QSphinxAnalyzer(project_path, item.text())
         ana.finished.connect(self.onAnalyzeFinished)
 
         # noinspection PyArgumentList
         thread_pool = QThreadPool.globalInstance()
         thread_pool.start(ana)
 
-    def onAnalyzeFinished(self, info, item):
-        # type: (SphinxInfo, ProjectItem) -> None
+    def onAnalyzeFinished(self, info, project_path):
+        # type: (SphinxInfo, str) -> None
+        index = self.find(project_path)
+        if not index.isValid():
+            return
+
+        item = self.itemFromIndex(index)
         item.setInfo(info)
         if info.is_valid():
             item.setIcon(icon.load("book"))

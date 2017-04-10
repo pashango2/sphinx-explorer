@@ -90,18 +90,18 @@ class SphinxInfo(object):
 
 
 class QSphinxAnalyzer(QObject, QRunnable):
-    finished = Signal(SphinxInfo, QStandardItem)
+    finished = Signal(SphinxInfo, str)
 
-    def __init__(self, doc_path, item):
-        # type: (str, QStandardItem) -> None
+    def __init__(self, doc_path, project_path):
+        # type: (str, str) -> None
         QObject.__init__(self)
         QRunnable.__init__(self)
 
         self.doc_path = doc_path
-        self.item = item
+        self.project_path = project_path
 
     def run(self):
         info = SphinxInfo(self.doc_path)
         # if info.conf_py_path:
         #     info.read_conf()
-        self.finished.emit(info, self.item)
+        self.finished.emit(info, self.project_path)

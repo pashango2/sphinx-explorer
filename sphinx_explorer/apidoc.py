@@ -51,7 +51,6 @@ def fix_apidoc(project_path, source_dir, params):
         except ValueError:
             module_dir = os.path.abspath(source_dir)
 
-    # print(source_dir, project_path, module_dir)
     fd = codecs.open(os.path.join(project_path, "setting.toml"), "w", "utf-8")
     fd.write(
         TEMPLATE_SETTING.format(

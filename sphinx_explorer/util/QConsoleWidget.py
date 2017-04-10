@@ -13,15 +13,22 @@ QTextCodec.setCodecForCStrings(QTextCodec.codecForLocale())
 
 
 class QConsoleWidget(QTextEdit):
-    finished = Signal(int, QProcess.ExitStatus)
+    started = Signal()
+    finished = Signal(int)
 
     COMMAND_COLOR = QColor("#706caa")
 
     def __init__(self, parent=None):
         super(QConsoleWidget, self).__init__(parent)
-        self._process = QProcess(self)
         self.setReadOnly(True)
         self.setAcceptRichText(True)
+
+        self._process = QProcess(self)
+        self._process.setProcessChannelMode(QProcess.MergedChannels)
+        self._process.started.connect(self.started.emit)
+        self._process.finished[int].connect(self.finished.emit)
+        self._process.readyReadStandardOutput.connect(self._print_output)
+        self._process.readyReadStandardError.connect(self._print_output)
 
     def process(self):
         # type: () -> QProcess
@@ -34,9 +41,6 @@ class QConsoleWidget(QTextEdit):
                 cwd = cwd.encode(sys.getfilesystemencoding())
             self._process.setWorkingDirectory(cwd)
 
-        self._process.readyReadStandardOutput.connect(self._print_output)
-        self._process.readyReadStandardError.connect(self._print_output)
-        self._process.finished.connect(self.finished)
         if six.PY2:
             cmd = cmd.encode(sys.getfilesystemencoding())
 
