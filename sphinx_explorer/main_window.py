@@ -6,6 +6,8 @@ import os
 import toml
 import fnmatch
 import webbrowser
+import platform
+import ctypes
 from collections import OrderedDict
 
 from PySide.QtCore import *
@@ -140,6 +142,16 @@ class MainWindow(QMainWindow):
         # noinspection PyArgumentList
         r.moveCenter(QApplication.desktop().availableGeometry().center())
         self.setGeometry(r)
+
+        # set icon
+        if platform.system() == "Windows":
+            # noinspection PyBroadException
+            try:
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("Sphinx Explorer")
+            except:
+                pass
+
+        self.setWindowIcon(icon.load("sphinx"))
 
     def _setup(self):
         self.project_list_model.load(self.settings.projects)

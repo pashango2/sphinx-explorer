@@ -18,6 +18,8 @@ from .main_window import MainWindow
 
 HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx-explorer")
 
+__version__ = 0.9
+
 
 def main():
     # if sys.stdout.encoding is None:
