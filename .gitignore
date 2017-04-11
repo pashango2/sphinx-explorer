@@ -91,3 +91,5 @@ ENV/
 \.idea/
 *.orig
 doc/
+sphinx-explorer.exe
+sphinx-explorer_win64_0.9.zip

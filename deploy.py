@@ -1,6 +1,8 @@
 import subprocess
 import os
 import zipfile
+import platform
+import sys
 from sphinx_explorer import __version__
 
 cmd = [
@@ -23,14 +25,31 @@ if result == 0:
             for file_path in files:
                 ziph.write(os.path.join(root, file_path))
 
-    exe_path = os.path.join("dist", "sphinx-explorer.exe")
-    zip_name = "sphinx-explorer_win_AMD64_{}.zip".format(__version__)
+    if platform.system() == "Windows":
+        ext = ".exe"
+        platform_name = "win"
+    elif platform.system() == "Darwin":
+        ext = ""
+        platform_name = "mac"
+    elif platform.system() == "Linux":
+        ext = ""
+        platform_name = "linux"
+    else:
+        raise ValueError()
+
+    bits = "64" if sys.maxsize > 2 ** 32 else "32"
+
+    exe_path = os.path.join("dist", "sphinx-explorer" + ext)
+    zip_name = "sphinx-explorer_{}{}_{}.zip".format(platform_name, bits, __version__)
 
     with zipfile.ZipFile(zip_name, "w") as zip_file:
         zip_file.write(exe_path, "sphinx-explorer.exe")
 
         for dir_name in include_dirs:
-            zipdir(dir_name, zip_file)
+            if os.path.isdir(dir_name):
+                zipdir(dir_name, zip_file)
+            else:
+                zip_file.write(dir_name, dir_name)
 
 
 
