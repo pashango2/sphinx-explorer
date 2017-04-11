@@ -60,19 +60,17 @@ class MainWindow(QMainWindow):
             }
 
         # create actions
-        self.open_act = QAction(icon.load("editor"), "Open Editor", self, triggered=self._open_dir)
-        self.show_act = QAction(icon.load("open_folder"), "Show File", self, triggered=self._show_directory)
-        self.terminal_act = QAction(icon.load("terminal"), "Open Terminal", self, triggered=self._open_terminal)
-        self.auto_build_act = QAction(icon.load("reload"), "Auto Build", self, triggered=self._auto_build)
-        self.apidoc_act = QAction(icon.load("update"), "Update sphinx-apidoc", self, triggered=self._apidoc)
-        self.open_html_act = QAction(icon.load("chrome"), "Open browser", self, triggered=self._open_browser)
-        self.close_act = QAction("Exit", self, triggered=self.close)
+        self.open_act = QAction(icon.load("editor"), self.tr(b"Open Editor"), self, triggered=self._open_dir)
+        self.show_act = QAction(icon.load("open_folder"), self.tr(b"Open Directory"), self, triggered=self._show_directory)
+        self.terminal_act = QAction(icon.load("terminal"), self.tr(b"Open Terminal"), self, triggered=self._open_terminal)
+        self.auto_build_act = QAction(icon.load("reload"), self.tr(b"Auto Build"), self, triggered=self._auto_build)
+        self.apidoc_act = QAction(icon.load("update"), self.tr(b"Update sphinx-apidoc"), self, triggered=self._apidoc)
+        self.open_html_act = QAction(icon.load("chrome"), self.tr(b"Open browser"), self, triggered=self._open_browser)
+        self.close_act = QAction(self.tr(b"Exit"), self, triggered=self.close)
 
-        self.editor_acts = []
-        for name, ed in editor.editors():
-            act = QAction(ed.name, self)
-            act.setIcon(ed.icon)
-            self.editor_acts.append(act)
+        # i18n
+        self.tr("Exit")
+        self.tr("Open Editor")
 
         # setup ui
         self.ui = Ui_MainWindow()

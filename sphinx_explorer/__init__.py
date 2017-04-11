@@ -11,6 +11,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
     * qdarkstyle
 """
 from PySide.QtGui import *
+from PySide.QtCore import *
 import sys
 import os
 import qdarkstyle
@@ -29,6 +30,10 @@ def main():
 
     app = QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet())
+
+    translator = QTranslator()
+    translator.load("i18n/sphinx_explorer_{}".format(QLocale.system().name()))
+    app.installTranslator(translator)
 
     sys_dir = os.path.dirname(sys.argv[0])
     window = MainWindow(sys_dir, HOME_DIR)
