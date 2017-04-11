@@ -12,7 +12,7 @@ from sphinx_explorer import quickstart
 
 
 class ChoiceTemplatePage(QWizardPage):
-    def __init__(self, parent=None):
+    def __init__(self, template_model, parent=None):
         super(ChoiceTemplatePage, self).__init__(parent)
         self.tree_view_template = QTreeView(self)
         self.text_browser = QTextBrowser(self)
@@ -29,6 +29,8 @@ class ChoiceTemplatePage(QWizardPage):
         self.setLayout(layout)
 
         self.setTitle("Choice template")
+        self.tree_view_template.setModel(template_model)
+        self.tree_view_template.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
 
 class QuickstartExecCommandPage(ExecCommandPage):
@@ -107,7 +109,7 @@ Questions = [
 ]
 
 
-def create_wizard(params_dict, default_settings, parent=None):
+def create_wizard(template_model, params_dict, default_settings, parent=None):
     wizard = QuickStartWizard(parent)
 
     # for Windows
@@ -116,7 +118,7 @@ def create_wizard(params_dict, default_settings, parent=None):
 
     params_dict["path"]["require_input"] = False
 
-    wizard.addPage(ChoiceTemplatePage(wizard))
+    wizard.addPage(ChoiceTemplatePage(template_model, wizard))
 
     for category_name, params in Questions:
         wizard.addPage(

@@ -159,6 +159,7 @@ class PropertyItem(QStandardItem):
         # item flags
         self.setFlags(Qt.NoItemFlags)
         self.setEnabled(True)
+        self.setEditable(True)
 
         # link param
         self.link = None

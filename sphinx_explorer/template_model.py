@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-import os
 from PySide.QtGui import *
 from PySide.QtCore import *
-from .sphinx_analyzer import SphinxInfo, QSphinxAnalyzer
-from . import icon
-from .util.exec_sphinx import quote
+import yaml
 from six import string_types
+
+if False:
+    from typing import Optional
 
 
 class TemplateModel(QStandardItemModel):
@@ -16,58 +16,25 @@ class TemplateModel(QStandardItemModel):
 
     def __init__(self, parent=None):
         super(TemplateModel, self).__init__(parent)
+        self.setHorizontalHeaderLabels([
+            self.tr("Template")
+        ])
 
-    def load_plugin(self, toml_path):
+    def load_plugin(self, yaml_path):
         # type: (string_types) -> None
-        pass
+        template_obj = yaml.load(open(yaml_path))
+        item = TemplateItem(template_obj["title"], template_obj)
+        self.appendRow(item)
+
+    def find(self, title):
+        # type: (string_types) -> Optional[TemplateItem]
+        items = self.findItems(title)
+        if items:
+            return items[0]
+        return None
 
 
 class TemplateItem(QStandardItem):
-    def __init__(self, name):
+    def __init__(self, name, template):
         super(TemplateItem, self).__init__(name)
-        self.info = None    # type: SphinxInfo
-
-    def path(self):
-        # type: () -> string_types
-        return self.text()
-
-    def html_path(self):
-        # type: () -> string_types
-        if self.info.build_dir:
-            return os.path.join(
-                self.info.build_dir,
-                "html", "index.html"
-            )
-        return None
-
-    def has_html(self):
-        # type: () -> bool
-        return bool(self.html_path() and os.path.isfile(self.html_path()))
-
-    def auto_build_command(self, target="html"):
-        model = self.model()
-        if model:
-            cmd = "sphinx-autobuild -p 0 --open-browser {} {}".format(
-                quote(self.info.source_dir),
-                quote(os.path.join(self.info.build_dir, target)),
-            )
-            return cmd
-        return None
-
-    def auto_build(self, target="html"):
-        cmd = self.auto_build_command(target)
-        model = self.model()
-        if model and cmd:
-            model.autoBuildRequested.emit(cmd, self)
-
-    def setInfo(self, info):
-        # type: (SphinxInfo) -> None
-        self.info = info
-
-    def can_make(self):
-        # type: () -> bool
-        return bool(self.info and self.info.is_valid())
-
-    def can_apidoc(self):
-        # type: () -> bool
-        return self.info.can_apidoc()
+        self.template = template

@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 import os
-import fnmatch
-import toml
+import yaml
 from PySide.QtGui import *
 from .util.exec_sphinx import launch
 from typing import Iterator
@@ -19,11 +18,12 @@ def init():
 
 
 def load_plugin(file_name):
+    # type: (string_types) -> None
     global Editors
 
     root = os.path.dirname(file_name)
-    ext_name = file_name[:-len(".toml")]
-    setting_dict = toml.load(file_name)
+    ext_name = file_name[:-len(".yaml")]
+    setting_dict = yaml.load(open(file_name))
     Editors[ext_name] = Editor(root, ext_name, setting_dict)
 
 
@@ -48,6 +48,7 @@ class Editor(object):
 
     @property
     def name(self):
+        # type: () -> string_types
         return self._setting_dict["name"]
 
     def open_dir(self, dir_path):

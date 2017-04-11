@@ -60,17 +60,13 @@ class MainWindow(QMainWindow):
             }
 
         # create actions
-        self.open_act = QAction(icon.load("editor"), self.tr(b"Open Editor"), self, triggered=self._open_dir)
-        self.show_act = QAction(icon.load("open_folder"), self.tr(b"Open Directory"), self, triggered=self._show_directory)
-        self.terminal_act = QAction(icon.load("terminal"), self.tr(b"Open Terminal"), self, triggered=self._open_terminal)
-        self.auto_build_act = QAction(icon.load("reload"), self.tr(b"Auto Build"), self, triggered=self._auto_build)
-        self.apidoc_act = QAction(icon.load("update"), self.tr(b"Update sphinx-apidoc"), self, triggered=self._apidoc)
-        self.open_html_act = QAction(icon.load("chrome"), self.tr(b"Open browser"), self, triggered=self._open_browser)
-        self.close_act = QAction(self.tr(b"Exit"), self, triggered=self.close)
-
-        # i18n
-        self.tr("Exit")
-        self.tr("Open Editor")
+        self.open_act = QAction(icon.load("editor"), self.tr("Open Editor"), self, triggered=self._open_dir)
+        self.show_act = QAction(icon.load("open_folder"), self.tr("Open Directory"), self, triggered=self._show_directory)
+        self.terminal_act = QAction(icon.load("terminal"), self.tr("Open Terminal"), self, triggered=self._open_terminal)
+        self.auto_build_act = QAction(icon.load("reload"), self.tr("Auto Build"), self, triggered=self._auto_build)
+        self.apidoc_act = QAction(icon.load("update"), self.tr("Update sphinx-apidoc"), self, triggered=self._apidoc)
+        self.open_html_act = QAction(icon.load("chrome"), self.tr("Open browser"), self, triggered=self._open_browser)
+        self.close_act = QAction(self.tr("Exit"), self, triggered=self.close)
 
         # setup ui
         self.ui = Ui_MainWindow()
@@ -164,12 +160,12 @@ class MainWindow(QMainWindow):
 
         editor_dir = os.path.join(sys_dir, "plugin", "editor")
         editor.init()
-        for file_path in self._walk_files(editor_dir, "*.toml"):
+        for file_path in self._walk_files(editor_dir, "*.yaml"):
             editor.load_plugin(file_path)
 
         wizard_dir = os.path.join(sys_dir, "plugin", "wizard")
-        for toml_path in self._walk_files(wizard_dir, "*.toml"):
-            self.template_model.load_plugin(toml_path)
+        for file_path in self._walk_files(wizard_dir, "*.yaml"):
+            self.template_model.load_plugin(file_path)
 
     @staticmethod
     def _walk_files(dir_path, ext):
@@ -315,7 +311,12 @@ class MainWindow(QMainWindow):
     def on_action_wizard_triggered(self):
         # () -> None
         # quickstart_wizard.main(self.settings.default_values, self.add_document, self)
-        wizard = quickstart_wizard.create_wizard(self.params_dict, self.settings.default_values, self)
+        wizard = quickstart_wizard.create_wizard(
+            self.template_model,
+            self.params_dict,
+            self.settings.default_values,
+            self
+        )
         if wizard.exec_() == QDialog.Accepted:
             self.add_document(wizard.path())
 

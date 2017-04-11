@@ -1,0 +1,5 @@
+path: atom
+name: Atom
+
+open_dir:
+    param: "{path} ."
