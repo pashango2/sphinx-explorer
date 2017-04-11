@@ -156,7 +156,7 @@ class ProjectItem(QStandardItem):
         # type: (QConsoleWidget) -> None
         module_dir = self.info.module_dir
         if not module_dir or not self.info.source_dir:
-            return 1
+            return
 
         project_dir = self.text()
         source_dir = os.path.join(project_dir, self.info.source_dir)

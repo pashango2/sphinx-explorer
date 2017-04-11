@@ -4,11 +4,13 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 
 import os
 import toml
+import fnmatch
 import webbrowser
 from collections import OrderedDict
 
 from PySide.QtCore import *
 from PySide.QtGui import *
+from six import string_types
 
 from sphinx_explorer.wizard import quickstart_wizard, apidoc_wizard
 from . import editor
@@ -19,6 +21,10 @@ from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel, ProjectItem
 from .settings import SettingsDialog, Settings
 from .util.exec_sphinx import launch, console, show_directory, open_terminal
+from .template_model import TemplateModel
+
+if False:
+    from typing import Iterator
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -29,7 +35,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self, sys_dir, home_dir, parent=None):
         super(MainWindow, self).__init__(parent)
-
+        self.template_model = TemplateModel(self)
         self.wizard_path = os.path.join(sys_dir, "settings")
 
         # make setting dir
@@ -39,9 +45,7 @@ class MainWindow(QMainWindow):
         self.settings = Settings(os.path.join(self.setting_dir, SETTINGS_TOML))
 
         # load extension
-        sphinx_value_types.init()
-        extension.init(os.path.join(sys_dir, "plugin", "extension"))
-        editor.init(os.path.join(sys_dir, "plugin", "editor"))
+        self._load_plugin(sys_dir)
 
         # setup params dict
         toml_path = os.path.join(self.wizard_path, "params.toml")
@@ -142,6 +146,27 @@ class MainWindow(QMainWindow):
 
     def _save(self):
         self.settings.dump(self.project_list_model.dump())
+
+    def _load_plugin(self, sys_dir):
+        # type: (string_types) -> None
+        sphinx_value_types.init()
+        extension.init(os.path.join(sys_dir, "plugin", "extension"))
+
+        editor_dir = os.path.join(sys_dir, "plugin", "editor")
+        editor.init()
+        for file_path in self._walk_files(editor_dir, "*.toml"):
+            editor.load_plugin(file_path)
+
+        wizard_dir = os.path.join(sys_dir, "plugin", "wizard")
+        for toml_path in self._walk_files(wizard_dir, "*.toml"):
+            self.template_model.load_plugin(toml_path)
+
+    @staticmethod
+    def _walk_files(dir_path, ext):
+        # type: (string_types, string_types) -> Iterator[string_types]
+        for root, _, files in os.walk(dir_path):
+            for file_path in fnmatch.filter(files, ext):
+                yield os.path.join(root, file_path)
 
     def _create_context_menu(self, item, doc_path):
         # type : (ProjectItem, str) -> QMenu

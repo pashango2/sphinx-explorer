@@ -11,6 +11,26 @@ from .base_wizard import PropertyPage, BaseWizard, ExecCommandPage
 from sphinx_explorer import quickstart
 
 
+class ChoiceTemplatePage(QWizardPage):
+    def __init__(self, parent=None):
+        super(ChoiceTemplatePage, self).__init__(parent)
+        self.tree_view_template = QTreeView(self)
+        self.text_browser = QTextBrowser(self)
+        self.splitter = QSplitter(self)
+
+        self.splitter.addWidget(self.tree_view_template)
+        self.splitter.addWidget(self.text_browser)
+        self.splitter.setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Expanding
+        )
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.splitter)
+        self.setLayout(layout)
+
+        self.setTitle("Choice template")
+
+
 class QuickstartExecCommandPage(ExecCommandPage):
     def initializePage(self):
         self.validatePage()
@@ -95,6 +115,8 @@ def create_wizard(params_dict, default_settings, parent=None):
     wizard.setWizardStyle(QWizard.ClassicStyle)
 
     params_dict["path"]["require_input"] = False
+
+    wizard.addPage(ChoiceTemplatePage(wizard))
 
     for category_name, params in Questions:
         wizard.addPage(

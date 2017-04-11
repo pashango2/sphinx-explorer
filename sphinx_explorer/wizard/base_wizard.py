@@ -5,6 +5,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from PySide.QtGui import *
 from six import string_types
 from sphinx_explorer.util.QConsoleWidget import QConsoleWidget
+from .. import icon
 
 from sphinx_explorer import property_widget
 
@@ -102,6 +103,15 @@ class BaseWizard(QWizard):
     def __init__(self, parent=None):
         super(BaseWizard, self).__init__(parent)
         self._value_dict = {}
+        self.setOption(QWizard.HaveCustomButton1, True)
+        self.setButtonText(QWizard.CustomButton1, "Add Bookmark")
+        self.setButtonLayout([
+            QWizard.CustomButton1, QWizard.Stretch, QWizard.BackButton,
+            QWizard.NextButton, QWizard.FinishButton, QWizard.CancelButton
+        ])
+
+        button = self.button(QWizard.CustomButton1)
+        button.setIcon(icon.load("bookmark"))
 
     def setup(self, setting_dict, params_dict, default_dict=None):
         # type: (dict) -> None
@@ -119,12 +129,6 @@ class BaseWizard(QWizard):
             page.setTitle(page_name)
             self.addPage(page)
 
-        # self.setOption(QWizard.HaveCustomButton1, True)
-        # self.setButtonText(QWizard.CustomButton1, "Create")
-        # self.setButtonLayout([
-        #     QWizard.Stretch, QWizard.BackButton, QWizard.NextButton,
-        #     QWizard.CustomButton1, QWizard.FinishButton, QWizard.CancelButton
-        # ])
 
     def set_value(self, key, value):
         self._value_dict[key] = value

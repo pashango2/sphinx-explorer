@@ -12,16 +12,19 @@ from six import string_types
 Editors = {}
 
 
-def init(plugin_dir):
-    # type: (string_types) -> None
+def init():
+    # type: () -> None
+    global Editors
+    Editors = {}
+
+
+def load_plugin(file_name):
     global Editors
 
-    Editors = {}
-    for root, dirs, files in os.walk(plugin_dir):
-        for file_name in fnmatch.filter(files, "*.toml"):
-            ext_name = file_name[:-len(".toml")]
-            setting_dict = toml.load(os.path.join(root, file_name))
-            Editors[ext_name] = Editor(root, ext_name, setting_dict)
+    root = os.path.dirname(file_name)
+    ext_name = file_name[:-len(".toml")]
+    setting_dict = toml.load(file_name)
+    Editors[ext_name] = Editor(root, ext_name, setting_dict)
 
 
 def get(editor_name=None):
