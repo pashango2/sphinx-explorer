@@ -17,7 +17,7 @@ install:
   - "%PYTHON%\\python.exe -m pip install typing"
   - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%
     
-build: off
-
-after_test:
+build:
   - "%PYTHON%\\python.exe deploy.py"
+  
+ 
