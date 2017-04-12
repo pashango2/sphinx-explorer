@@ -15,7 +15,7 @@ cmd = [
 result = subprocess.call(cmd)
 
 include_dirs = [
-    "plugin", "script", "settings", "icon"
+    "plugin", "script", "settings", "icon", "i18n"
 ]
 
 if result == 0:
@@ -43,7 +43,7 @@ if result == 0:
     zip_name = "sphinx-explorer_{}{}_{}.zip".format(platform_name, bits, __version__)
 
     with zipfile.ZipFile(zip_name, "w") as zip_file:
-        zip_file.write(exe_path, "sphinx-explorer.exe")
+        zip_file.write(exe_path, "sphinx-explorer" + ext)
 
         for dir_name in include_dirs:
             if os.path.isdir(dir_name):
