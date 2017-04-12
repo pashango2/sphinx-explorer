@@ -11,6 +11,8 @@ environment:
     
 install:
   - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Lib\\site-packages;%PATH%
+  - set QTDIR=C:\Qt\5.6\msvc2015
+  - set PATH=%QTDIR%\bin;%PATH%
   - "pip install pyside"
   - "pip install pyinstaller"
   - "pip install toml"
