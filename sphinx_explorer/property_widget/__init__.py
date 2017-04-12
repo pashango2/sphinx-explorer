@@ -172,8 +172,10 @@ class PropertyWidget(QTableView):
                     key = setting
                     params = params_dict.get(setting, {})
             elif isinstance(setting, dict):
-                key = setting.get("key")
-                params = setting
+                key = list(setting.keys())[0]
+                params = params_dict.get(key, {}).copy()
+                params.update(setting[key])
+                # params = {**params_dict.get(setting, {}), **setting}
             else:
                 raise ValueError(setting)
 

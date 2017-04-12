@@ -70,6 +70,13 @@ class PropertyPage(QWizardPage):
 
         self.setTitle(title)
 
+        self.next_id = -1
+
+    def nextId(self):
+        if self.next_id > 0:
+            return self.next_id
+        return super(PropertyPage, self).nextId()
+
     def _onCurrentChanged(self, current, _):
         html = self.property_widget.html(current)
         if html:

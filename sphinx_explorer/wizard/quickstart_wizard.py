@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from sphinx_explorer.property_widget import PropertyWidget
-from sphinx_explorer.quickstart import QuickStartWidget
-from .base_wizard import PropertyPage, BaseWizard, ExecCommandPage
 from sphinx_explorer import quickstart
+from .base_wizard import PropertyPage, BaseWizard, ExecCommandPage
 
 
 class ChoiceTemplatePage(QWizardPage):
@@ -32,6 +29,14 @@ class ChoiceTemplatePage(QWizardPage):
         self.tree_view_template.setModel(template_model)
         self.tree_view_template.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
+    def initializePage(self):
+        self.setFinalPage(False)
+
+    def choice(self):
+        # type() -> TemplateItem
+        index = self.tree_view_template.currentIndex()
+        return self.tree_view_template.model().itemFromIndex(index)
+
 
 class QuickstartExecCommandPage(ExecCommandPage):
     def initializePage(self):
@@ -48,98 +53,65 @@ class QuickstartExecCommandPage(ExecCommandPage):
             settings = self.wizard().dump()
             quickstart.fix(settings)
 
+    def nextId(self):
+        return -1
+
 
 class QuickStartWizard(BaseWizard):
+    def __init__(self, params_dict, default_settings, parent=None):
+        super(QuickStartWizard, self).__init__(parent)
+        self.params_dict = params_dict
+        self.default_settings = default_settings
+        self.page_dict = {}
+
     def path(self):
         return self._value_dict.get("path")
 
+    def create_final_page(self):
+        page = QuickstartExecCommandPage("finish", self)
+        page.setFinalPage(True)
+        return page
 
-Questions = [
-    [
-        "Required params",
-        [
-            "project",
-            "path",
-            "author",
-            "version",
-            "release",
-        ]
-    ],
-    [
-        "Document params",
-        [
-            "language",
-            "html_theme",
-            "epub",
-        ]
-    ],
-    [
-        "Options",
-        [
-            "sep",
-            "prefix",
-            "suffix",
-            "master",
-            "#Build params",
-            "makefile",
-            "batchfile",
-            '#Extensions',
-            "ext-autodoc",
-            "ext-doctest",
-            "ext-intersphinx",
-            "ext-todo",
-            "ext-coverage",
-            "ext-imgmath",
-            "ext-mathjax",
-            "ext-ifconfig",
-            "ext-viewcode",
-            "ext-githubpage",
-        ]
-    ],
-    [
-        "More Extensions",
-        [
-            "ext-commonmark",
-            "ext-nbsphinx",
-            "ext-fontawesome",
-            "ext-blockdiag",
-            "ext-autosummary",
-        ]
-    ],
-]
+    def create_template_page(self, template_item):
+        if id(template_item) in self.page_dict:
+            return self.page_dict[id(template_item)]
+
+        page_ids = []
+        last_page = None
+        for category_name, params in template_item.wizard_iter():
+            last_page = PropertyPage(
+                self.params_dict,
+                category_name,
+                params,
+                self.default_settings
+            )
+            page_id = self.addPage(last_page)
+            page_ids.append(page_id)
+
+        if last_page:
+            last_page.next_id = 1
+            return page_ids[0]
+        return -1
+
+    def nextId(self):
+        current_id = self.currentId()
+        if current_id == 0:
+            template_item = self.currentPage().choice()
+            if template_item:
+                return self.create_template_page(template_item)
+
+        return super(QuickStartWizard, self).nextId()
 
 
 def create_wizard(template_model, params_dict, default_settings, parent=None):
-    wizard = QuickStartWizard(parent)
+    wizard = QuickStartWizard(params_dict, default_settings, parent)
 
     # for Windows
     # For default VistaStyle painting hardcoded in source of QWizard(qwizard.cpp[1805]).
     wizard.setWizardStyle(QWizard.ClassicStyle)
 
-    params_dict["path"]["require_input"] = False
-
     wizard.addPage(ChoiceTemplatePage(template_model, wizard))
-
-    for category_name, params in Questions:
-        wizard.addPage(
-            PropertyPage(
-                params_dict,
-                category_name,
-                params,
-                default_settings
-            )
-        )
-
-    wizard.addPage(QuickstartExecCommandPage("finish", wizard))
-
-    params_dict["path"]["require_input"] = True
-
-    # wizard.addPage(FinishWizard(questions))
-    # wizard.setup(
-    #     wizard_settings.get("wizard", {}),
-    #     wizard_settings.get("params", {}),
-    #     default_dict=default_settings,
-    # )
+    wizard.addPage(wizard.create_final_page())
 
     wizard.setWindowTitle("Sphinx Apidoc Wizard")
     wizard.resize(QSize(1000, 600).expandedTo(wizard.minimumSizeHint()))

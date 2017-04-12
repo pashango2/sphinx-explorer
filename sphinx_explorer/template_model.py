@@ -38,3 +38,18 @@ class TemplateItem(QStandardItem):
     def __init__(self, name, template):
         super(TemplateItem, self).__init__(name)
         self.template = template
+
+    def wizard_iter(self):
+        odd = 0
+        category = None
+        for x in self.template.get("wizard", []):
+            if odd == 0:
+                category = x
+                odd = 1
+            else:
+                yield category, x
+                odd = 0
+
+
+
+
