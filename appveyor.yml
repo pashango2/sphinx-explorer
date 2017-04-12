@@ -11,18 +11,18 @@ environment:
     
 install:
   - set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%
-  - "%PYTHON%\\python.exe -m pip install wheel"
-  - "%PYTHON%\\python.exe -m pip install setuptools"
-  - "%PYTHON%\\python.exe -m pip install pyinstaller"
-  - "%PYTHON%\\python.exe -m pip install toml"
-  - "%PYTHON%\\python.exe -m pip install pyYaml"
+  - "%MINICONDA%\\python.exe -m pip install wheel"
+  - "%MINICONDA%\\python.exe -m pip install setuptools"
+  - "%MINICONDA%\\python.exe -m pip install pyinstaller"
+  - "%MINICONDA%\\python.exe -m pip install toml"
+  - "%MINICONDA%\\python.exe -m pip install pyYaml"
   - "conda install pySide"
-  - "%PYTHON%\\python.exe -m pip install qdarkstyle"
-  - "%PYTHON%\\python.exe -m pip install six"
-  - "%PYTHON%\\python.exe -m pip install markdown"
-  - "%PYTHON%\\python.exe -m pip install py-gfm"
-  - "%PYTHON%\\python.exe -m pip install docutils"
-  - "%PYTHON%\\python.exe -m pip install typing"
+  - "%MINICONDA%\\python.exe -m pip install qdarkstyle"
+  - "%MINICONDA%\\python.exe -m pip install six"
+  - "%MINICONDA%\\python.exe -m pip install markdown"
+  - "%MINICONDA%\\python.exe -m pip install py-gfm"
+  - "%MINICONDA%\\python.exe -m pip install docutils"
+  - "%MINICONDA%\\python.exe -m pip install typing"
     
 build: off
 
