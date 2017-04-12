@@ -4,9 +4,9 @@ environment:
       MINICONDA_VERSION: "3.3"
       MINICONDA_ARCH: "32"
       
-    - PYTHON: "C:\\Python33-x64"
-      MINICONDA_VERSION: "3.3"
-      MINICONDA_ARCH: "64"
+#    - PYTHON: "C:\\Python33-x64"
+#      MINICONDA_VERSION: "3.3"
+#      MINICONDA_ARCH: "64"
       
     
 install:
