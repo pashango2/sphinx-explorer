@@ -1,28 +1,28 @@
 environment:
   matrix:
-    - PYTHON: "C:\\Python34"
-      PYTHON_VERSION: "3.4"
-      PYTHON_ARCH: "32"
+    - MINICONDA: "C:\Miniconda3"
+      MINICONDA_VERSION: "3.4"
+      MINICONDA_ARCH: "32"
       
-    - PYTHON: "C:\\Python34-x64"
-      PYTHON_VERSION: "3.4"
-      PYTHON_ARCH: "64"
+    - MINICONDA: "C:\\Miniconda3-x64"
+      MINICONDA_VERSION: "3.4"
+      MINICONDA_ARCH: "64"
       
     
 install:
+  - set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%
   - "%PYTHON%\\python.exe -m pip install wheel"
   - "%PYTHON%\\python.exe -m pip install setuptools"
   - "%PYTHON%\\python.exe -m pip install pyinstaller"
   - "%PYTHON%\\python.exe -m pip install toml"
   - "%PYTHON%\\python.exe -m pip install pyYaml"
-  - "%PYTHON%\\python.exe -m pip install pySide"
+  - "conda install pySide"
   - "%PYTHON%\\python.exe -m pip install qdarkstyle"
   - "%PYTHON%\\python.exe -m pip install six"
   - "%PYTHON%\\python.exe -m pip install markdown"
   - "%PYTHON%\\python.exe -m pip install py-gfm"
   - "%PYTHON%\\python.exe -m pip install docutils"
   - "%PYTHON%\\python.exe -m pip install typing"
-  - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%
     
 build: off
 
