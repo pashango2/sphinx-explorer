@@ -6,7 +6,6 @@ import sys
 from sphinx_explorer import __version__
 
 cmd = [
-    "python -m",
     "pyinstaller",
     "--onefile",
     "--noconsole",
