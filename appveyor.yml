@@ -8,7 +8,8 @@ install:
   - "%PYTHON%\\python.exe -m pip install toml"
   - "%PYTHON%\\python.exe -m pip install pyYaml"
   - "%PYTHON%\\python.exe -m pip install pySide"
-  
+  - "%PYTHON%\\python.exe -m pip install qdarkstyle"
+    
 build: off
 
 after_test:
