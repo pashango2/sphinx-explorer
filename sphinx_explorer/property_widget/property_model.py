@@ -29,7 +29,7 @@ class PropertyModel(QStandardItemModel):
 
     def set_default_dict(self, default_dict):
         # (dict) -> None
-        self._default_dict = default_dict.copy()
+        self._default_dict = default_dict
         self._use_default = bool(default_dict)
 
     def set_use_default(self, use_default):
@@ -221,11 +221,7 @@ class PropertyItem(QStandardItem):
         default_value = self.model().default_value(self.key) or self._default
 
         if self._link_format:
-            cache = self._link_format.format(
-                _default=default_value or "",
-                _link=link_value or "",
-                _path_sep=os.path.sep,
-            )
+            cache = self.value_type.link_value(default_value, link_value)
         else:
             cache = link_value or default_value
 
