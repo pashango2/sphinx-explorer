@@ -13,6 +13,8 @@ install:
   - "%PYTHON%\\python.exe -m pip install markdown"
   - "%PYTHON%\\python.exe -m pip install py-gfm"
   - "%PYTHON%\\python.exe -m pip install docutils"
+  - "%PYTHON%\\python.exe -m pip install typing"
+  - "%PYTHON%\\python.exe -m pip install mypy"
   
     
 build: off
