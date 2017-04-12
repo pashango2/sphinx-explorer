@@ -55,7 +55,7 @@ def fix_apidoc(project_path, source_dir, params):
     fd.write(
         TEMPLATE_SETTING.format(
             rsrcdir=".",
-            rbuilddir=".build",
+            rbuilddir="_build",
             module_dir=module_dir
         )
     )
