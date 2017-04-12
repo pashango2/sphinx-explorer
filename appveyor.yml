@@ -11,18 +11,18 @@ environment:
     
 install:
   - set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%
-  - "%MINICONDA%\\python.exe -m pip install wheel"
-  - "%MINICONDA%\\python.exe -m pip install setuptools"
-  - "%MINICONDA%\\python.exe -m pip install pyinstaller"
-  - "%MINICONDA%\\python.exe -m pip install toml"
-  - "%MINICONDA%\\python.exe -m pip install pyYaml"
+  - "pip install wheel"
+  - "pip install setuptools"
+  - "pip install pyinstaller"
+  - "pip install toml"
+  - "pip install pyYaml"
   - "conda install pySide"
-  - "%MINICONDA%\\python.exe -m pip install qdarkstyle"
-  - "%MINICONDA%\\python.exe -m pip install six"
-  - "%MINICONDA%\\python.exe -m pip install markdown"
-  - "%MINICONDA%\\python.exe -m pip install py-gfm"
-  - "%MINICONDA%\\python.exe -m pip install docutils"
-  - "%MINICONDA%\\python.exe -m pip install typing"
+  - "pip install qdarkstyle"
+  - "pip install six"
+  - "pip install markdown"
+  - "pip install py-gfm"
+  - "pip install docutils"
+  - "pip install typing"
     
 build: off
 
