@@ -23,4 +23,4 @@ after_test:
     - "python deploy.py"
     
 artifacts:
-  - path: sphinx_explorer_*.zip
+  - path: sphinx-explorer_*.zip
