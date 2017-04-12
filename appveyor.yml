@@ -11,7 +11,7 @@ environment:
     
 install:
   - set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%MINICONDA%\\Lib\\site-packages;%PATH%
-  - "conda install -c conda-forge -y pyside"
+  - "pip install pyside"
   - "pip install pyinstaller"
   - "pip install toml"
   - "pip install pyYaml"
