@@ -1,0 +1,14 @@
+environment:
+  matrix:
+    - PYTHON: "C:\\Python34"
+    
+install:
+  - "%PYTHON%\\python.exe -m pip install wheel"
+  - "%PYTHON%\\python.exe -m pip install pyinstaller"
+  - "%PYTHON%\\python.exe -m pip install toml"
+  - "%PYTHON%\\python.exe -m pip install pyYaml"
+  
+build: off
+
+after_test:
+  - "%PYTHON%\\python.exe deploy.py"
