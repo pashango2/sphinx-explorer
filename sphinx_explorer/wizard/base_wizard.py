@@ -136,7 +136,6 @@ class BaseWizard(QWizard):
             page.setTitle(page_name)
             self.addPage(page)
 
-
     def set_value(self, key, value):
         self._value_dict[key] = value
 

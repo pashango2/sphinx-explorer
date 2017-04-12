@@ -3,7 +3,6 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 from collections import OrderedDict
-import sys
 import os
 from six import string_types
 import toml
@@ -17,7 +16,7 @@ from .quickstart_dialog_ui import Ui_Dialog
 from .quickstart_widget_ui import Ui_Form
 from . import extension
 from .util.exec_sphinx import quote, command, exec_
-from .sphinx_analyzer import SphinxInfo
+from .util.conf_py_parser import extend_conf_py
 
 TOML_PATH = "settings/quickstart.toml"
 CONF_PY_ENCODING = "utf-8"
@@ -63,22 +62,17 @@ def quickstart_cmd(d):
         else:
             opts.append("--" + key + "=" + quote(value))
 
-    path = os.path.join(
-        os.path.dirname(sys.argv[0]),
-        "script",
-        "patched_quickstart.py"
-    )
-
     return command(
         " ".join(
-        [
-             "sphinx-quickstart",
-             "-q",
-             "-p " + quote(d["project"]),
-             "-a " + quote(d["author"]),
-             ("-v " + quote(d["version"])) if d.get("version") else "",
-             ("-r " + quote(d["release"])) if d.get("release") else "",
-         ] + opts + [quote(d["path"])])
+            [
+                "sphinx-quickstart",
+                "-q",
+                "-p " + quote(d["project"]),
+                "-a " + quote(d["author"]),
+                ("-v " + quote(d["version"])) if d.get("version") else "",
+                ("-r " + quote(d["release"])) if d.get("release") else "",
+            ] + opts + [quote(d["path"])]
+        )
     )
 
 
@@ -104,22 +98,7 @@ def fix(d):
     fd.close()
 
     if conf_py_path and os.path.isfile(conf_py_path):
-        fd = codecs.open(conf_py_path, "a", CONF_PY_ENCODING)
-
-        if d.get("html_theme", "default") != "default":
-            fd.write("html_theme = '{}'\n".format(d["html_theme"]))
-
-        for key in d.keys():
-            if key.startswith("ext-"):
-                ext = extension.get(key)
-                if ext and hasattr(ext, "conf_py"):
-                    comment = "# -- {} ".format(key)
-                    comment += "-" * (75 - len(comment))
-                    fd.write("\n\n")
-                    fd.write(comment + "\n")
-                    fd.write(ext.conf_py)
-
-        fd.close()
+        extend_conf_py(conf_py_path, extensions=d, html_theme=d.get("html_theme"))
 
 
 _questions = None

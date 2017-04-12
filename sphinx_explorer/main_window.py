@@ -65,8 +65,10 @@ class MainWindow(QMainWindow):
 
         # create actions
         self.open_act = QAction(icon.load("editor"), self.tr("Open Editor"), self, triggered=self._open_dir)
-        self.show_act = QAction(icon.load("open_folder"), self.tr("Open Directory"), self, triggered=self._show_directory)
-        self.terminal_act = QAction(icon.load("terminal"), self.tr("Open Terminal"), self, triggered=self._open_terminal)
+        self.show_act = QAction(icon.load("open_folder"), self.tr("Open Directory"), self,
+                                triggered=self._show_directory)
+        self.terminal_act = QAction(icon.load("terminal"), self.tr("Open Terminal"), self,
+                                    triggered=self._open_terminal)
         self.auto_build_act = QAction(icon.load("reload"), self.tr("Auto Build"), self, triggered=self._auto_build)
         self.apidoc_act = QAction(icon.load("update"), self.tr("Update sphinx-apidoc"), self, triggered=self._apidoc)
         self.open_html_act = QAction(icon.load("chrome"), self.tr("Open browser"), self, triggered=self._open_browser)

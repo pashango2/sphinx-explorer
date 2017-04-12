@@ -8,6 +8,7 @@ wizard:
             require_input: false
         - author
         - version
+        - release
     - Document params
     -
         - language

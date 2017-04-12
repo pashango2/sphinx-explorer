@@ -203,4 +203,4 @@ extensions.append('sphinx_fontawesome')
 
 
 # ----- Read the Docs Theme
-html_theme = "sphinx_rtd_theme"
+# html_theme = "sphinx_rtd_theme"

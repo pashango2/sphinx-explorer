@@ -32,6 +32,7 @@ def main():
     app.setStyleSheet(qdarkstyle.load_stylesheet())
 
     translator = QTranslator()
+    # noinspection PyArgumentList
     translator.load("i18n/sphinx_explorer_{}".format(QLocale.system().name()))
     app.installTranslator(translator)
 

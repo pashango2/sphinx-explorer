@@ -18,6 +18,7 @@ class QConsoleWidget(QTextEdit):
 
     COMMAND_COLOR = QColor("#706caa")
 
+    # noinspection PyUnresolvedReferences
     def __init__(self, parent=None):
         super(QConsoleWidget, self).__init__(parent)
         self.setReadOnly(True)
