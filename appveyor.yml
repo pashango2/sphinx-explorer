@@ -10,6 +10,10 @@ install:
   - "%PYTHON%\\python.exe -m pip install pySide"
   - "%PYTHON%\\python.exe -m pip install qdarkstyle"
   - "%PYTHON%\\python.exe -m pip install six"
+  - "%PYTHON%\\python.exe -m pip install markdown"
+  - "%PYTHON%\\python.exe -m pip install py-gfm"
+  - "%PYTHON%\\python.exe -m pip install docutils"
+  
     
 build: off
 
