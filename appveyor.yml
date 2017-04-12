@@ -10,7 +10,7 @@ environment:
       
     
 install:
-  - set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%
+  - set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%MINICONDA%\\Lib\\site-packages;%PATH%
   - "pip install wheel"
   - "pip install setuptools"
   - "pip install pyinstaller"
