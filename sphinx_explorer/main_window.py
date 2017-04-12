@@ -12,7 +12,7 @@ from collections import OrderedDict
 
 from PySide.QtCore import *
 from PySide.QtGui import *
-from six import string_types
+from six import string_types, PY2
 
 from sphinx_explorer.wizard import quickstart_wizard, apidoc_wizard
 from . import editor
@@ -34,6 +34,10 @@ SETTINGS_TOML = "settings.toml"
 
 class MainWindow(QMainWindow):
     JSON_NAME = "setting.json"
+
+    if PY2:
+        def tr(self, text):
+            return super(MainWindow, self).tr(str(text))
 
     def __init__(self, sys_dir, home_dir, parent=None):
         super(MainWindow, self).__init__(parent)
