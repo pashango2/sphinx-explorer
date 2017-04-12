@@ -16,7 +16,7 @@ install:
   - "pip install pyinstaller"
   - "pip install toml"
   - "pip install pyYaml"
-  - "conda install -c conda-forge pyside"
+  - "conda install -c conda-forge -y pyside"
   - "pip install qdarkstyle"
   - "pip install six"
   - "pip install markdown"
