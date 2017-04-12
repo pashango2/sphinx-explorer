@@ -11,8 +11,8 @@ matrix:
 
 install:
   - if [ "$TRAVIS_OS_NAME" == "osx"   ] ; then   mac-build/install.sh ; fi
-    pip install pyside
-    pip install markdown
-    pip install py-gfm
+  - pip install pyside
+  - pip install markdown
+  - pip install py-gfm
   
   
