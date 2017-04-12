@@ -9,6 +9,7 @@ install:
   - "%PYTHON%\\python.exe -m pip install pyYaml"
   - "%PYTHON%\\python.exe -m pip install pySide"
   - "%PYTHON%\\python.exe -m pip install qdarkstyle"
+  - "%PYTHON%\\python.exe -m pip install six"
     
 build: off
 
