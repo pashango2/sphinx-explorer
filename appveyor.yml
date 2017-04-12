@@ -11,12 +11,10 @@ environment:
     
 install:
   - set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%MINICONDA%\\Lib\\site-packages;%PATH%
-  - "pip install wheel"
-  - "pip install setuptools"
+  - "conda install -c conda-forge -y pyside"
   - "pip install pyinstaller"
   - "pip install toml"
   - "pip install pyYaml"
-  - "conda install -c conda-forge -y pyside"
   - "pip install qdarkstyle"
   - "pip install six"
   - "pip install markdown"
@@ -27,7 +25,7 @@ install:
 build: off
 
 after_test:
-    - "python deploy.py"
+    - "%MINICONDA%\\python deploy.py"
     
 artifacts:
   - path: sphinx-explorer_*.zip
