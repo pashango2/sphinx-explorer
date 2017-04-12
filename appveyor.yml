@@ -4,6 +4,7 @@ environment:
     
 install:
   - "%PYTHON%\\python.exe -m pip install wheel"
+  - "%PYTHON%\\python.exe -m pip install setuptools"
   - "%PYTHON%\\python.exe -m pip install pyinstaller"
   - "%PYTHON%\\python.exe -m pip install toml"
   - "%PYTHON%\\python.exe -m pip install pyYaml"
