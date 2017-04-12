@@ -1,16 +1,16 @@
 environment:
   matrix:
-    - MINICONDA: "C:\\Miniconda3"
-      MINICONDA_VERSION: "3.4"
+    - PYTHON: "C:\\Python33"
+      MINICONDA_VERSION: "3.3"
       MINICONDA_ARCH: "32"
       
-    - MINICONDA: "C:\\Miniconda3-x64"
-      MINICONDA_VERSION: "3.4"
+    - PYTHON: "C:\\Python33-x64"
+      MINICONDA_VERSION: "3.3"
       MINICONDA_ARCH: "64"
       
     
 install:
-  - set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%MINICONDA%\\Lib\\site-packages;%PATH%
+  - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Lib\\site-packages;%PATH%
   - "pip install pyside"
   - "pip install pyinstaller"
   - "pip install toml"
@@ -25,7 +25,7 @@ install:
 build: off
 
 after_test:
-    - "%MINICONDA%\\python deploy.py"
+    - "%PYTHON%\\python deploy.py"
     
 artifacts:
   - path: sphinx-explorer_*.zip
