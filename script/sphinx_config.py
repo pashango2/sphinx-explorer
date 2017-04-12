@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function, absolute_import, unicode_literals
 import sys
 import os
 import json
+
+TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
 
 
 def main(config_py_path):
@@ -34,10 +35,12 @@ def main(config_py_path):
 
 def get(config_py_path):
     # type: (str) -> dict
+    config_py_path = config_py_path.encode(TERM_ENCODING or sys.getfilesystemencoding())
     from sphinx_explorer.util import exec_sphinx
 
     cmd = " ".join(["python", __file__, config_py_path])
-    result = json.loads(exec_sphinx.check_output(cmd))
+    retcode, result = exec_sphinx.check_output(cmd)
+    result = json.loads(result)
     return result
 
 

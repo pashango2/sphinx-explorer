@@ -7,7 +7,6 @@ from PySide.QtGui import *
 from .settings_ui import Ui_Form
 from .property_widget import TypeChoice
 from . import editor
-from .quickstart import get_questions
 import locale
 
 
@@ -28,6 +27,9 @@ class Settings(OrderedDict):
             "language": Settings.default_locale(),
         }
         self["projects"] = {"projects": []}
+
+    def default_root_path(self, default_path):
+        return self["default_values"].get("path") or default_path
 
     @property
     def default_values(self):
@@ -99,7 +101,7 @@ class SettingsDialog(QDialog):
         self.setWindowTitle("Settings")
         self.resize(1000, 600)
 
-    def setup(self, settings):
+    def setup(self, settings, params_dict):
         # type: (Settings) -> None
         widget = self.ui.property_widget
 
@@ -116,15 +118,15 @@ class SettingsDialog(QDialog):
             "editor",
             {
                 "name": "Editor",
-                "default": settings.default_editor(),
+                "value": settings.default_editor(),
                 "value_type": editor_choice
             }
         )
 
-        questions = get_questions()
         widget.add_category("Default values")
-        for item in questions.items(widget, self.DEFAULT_SETTING_KEYS):
-            widget.add_property_item(item)
+        for key, params in params_dict.items():
+            if key in self.DEFAULT_SETTING_KEYS:
+                widget.add_property(key, params)
 
         default_values = settings.default_values
         widget.load(default_values)

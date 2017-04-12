@@ -6,8 +6,10 @@ from PySide.QtGui import *
 from PySide.QtCore import *
 from .sphinx_analyzer import SphinxInfo, QSphinxAnalyzer
 from . import icon
-import toml
 from .util.exec_sphinx import quote
+from .util.QConsoleWidget import QConsoleWidget
+from . import apidoc
+from six import string_types
 
 
 class ProjectListModel(QStandardItemModel):
@@ -32,14 +34,14 @@ class ProjectListModel(QStandardItemModel):
         ]
 
     def add_document(self, doc_path):
-        # type: (str) -> bool
+        # type: (str) -> QStandardItem or None
         if self.find(doc_path).isValid():
-            return False
+            return None
 
         item = self._create_item(doc_path)
         self.appendRow(item)
 
-        return True
+        return item
 
     def find(self, doc_path):
         # type: (str) -> QModelIndex
@@ -54,20 +56,35 @@ class ProjectListModel(QStandardItemModel):
         item = ProjectItem(os.path.normpath(project_path))
         item.setIcon(icon.load("eye"))
 
-        ana = QSphinxAnalyzer(project_path, item)
+        self._analyze_item(item)
+
+        return item
+
+    def update_items(self):
+        for row in range(self.rowCount()):
+            item = self.item(row, 0)
+            self._analyze_item(item)
+
+    def _analyze_item(self, item):
+        project_path = item.text()
+
+        ana = QSphinxAnalyzer(project_path, item.text())
         ana.finished.connect(self.onAnalyzeFinished)
 
         # noinspection PyArgumentList
         thread_pool = QThreadPool.globalInstance()
         thread_pool.start(ana)
 
-        return item
+    def onAnalyzeFinished(self, info, project_path):
+        # type: (SphinxInfo, str) -> None
+        index = self.find(project_path)
+        if not index.isValid():
+            return
 
-    def onAnalyzeFinished(self, info, item):
-        # type: (SphinxInfo, ProjectItem) -> None
+        item = self.itemFromIndex(index)
         item.setInfo(info)
         if info.is_valid():
-            item.setIcon(icon.load("open_folder"))
+            item.setIcon(icon.load("book"))
             self.sphinxInfoLoaded.emit(item.index())
         else:
             item.setIcon(icon.load("error"))
@@ -103,12 +120,29 @@ class ProjectItem(QStandardItem):
         self.info = None    # type: SphinxInfo
 
     def path(self):
+        # type: () -> string_types
         return self.text()
+
+    def html_path(self):
+        # type: () -> string_types
+        if self.info.build_dir:
+            return os.path.join(
+                self.info.build_dir,
+                "html", "index.html"
+            )
+        return None
+
+    def has_html(self):
+        # type: () -> bool
+        return bool(self.html_path() and os.path.isfile(self.html_path()))
 
     def auto_build_command(self, target="html"):
         model = self.model()
         if model:
-            cmd = self.info.auto_build_cmd(target)
+            cmd = "sphinx-autobuild -p 0 --open-browser {} {}".format(
+                quote(self.info.source_dir),
+                quote(os.path.join(self.info.build_dir, target)),
+            )
             return cmd
         return None
 
@@ -118,14 +152,31 @@ class ProjectItem(QStandardItem):
         if model and cmd:
             model.autoBuildRequested.emit(cmd, self)
 
+    def apidoc_update(self, output_widget):
+        # type: (QConsoleWidget) -> None
+        module_dir = self.info.module_dir
+        if not module_dir or not self.info.source_dir:
+            return
+
+        project_dir = self.text()
+        source_dir = os.path.join(project_dir, self.info.source_dir)
+        module_dir = os.path.join(source_dir, module_dir)
+        cmd = apidoc.update_cmd(
+            module_dir,
+            source_dir,
+            {}
+        )
+
+        output_widget.exec_command(cmd, cwd=self.info.source_dir)
+
     def setInfo(self, info):
         # type: (SphinxInfo) -> None
         self.info = info
 
-    def project(self):
-        # type: () -> str
-        return self.info.conf.get("project") if self.info else None
-
     def can_make(self):
         # type: () -> bool
-        return self.info and self.info.is_valid()
+        return bool(self.info and self.info.is_valid())
+
+    def can_apidoc(self):
+        # type: () -> bool
+        return self.info.can_apidoc()

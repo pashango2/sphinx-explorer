@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # import toml
-import pytoml as toml
+import toml
 
 
 def test_toml():

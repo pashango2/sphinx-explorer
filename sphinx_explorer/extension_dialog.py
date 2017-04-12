@@ -6,7 +6,7 @@ from PySide.QtGui import *
 from .plugin_dialog import PluginDialog
 
 
-ExtensionPluginDir = "extension_plugin"
+ExtensionPluginDir = "extension"
 
 
 class ExtensionDialog(PluginDialog):

@@ -1,0 +1,13 @@
+title: Read The Docs Style
+
+wizard:
+    - Required params
+    -
+        - project
+        - path :
+            require_input: false
+        - author
+        - version
+
+default_values:
+    html_theme: sphinx_rtd_theme

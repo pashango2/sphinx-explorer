@@ -4,10 +4,9 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 
 import os
 import toml
+from six import string_types
 from PySide.QtCore import *
 from PySide.QtGui import *
-
-from .util.exec_sphinx import config, quote
 
 
 class SphinxInfo(object):
@@ -17,8 +16,7 @@ class SphinxInfo(object):
         self.path = path
         self.conf_py_path = None
         self.source_dir = None
-        self.build_dir = None
-        self.conf = {}
+        # self.conf = {}
         self.settings = {}
 
         self._analyze()
@@ -33,13 +31,20 @@ class SphinxInfo(object):
         if os.path.isfile(path):
             self.settings = toml.load(path)
 
-    def read_conf(self):
-        if self.conf_py_path:
-            self.conf = config(self.conf_py_path)
+    # def read_conf(self):
+    #     if self.conf_py_path:
+    #         self.conf = config(self.conf_py_path)
 
     def is_valid(self):
         # type: () -> bool
-        return bool(self.conf_py_path) and self.conf
+        return bool(self.conf_py_path)
+
+    def can_autobuild(self):
+        # type: () -> bool
+        return bool(
+            self.settings.get("build_dir") and
+            self.settings.get("source_dir")
+        )
 
     @staticmethod
     def _find_conf_py(path):
@@ -60,28 +65,43 @@ class SphinxInfo(object):
     def auto_build_setting(self):
         return self.settings.get("autobuild", {})
 
-    def auto_build_cmd(self, target):
-        print(self.settings)
-        source = os.path.join(self.path, self.settings.get("source_dir"))
-        build = os.path.join(self.path, self.settings.get("build_dir"), target)
+    @property
+    def build_dir(self):
+        # type: () -> string_types
+        try:
+            return os.path.join(self.path, self.settings.get("build_dir"))
+        except (AttributeError, TypeError):
+            return None
 
-        cmd = "sphinx-autobuild -p 0 --open-browser {} {}".format(quote(source), quote(build))
-        return cmd
+    @property
+    def module_dir(self):
+        # type: () -> string_types
+        try:
+            return self.settings["apidoc"].get("module_dir")
+        except KeyError:
+            return ""
+
+    def can_apidoc(self):
+        # type: () -> bool
+        try:
+            return bool(self.settings["apidoc"].get("module_dir"))
+        except KeyError:
+            return False
 
 
 class QSphinxAnalyzer(QObject, QRunnable):
-    finished = Signal(SphinxInfo, QStandardItem)
+    finished = Signal(SphinxInfo, str)
 
-    def __init__(self, doc_path, item):
-        # type: (str, QStandardItem) -> None
+    def __init__(self, doc_path, project_path):
+        # type: (str, str) -> None
         QObject.__init__(self)
         QRunnable.__init__(self)
 
         self.doc_path = doc_path
-        self.item = item
+        self.project_path = project_path
 
     def run(self):
         info = SphinxInfo(self.doc_path)
-        if info.conf_py_path:
-            info.read_conf()
-        self.finished.emit(info, self.item)
+        # if info.conf_py_path:
+        #     info.read_conf()
+        self.finished.emit(info, self.project_path)

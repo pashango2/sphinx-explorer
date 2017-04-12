@@ -1,0 +1,5 @@
+path: code
+name: Visual Studio Code
+
+open_dir:
+    param: "{path} ."

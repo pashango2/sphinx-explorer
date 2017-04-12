@@ -5,31 +5,31 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from collections import OrderedDict
 import sys
 import os
+from six import string_types
 import toml
+import codecs
 from PySide.QtCore import *
 from PySide.QtGui import *
 
 from . import icon
-from .property_widget import PropertyWidget, find_value_type
+from .property_widget import find_value_type
 from .quickstart_dialog_ui import Ui_Dialog
 from .quickstart_widget_ui import Ui_Form
 from . import extension
-from .util.exec_sphinx import quote, _cmd
+from .util.exec_sphinx import quote, command, exec_
 from .sphinx_analyzer import SphinxInfo
 
-
 TOML_PATH = "settings/quickstart.toml"
+CONF_PY_ENCODING = "utf-8"
 
-
-def exec_(cmd, text_edit, parent):
-    process = QProcess(parent)
-
-    process.start(cmd)
-    return process
+TEMPLATE_SETTING = """
+source_dir = '{rsrcdir}'
+build_dir = '{rbuilddir}'
+""".strip()
 
 
 def quickstart_cmd(d):
-    # type: (dict) -> basestring
+    # type: (dict) -> string_types
     ignore_params = ["project", "prefix", "path", "version", "release"]
     arrow_extension = [
         "ext-autodoc",
@@ -69,34 +69,57 @@ def quickstart_cmd(d):
         "patched_quickstart.py"
     )
 
-    return _cmd(
-        " ".join([
-            "python",
-            path,
-            "-q",
-            "-p " + quote(d["project"]),
-            "-a " + quote(d["author"]),
-            ("-v " + quote(d["version"])) if d.get("version") else "",
-            ("-r " + quote(d["release"])) if d.get("release") else "",
+    return command(
+        " ".join(
+        [
+             "sphinx-quickstart",
+             "-q",
+             "-p " + quote(d["project"]),
+             "-a " + quote(d["author"]),
+             ("-v " + quote(d["version"])) if d.get("version") else "",
+             ("-r " + quote(d["release"])) if d.get("release") else "",
          ] + opts + [quote(d["path"])])
     )
 
 
-def quickstart_ext(d):
-    info = SphinxInfo(d["path"])
+def get_source_and_build(d):
+    source_dir = "source" if d.get("sep", False) else "."
+    build_dir = "build" if d.get("sep", False) else "{}build".format(d.get("prefix", "_"))
 
-    fd = open(info.conf_py_path, "a")
+    return source_dir, build_dir
 
-    if d.get("html_theme", "default") != "default":
-        fd.write("html_theme = '{}'\n".format(d["html_theme"]))
 
-    for key in d.keys():
-        if key.startswith("ext-"):
-            ext = extension.get(key)
-            if ext and hasattr(ext, "conf_py"):
-                fd.write(ext.conf_py)
+def fix(d):
+    source_dir, build_dir = get_source_and_build(d)
+    conf_py_path = os.path.abspath(os.path.join(d["path"], source_dir, "conf.py"))
+    project_path = d["path"]
 
+    fd = codecs.open(os.path.join(project_path, "setting.toml"), "w", "utf-8")
+    fd.write(
+        TEMPLATE_SETTING.format(
+            rsrcdir=source_dir,
+            rbuilddir=build_dir,
+        )
+    )
     fd.close()
+
+    if conf_py_path and os.path.isfile(conf_py_path):
+        fd = codecs.open(conf_py_path, "a", CONF_PY_ENCODING)
+
+        if d.get("html_theme", "default") != "default":
+            fd.write("html_theme = '{}'\n".format(d["html_theme"]))
+
+        for key in d.keys():
+            if key.startswith("ext-"):
+                ext = extension.get(key)
+                if ext and hasattr(ext, "conf_py"):
+                    comment = "# -- {} ".format(key)
+                    comment += "-" * (75 - len(comment))
+                    fd.write("\n\n")
+                    fd.write(comment + "\n")
+                    fd.write(ext.conf_py)
+
+        fd.close()
 
 
 _questions = None
@@ -171,12 +194,15 @@ class Questions(object):
             if "extensions" in params:
                 new_params = OrderedDict()
                 for ext_name in params["extensions"]:
+                    ext = extension.get(ext_name)
                     value_dict = OrderedDict({
                         "default": True,
                     })
 
                     value_dict["name"] = ext_name
                     value_dict["value_type"] = "TypeBool"
+                    if ext:
+                        value_dict["description"] = getattr(ext, "description", "")
 
                     new_params[ext_name] = value_dict
 
@@ -228,15 +254,19 @@ class QuickStartWidget(QWidget):
         obj = self.ui.property_widget.dump()
         qs_cmd = quickstart_cmd(obj)
         self.path = obj["path"]
-        print(qs_cmd)
-        self.ui.output_widget.finished.connect(self.onFinished)
-        self.ui.output_widget.exec_command(qs_cmd)
-        # self.ui.output_widget.process().waitForFinished()
+        # self.ui.output_widget.finished.connect(self.onFinished)
+        # self.ui.output_widget.exec_command(qs_cmd)
+        ret_code = exec_(qs_cmd)
+        # self.ui.output_widget.append(output)
 
-    def onFinished(self, exit_code, status):
+        self.onFinished(ret_code, None)
+
+    def onFinished(self, exit_code, _):
+        # type: (int, int or None) -> None
+
         if exit_code == 0:
             obj = self.ui.property_widget.dump()
-            quickstart_ext(obj)
+            fix(obj)
             self.finished.emit(True, self.path)
 
 

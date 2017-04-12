@@ -1,17 +1,51 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from . import TypeBase
 import os
+from six import string_types
 from PySide.QtCore import *
 from PySide.QtGui import *
-# from typing import Type, Optional
+
+
+class TypeBase(object):
+    @classmethod
+    def create(cls, _):
+        return cls
+
+    @staticmethod
+    def data(value):
+        return value
+
+    @staticmethod
+    def icon(_):
+        return None
+
+    @classmethod
+    def height(cls):
+        return -1
+
+    @classmethod
+    def default(cls, value):
+        return value
+
+    @classmethod
+    def control(cls, delegate, parent):
+        return None
+
+    @classmethod
+    def filter(cls, value):
+        return value
+
+    @classmethod
+    def set_link(cls, value):
+        pass
+
+    is_persistent_editor = False
 
 
 class RefButtonWidget(QFrame):
     def __init__(self, parent=None):
         super(RefButtonWidget, self).__init__(parent)
-        self.delegate = None
         self.line_edit = QLineEdit(self)
         self.ref_button = QToolButton(self)
         self.ref_button.setText("...")
@@ -58,19 +92,53 @@ class RefButtonWidget(QFrame):
 
 
 class PathParamWidget(RefButtonWidget):
+    def __init__(self, delegate, params=None, parent=None):
+        super(PathParamWidget, self).__init__(parent)
+        params = params or {}
+        self.delegate = delegate
+        self.title = params.get("selector_title", "Select directory")
+
     def onRefButtonClicked(self):
-        cwd = self.line_edit.text() or os.getcwd()
+        path_dir = self.get_path()
+        if path_dir:
+            self.setText(path_dir)
+            self.closeEditor()
+
+    def closeEditor(self):
+        if self.delegate:
+            self.delegate.commitData.emit(self)
+            self.delegate.closeEditor.emit(self, QAbstractItemDelegate.EditNextItem)
+
+    def get_path(self, cwd=None):
+        cwd = cwd or self.line_edit.text() or os.getcwd()
         # noinspection PyCallByClass
         path_dir = QFileDialog.getExistingDirectory(
-            self, "Sphinx root path", cwd
+            self, self.title, cwd
         )
+        return path_dir
+
+
+class RelPathParamWidget(PathParamWidget):
+    def __init__(self, delegate, relpath, params=None, parent=None):
+        super(RelPathParamWidget, self).__init__(delegate, params, parent)
+        self.relpath = relpath
+
+    def onRefButtonClicked(self):
+        path_dir = self.get_path(self.relpath)
         if path_dir:
-            self.line_edit.setText(path_dir)
+            if self.relpath:
+                try:
+                    path_dir = os.path.relpath(path_dir, self.relpath)
+                    path_dir = path_dir.replace(os.path.sep, "/")
+                except ValueError:
+                    pass
+            self.setText(path_dir)
+            self.closeEditor()
 
 
 class TypeBool(TypeBase):
     @classmethod
-    def control(cls, parent):
+    def control(cls, delegate, parent):
         combo = QComboBox(parent)
         combo.addItem("Yes")
         combo.addItem("No")
@@ -90,11 +158,9 @@ class TypeBool(TypeBase):
 
 
 class TypeDirPath(TypeBase):
-    is_persistent_editor = True
-
     @classmethod
-    def control(cls, parent):
-        return PathParamWidget(parent)
+    def control(cls, delegate, parent):
+        return PathParamWidget(delegate, parent=parent)
 
     @classmethod
     def set_value(cls, control, value):
@@ -105,12 +171,40 @@ class TypeDirPath(TypeBase):
         return control.text()
 
 
+class TypeRelDirPath(TypeDirPath):
+    @classmethod
+    def create(cls, params):
+        return cls(params)
+
+    def __init__(self, params):
+        self.relpath = params.get("relpath", ".")
+
+    def control(self, delegate, parent):
+        return RelPathParamWidget(delegate, relpath=self.relpath, parent=parent)
+
+    def default(self, path):
+        self.relpath = path
+        return "."
+
+    def set_link(self, value):
+        self.relpath = value
+
+    def filter(self, value):
+        try:
+            if os.path.isabs(value):
+                return os.path.relpath(value, self.relpath)
+            else:
+                return value
+        except ValueError:
+            return "."
+
+
 class TypeChoice(TypeBase):
     def __init__(self, selects):
         self.selects = selects
         self._data_dict = {item["value"]: item for item in selects}
 
-    def control(self, parent):
+    def control(self, delegate, parent):
         combo = QComboBox(parent)
 
         for i, item in enumerate(self.selects):
@@ -130,10 +224,6 @@ class TypeChoice(TypeBase):
         # type: (QComboBox, str) -> None
         return combo.itemData(combo.currentIndex())
 
-    @classmethod
-    def default(cls):
-        return None
-
     # noinspection PyMethodOverriding
     def data(self, value):
         return self._data_dict[value]["text"] if value in self._data_dict else None
@@ -146,18 +236,20 @@ class TypeChoice(TypeBase):
 AllTypes = [
     TypeBool,
     TypeDirPath,
+    TypeRelDirPath,
+    TypeChoice,
 ]
 
 
 def register_value_type(value_type):
-    # type: (Type[TypeBase]) -> None
+    # type: (TypeBase) -> None
     global AllTypes
     AllTypes.append(value_type)
 
 
-def find_value_type(type_name):
-    # type: (str) -> Optional[Type[TypeBase]]
+def find_value_type(type_name, params=None):
+    # type: (string_types, dict or None) -> TypeBase or None
     for value_type in AllTypes:
         if value_type.__name__ == type_name:
-            return value_type
+            return value_type.create(params)
     return None
