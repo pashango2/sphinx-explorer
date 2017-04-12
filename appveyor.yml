@@ -1,6 +1,6 @@
 environment:
   matrix:
-    - MINICONDA: "C:\Miniconda3"
+    - MINICONDA: "C:\\Miniconda3"
       MINICONDA_VERSION: "3.4"
       MINICONDA_ARCH: "32"
       
