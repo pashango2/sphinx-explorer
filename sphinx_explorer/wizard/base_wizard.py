@@ -10,6 +10,57 @@ from .. import icon
 from sphinx_explorer import property_widget
 
 
+class DefaultValues(object):
+    def __init__(self, values_dict):
+        self._dicts = [values_dict or {}]
+
+    def __getitem__(self, key):
+        for d in self._dicts:
+            if key in d:
+                return d[key]
+        raise KeyError(key)
+
+    def __contains__(self, key):
+        for d in self._dicts:
+            if key in d:
+                return True
+        return False
+
+    def items(self):
+        for key in self.keys():
+            yield key, self[key]
+
+    def get(self, key, default=None):
+        for d in self._dicts:
+            if key in d:
+                return d[key]
+        return default
+
+    def push(self, d):
+        self._dicts.insert(0, d or {})
+
+    def pop(self, index=0):
+        index = len(self._dicts) - 1 - index
+        if index < 0:
+            return
+        try:
+            self._dicts.pop(index)
+        except IndexError:
+            pass
+
+    def keys(self):
+        keys = set()
+        for d in self._dicts:
+            keys |= d.keys()
+        return keys
+
+    def copy(self):
+        d = {}
+        for key, value in self.items():
+            d[key] = value
+        return d
+
+
 class ExecCommandPage(QWizardPage):
     def __init__(self, title, parent=None):
         # type: (string_types, QWidget) -> None
@@ -107,11 +158,13 @@ class PropertyPage(QWizardPage):
 
 
 class BaseWizard(QWizard):
-    def __init__(self, parent=None):
+    def __init__(self, default_values, parent=None):
         super(BaseWizard, self).__init__(parent)
         self._value_dict = {}
+        self.default_values = DefaultValues(default_values)
+
         self.setOption(QWizard.HaveCustomButton1, True)
-        self.setButtonText(QWizard.CustomButton1, "Add Bookmark")
+        self.setButtonText(QWizard.CustomButton1, self.tr("Add Bookmark"))
         self.setButtonLayout([
             QWizard.CustomButton1, QWizard.Stretch, QWizard.BackButton,
             QWizard.NextButton, QWizard.FinishButton, QWizard.CancelButton
@@ -136,7 +189,6 @@ class BaseWizard(QWizard):
             page.setTitle(page_name)
             self.addPage(page)
 
-
     def set_value(self, key, value):
         self._value_dict[key] = value
 
@@ -144,4 +196,6 @@ class BaseWizard(QWizard):
         return self._value_dict[key]
 
     def dump(self):
-        return self._value_dict
+        d = self.default_values.copy()
+        d.update(self._value_dict)
+        return d

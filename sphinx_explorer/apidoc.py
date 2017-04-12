@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-import os
+
 import codecs
+import os
+
 from six import string_types
+
+from sphinx_explorer.util.conf_py_parser import extend_conf_py
 from .util.exec_sphinx import create_cmd, exec_
-from .control_conf import extend_conf_py
 
 TEMPLATE_SETTING = """
 source_dir = '{rsrcdir}'
@@ -55,13 +58,14 @@ def fix_apidoc(project_path, source_dir, params):
     fd.write(
         TEMPLATE_SETTING.format(
             rsrcdir=".",
-            rbuilddir=".build",
+            rbuilddir="_build",
             module_dir=module_dir
         )
     )
     fd.close()
 
-    extend_conf_py(project_path, html_theme=params.get("html_theme"))
+    conf_py_path = os.path.join(project_path, "conf.py")
+    extend_conf_py(conf_py_path, html_theme=params.get("html_theme"))
 
 
 def create(project_path, source_dir, settings, cwd=None):

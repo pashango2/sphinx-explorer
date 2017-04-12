@@ -22,7 +22,7 @@ def load_plugin(file_name):
     global Editors
 
     root = os.path.dirname(file_name)
-    ext_name = file_name[:-len(".yaml")]
+    ext_name = os.path.basename(file_name)[:-len(".yaml")]
     setting_dict = yaml.load(open(file_name))
     Editors[ext_name] = Editor(root, ext_name, setting_dict)
 

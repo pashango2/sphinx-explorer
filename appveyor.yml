@@ -1,23 +1,34 @@
 environment:
   matrix:
     - PYTHON: "C:\\Python34"
+      MINICONDA_VERSION: "3.4"
+      MINICONDA_ARCH: "32"
+      
+#    - PYTHON: "C:\\Python34-x64"
+#      MINICONDA_VERSION: "3.4"
+#      MINICONDA_ARCH: "64"
+      
     
 install:
-  - "%PYTHON%\\python.exe -m pip install wheel"
-  - "%PYTHON%\\python.exe -m pip install setuptools"
-  - "%PYTHON%\\python.exe -m pip install pyinstaller"
-  - "%PYTHON%\\python.exe -m pip install toml"
-  - "%PYTHON%\\python.exe -m pip install pyYaml"
-  - "%PYTHON%\\python.exe -m pip install pySide"
-  - "%PYTHON%\\python.exe -m pip install qdarkstyle"
-  - "%PYTHON%\\python.exe -m pip install six"
-  - "%PYTHON%\\python.exe -m pip install markdown"
-  - "%PYTHON%\\python.exe -m pip install py-gfm"
-  - "%PYTHON%\\python.exe -m pip install docutils"
-  - "%PYTHON%\\python.exe -m pip install typing"
-  - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%
+  - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Lib\\site-packages;%PATH%
+  - set QTDIR=C:\Qt\5.6\msvc2015
+  - set PATH=%QTDIR%\bin;%PATH%
+  - "pip install pyside"
+  - "pip install pyinstaller"
+  - "pip install toml"
+  - "pip install pyYaml"
+  - "pip install qdarkstyle"
+  - "pip install six"
+  - "pip install markdown"
+  - "pip install py-gfm"
+  - "pip install docutils"
+  - "pip install typing"
     
 build: off
 
 after_test:
-  - "%PYTHON%\\python.exe deploy.py"
+    - "%PYTHON%\\python deploy.py"
+    
+artifacts:
+  - path: sphinx-explorer_*.zip
+

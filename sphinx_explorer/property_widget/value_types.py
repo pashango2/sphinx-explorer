@@ -40,6 +40,10 @@ class TypeBase(object):
     def set_link(cls, value):
         pass
 
+    @classmethod
+    def link_value(cls, default_value, link_value):
+        return link_value or default_value
+
     is_persistent_editor = False
 
 
@@ -170,6 +174,16 @@ class TypeDirPath(TypeBase):
     def value(cls, control):
         return control.text()
 
+    @classmethod
+    def link_value(cls, default_value, link_value):
+        if default_value is None and link_value is None:
+            return ""
+        if link_value is None:
+            return default_value
+        if default_value is None:
+            return link_value
+        return os.path.join(default_value, link_value)
+
 
 class TypeRelDirPath(TypeDirPath):
     @classmethod
@@ -183,13 +197,15 @@ class TypeRelDirPath(TypeDirPath):
         return RelPathParamWidget(delegate, relpath=self.relpath, parent=parent)
 
     def default(self, path):
-        self.relpath = path
+        self.relpath = path or "."
         return "."
 
     def set_link(self, value):
-        self.relpath = value
+        self.relpath = value or "."
 
     def filter(self, value):
+        if not value:
+            return "."
         try:
             if os.path.isabs(value):
                 return os.path.relpath(value, self.relpath)

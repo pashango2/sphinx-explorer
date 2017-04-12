@@ -6,7 +6,6 @@ import os
 import toml
 from six import string_types
 from PySide.QtCore import *
-from PySide.QtGui import *
 
 
 class SphinxInfo(object):

@@ -4,8 +4,8 @@ import yaml
 import sys
 import os
 
-
 plugin_dir = "plugin"
+
 
 def test_plugin():
     plugin_text = """
@@ -66,10 +66,6 @@ open_dir:
 """
     obj = yaml.load(plugin_text)
     print(obj)
-
-
-
-
 
 
 if __name__ == "__main__":

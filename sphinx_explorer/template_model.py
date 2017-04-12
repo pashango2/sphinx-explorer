@@ -39,6 +39,10 @@ class TemplateItem(QStandardItem):
         super(TemplateItem, self).__init__(name)
         self.template = template
 
+    @property
+    def default_values(self):
+        return self.template.get("default_values")
+
     def wizard_iter(self):
         odd = 0
         category = None

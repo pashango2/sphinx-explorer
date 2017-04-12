@@ -7,7 +7,7 @@ import os
 import platform
 import subprocess
 import sys
-from six import string_types
+from six import string_types, PY2
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
 
@@ -50,10 +50,12 @@ def create_cmd(cmds):
 def check_output(cmd):
     # type: (string_types) -> (int, string_types)
     cmd = command(cmd)
+    if PY2:
+        cmd = cmd.encode(_encoding())
 
     try:
         output = subprocess.check_output(
-            cmd.encode(_encoding()),
+            cmd,
             shell=True,
         )
     except subprocess.CalledProcessError as exc:
@@ -77,12 +79,16 @@ def exec_(cmd, cwd=None):
     shell = True
 
     if platform.system() == "Windows":
-        cmd = command(('cmd.exe /C "' + cmd + '"')).encode(_encoding())
+        cmd = command(('cmd.exe /C "' + cmd + '"'))
+        if PY2:
+            cmd = cmd.encode(_encoding())
+            cwd = cwd.encode(_encoding())
+
         shell = False
 
     p = subprocess.Popen(
         cmd,
-        cwd=cwd.encode(_encoding()) if cwd else None,
+        cwd=cwd if cwd else None,
         shell=shell,
     )
     p.wait()
@@ -96,9 +102,13 @@ def launch(cmd, cwd=None):
     if platform.system() == "Windows":
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.STARTF_USESHOWWINDOW
+        if PY2:
+            cmd = cmd.encode(_encoding())
+            cwd = cwd.encode(sys.getfilesystemencoding()) if cwd else cwd
+
         subprocess.Popen(
-            cmd.encode(_encoding()),
-            cwd=cwd.encode(sys.getfilesystemencoding()),
+            cmd,
+            cwd=cwd,
             shell=True,
             startupinfo=startupinfo
         )
@@ -110,8 +120,12 @@ def console(cmd, cwd=None):
     # type: (string_types, string_types) -> None or subprocess.Popen
     if platform.system() == "Windows":
         cmd = command(cmd)
+        if PY2:
+            cmd = cmd.encode(_encoding())
+            cwd = cwd.encode(sys.getfilesystemencoding()) if cwd else cwd
+
         return subprocess.Popen(
-            cmd.encode(_encoding()),
+            cmd,
             cwd=cwd,
             creationflags=subprocess.CREATE_NEW_CONSOLE,
         )
@@ -140,9 +154,13 @@ def show_directory(path):
 
 def open_terminal(path):
     # type: (string_types) -> None
+    cwd = os.path.normpath(path)
+    if PY2:
+        cwd = cwd.encode(sys.getfilesystemencoding())
+
     if platform.system() == "Windows":
-        subprocess.Popen("cmd", cwd=os.path.normpath(path).encode(_encoding()))
+        subprocess.Popen("cmd", cwd=cwd)
     elif platform.system() == "Darwin":
-        subprocess.Popen(["open", os.path.normpath(path)])
+        subprocess.Popen("open", cwd=cwd)
     else:
-        subprocess.Popen("gnome-terminal", cwd=os.path.normpath(path))
+        subprocess.Popen("gnome-terminal", cwd=cwd)

@@ -25,12 +25,13 @@ class ChoiceTemplatePage(QWizardPage):
         layout.addWidget(self.splitter)
         self.setLayout(layout)
 
-        self.setTitle("Choice template")
+        self.setTitle(self.tr("Choice template"))
         self.tree_view_template.setModel(template_model)
         self.tree_view_template.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.tree_view_template.setCurrentIndex(template_model.index(0, 0))
 
-    def initializePage(self):
-        self.setFinalPage(False)
+    # def initializePage(self):
+    #     self.setFinalPage(False)
 
     def choice(self):
         # type() -> TemplateItem
@@ -59,9 +60,8 @@ class QuickstartExecCommandPage(ExecCommandPage):
 
 class QuickStartWizard(BaseWizard):
     def __init__(self, params_dict, default_settings, parent=None):
-        super(QuickStartWizard, self).__init__(parent)
+        super(QuickStartWizard, self).__init__(default_settings, parent)
         self.params_dict = params_dict
-        self.default_settings = default_settings
         self.page_dict = {}
 
     def path(self):
@@ -76,6 +76,9 @@ class QuickStartWizard(BaseWizard):
         if id(template_item) in self.page_dict:
             return self.page_dict[id(template_item)]
 
+        self.default_values.pop(1)
+        self.default_values.push(template_item.default_values)
+
         page_ids = []
         last_page = None
         for category_name, params in template_item.wizard_iter():
@@ -83,7 +86,7 @@ class QuickStartWizard(BaseWizard):
                 self.params_dict,
                 category_name,
                 params,
-                self.default_settings
+                self.default_values
             )
             page_id = self.addPage(last_page)
             page_ids.append(page_id)
