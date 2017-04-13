@@ -3,7 +3,6 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 from .value_types import find_value_type, TypeBase
 from six import string_types
-import os
 from PySide.QtCore import *
 from PySide.QtGui import *
 
@@ -163,7 +162,6 @@ class PropertyItem(QStandardItem):
 
         # link param
         self.link = None
-        self._link_format = None
         self._linked = []
 
         # default values
@@ -220,7 +218,7 @@ class PropertyItem(QStandardItem):
         link_value = value or self.link.value
         default_value = self.model().default_value(self.key) or self._default
 
-        if self._link_format:
+        if self.value_type:
             cache = self.value_type.link_value(default_value, link_value)
         else:
             cache = link_value or default_value
@@ -241,13 +239,12 @@ class PropertyItem(QStandardItem):
         # type: () -> bool
         return self._default_flag
 
-    def set_link(self, link, link_format=None):
-        # type: (PropertyItem or None, str or None) -> None
+    def set_link(self, link):
+        # type: (PropertyItem or None) -> None
         if link is None:
             return
 
         self.link = link
-        self._link_format = link_format
         # noinspection PyProtectedMember
         link._linked.append(self)
         self.update_link(link.value)

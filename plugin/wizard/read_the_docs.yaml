@@ -1,5 +1,12 @@
 title: Read The Docs Style
 
+description: |
+    This is [Read The Docs](https://readthedocs.org/) mode.
+
+    ![Read The Docs Image](../theme/sphinx_rtd_theme.png)
+
+
+
 wizard:
     - Required params
     -

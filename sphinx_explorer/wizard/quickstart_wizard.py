@@ -4,6 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from ..property_widget import DescriptionWidget
 from sphinx_explorer import quickstart
 from .base_wizard import PropertyPage, BaseWizard, ExecCommandPage
 
@@ -12,7 +13,7 @@ class ChoiceTemplatePage(QWizardPage):
     def __init__(self, template_model, parent=None):
         super(ChoiceTemplatePage, self).__init__(parent)
         self.tree_view_template = QTreeView(self)
-        self.text_browser = QTextBrowser(self)
+        self.text_browser = DescriptionWidget(self)
         self.splitter = QSplitter(self)
 
         self.splitter.addWidget(self.tree_view_template)
@@ -28,7 +29,24 @@ class ChoiceTemplatePage(QWizardPage):
         self.setTitle(self.tr("Choice template"))
         self.tree_view_template.setModel(template_model)
         self.tree_view_template.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
+        self.template_selection_model = self.tree_view_template.selectionModel()
+        self.template_selection_model.currentChanged.connect(self._on_template_current_changed)
+
         self.tree_view_template.setCurrentIndex(template_model.index(0, 0))
+
+    def _on_template_current_changed(self, current, _):
+        # type: (QModelIndex, QModelIndex) -> None
+        item = self.tree_view_template.model().itemFromIndex(current)
+
+        if item.description:
+            self.text_browser.setMarkdown(
+                item.description,
+                title=item.text(),
+                search_path=item.root_path,
+            )
+        else:
+            self.text_browser.clear()
 
     # def initializePage(self):
     #     self.setFinalPage(False)

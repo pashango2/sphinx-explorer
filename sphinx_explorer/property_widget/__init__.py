@@ -11,6 +11,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 from .property_model import PropertyItem, PropertyCategoryItem, PropertyModel
 from .property_model import PropertyItemType
+from .description_widget import DescriptionWidget
 
 if False:
     from typing import Dict, Iterator
@@ -23,6 +24,7 @@ __all__ = [
     "TypeChoice",
     "register_value_type",
     "find_value_type",
+    "DescriptionWidget",
 ]
 
 CssStyle = """
@@ -196,7 +198,7 @@ class PropertyWidget(QTableView):
             if "link" not in params:
                 continue
             item = prop_map[key]
-            item.set_link(prop_map.get(params["link"]), params.get("link_format"))
+            item.set_link(prop_map.get(params["link"]))
 
     def property_map(self):
         # type: () -> Dict[string_types, PropertyItem]

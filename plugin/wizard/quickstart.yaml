@@ -1,4 +1,7 @@
-title: Quickstart
+title: Standard Quickstart
+
+description: |
+    This is standard "sphinx-quickstart" mode.
 
 wizard:
     - Required params
