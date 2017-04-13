@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/theme_dialog.ui'
 #
-# Created: Fri Apr 14 06:59:15 2017
+# Created: Fri Apr 14 08:03:24 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ class Ui_Dialog(object):
         self.list_view_theme.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.list_view_theme.setResizeMode(QtGui.QListView.Adjust)
         self.list_view_theme.setLayoutMode(QtGui.QListView.SinglePass)
-        self.list_view_theme.setViewMode(QtGui.QListView.IconMode)
+        self.list_view_theme.setViewMode(QtGui.QListView.ListMode)
         self.list_view_theme.setModelColumn(0)
         self.list_view_theme.setObjectName("list_view_theme")
         self.horizontalLayout.addWidget(self.list_view_theme)

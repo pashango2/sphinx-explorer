@@ -37,8 +37,8 @@ class PluginDialog(QDialog):
         self.thread_obj.do()
 
         for item, thumb_img in self.thread_obj.theme_items:
-            if thumb_img:
-                item.setIcon(QIcon(QPixmap.fromImage(thumb_img)))
+            # if thumb_img:
+            #     item.setIcon(QIcon(QPixmap.fromImage(thumb_img)))
             self.theme_model.add_theme(item)
 
         self.ui.list_view_theme.setModel(self.theme_model)

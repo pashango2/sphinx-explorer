@@ -32,8 +32,13 @@ class ChoiceTemplatePage(QWizardPage):
 
         self.template_selection_model = self.tree_view_template.selectionModel()
         self.template_selection_model.currentChanged.connect(self._on_template_current_changed)
-
+        # noinspection PyUnresolvedReferences
+        self.tree_view_template.doubleClicked.connect(self._on_double_clicked)
         self.tree_view_template.setCurrentIndex(template_model.index(0, 0))
+
+    def _on_double_clicked(self, _):
+        # type: (QModelIndex) -> None
+        self.wizard().next()
 
     def _on_template_current_changed(self, current, _):
         # type: (QModelIndex, QModelIndex) -> None
