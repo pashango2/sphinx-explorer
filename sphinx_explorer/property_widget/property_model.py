@@ -5,6 +5,7 @@ from .value_types import find_value_type, TypeBase
 from six import string_types
 from PySide.QtCore import *
 from PySide.QtGui import *
+from .default_value_dict import DefaultValues
 
 __all__ = [
     "PropertyModel",
@@ -28,7 +29,10 @@ class PropertyModel(QStandardItemModel):
 
     def set_default_dict(self, default_dict):
         # (dict) -> None
-        self._default_dict = default_dict
+        if isinstance(default_dict, DefaultValues):
+            self._default_dict = default_dict
+        elif isinstance(default_dict, dict):
+            self._default_dict = DefaultValues(default_dict)
         self._use_default = bool(default_dict)
 
     def set_use_default(self, use_default):
@@ -43,7 +47,7 @@ class PropertyModel(QStandardItemModel):
         # type: (string_types, any, bool) -> None
         if not update and key in self._default_dict:
             return
-        self._default_dict[key] = value
+        self._default_dict.set_default_value(key, value)
 
     def add_category(self, item):
         # type: (PropertyCategoryItem) -> None
@@ -147,6 +151,7 @@ class PropertyItem(QStandardItem):
         self.description = params.get("description")
         self.required = params.get("required", False)
         self.require_input = params.get("require_input", False)
+        self.link_format = params.get("link_format")
 
         # value type
         value_type = params.get("value_type")
@@ -218,7 +223,9 @@ class PropertyItem(QStandardItem):
         link_value = value or self.link.value
         default_value = self.model().default_value(self.key) or self._default
 
-        if self.value_type:
+        if self.link_format:
+            cache = self.link_format.format(_link_value=link_value, _default_value=default_value)
+        elif self.value_type:
             cache = self.value_type.link_value(default_value, link_value)
         else:
             cache = link_value or default_value

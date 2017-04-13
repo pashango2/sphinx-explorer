@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/theme_dialog.ui'
+# Form implementation generated from reading ui file 'theme_dialog.ui'
 #
-# Created: Sat Mar 25 00:05:37 2017
+# Created: Thu Apr 13 15:55:59 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -30,7 +30,7 @@ class Ui_Dialog(object):
         self.list_view_theme.setModelColumn(0)
         self.list_view_theme.setObjectName("list_view_theme")
         self.horizontalLayout.addWidget(self.list_view_theme)
-        self.text_edit_preview = QtGui.QTextBrowser(Dialog)
+        self.text_edit_preview = DescriptionWidget(Dialog)
         self.text_edit_preview.setObjectName("text_edit_preview")
         self.horizontalLayout.addWidget(self.text_edit_preview)
         self.verticalLayout.addLayout(self.horizontalLayout)
@@ -48,3 +48,4 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         Dialog.setWindowTitle(QtGui.QApplication.translate("Dialog", "HTML Theme", None, QtGui.QApplication.UnicodeUTF8))
 
+from sphinx_explorer.property_widget import DescriptionWidget

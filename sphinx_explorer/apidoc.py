@@ -40,7 +40,6 @@ def create_command(project_path, source_dir, settings):
         cmds += ["-R", settings.get("release")]
 
     cmds += settings.get("pathnames", [])
-    # print(" ".join(cmds))
     return " ".join(cmds)
 
 
@@ -65,12 +64,16 @@ def fix_apidoc(project_path, source_dir, params):
     fd.close()
 
     conf_py_path = os.path.join(project_path, "conf.py")
-    extend_conf_py(conf_py_path, html_theme=params.get("html_theme"))
+    extend_conf_py(conf_py_path, params)
 
 
 def create(project_path, source_dir, settings, cwd=None):
     # type: (string_types, string_types, dict, string_types or None) -> int
     cmd = create_command(project_path, source_dir, settings)
+
+    if not os.path.exists(project_path):
+        os.makedirs(project_path)
+
     return exec_(create_cmd(cmd), cwd)
 
 

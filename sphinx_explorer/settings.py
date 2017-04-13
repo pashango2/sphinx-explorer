@@ -23,10 +23,10 @@ class Settings(OrderedDict):
 
     def setup_default(self):
         self["default_values"] = {
-            "editor": "atom",
             "language": Settings.default_locale(),
         }
         self["projects"] = {"projects": []}
+        self["editor"] = "atom"
 
     def default_root_path(self, default_path):
         return self["default_values"].get("path") or default_path
@@ -128,8 +128,9 @@ class SettingsDialog(QDialog):
             if key in self.DEFAULT_SETTING_KEYS:
                 widget.add_property(key, params)
 
-        default_values = settings.default_values
-        widget.load(default_values)
+        d = settings.default_values.copy()
+        d.update(settings)
+        widget.load(d)
         widget.resizeColumnToContents(0)
 
     def update_settings(self, settings):

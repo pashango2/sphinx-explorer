@@ -12,6 +12,7 @@ from PySide.QtGui import *
 from .property_model import PropertyItem, PropertyCategoryItem, PropertyModel
 from .property_model import PropertyItemType
 from .description_widget import DescriptionWidget
+from .default_value_dict import DefaultValues
 
 if False:
     from typing import Dict, Iterator
@@ -25,49 +26,41 @@ __all__ = [
     "register_value_type",
     "find_value_type",
     "DescriptionWidget",
+    "DefaultValues",
 ]
-
-CssStyle = """
-<style>
-a {color: #4183C4; }
-a.absent {color: #cc0000; }
-a.anchor {
-  display: block;
-  padding-left: 30px;
-  margin-left: -30px;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0; }
-
-</style>
-"""
 
 __version__ = "1.0"
 __release__ = __version__ + "b"
 
 
 class PropertyWidget(QTableView):
+    """
+    Widget to edit properties collectively.
+
+    * Dynamic property settings.
+    * Hierarchical setting of default values
+
+    """
     currentChanged = Signal(QModelIndex, QModelIndex)
     itemChanged = Signal(QStandardItem)
 
     def __init__(self, parent=None):
         # type: (QWidget) -> None
         super(PropertyWidget, self).__init__(parent)
-        self._delegate = PropertyItemDelegate(self)
         self._model = PropertyModel(self)
         self.setModel(self._model)
         self.selection_model = self.selectionModel()
-        self._connect()
+        self._first_property_index = QModelIndex()
+
+        self._delegate = PropertyItemDelegate(self)
         self.setItemDelegate(self._delegate)
 
         self.verticalHeader().hide()
         self.horizontalHeader().setStretchLastSection(True)
-
         self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.setTabKeyNavigation(False)
-        self._first_property_index = QModelIndex()
+
+        self._connect()
 
     def clear(self):
         self._model.removeRows(0, self._model.rowCount())
@@ -108,8 +101,9 @@ class PropertyWidget(QTableView):
 
         return item
 
-    def add_property_item(self, item):
-        # type: (PropertyItem) -> None
+    def add_property(self, item_key, params, label_name=None):
+        # type: (str, dict, str or None) -> PropertyItem
+        item = self.create_property(item_key, params, label_name)
         self._model.add_property(item)
 
         height = item.sizeHint().height()
@@ -119,10 +113,6 @@ class PropertyWidget(QTableView):
         if not self._first_property_index.isValid():
             self._first_property_index = self.index(item.row(), 1)
 
-    def add_property(self, item_key, params, label_name=None):
-        # type: (str, dict, str or None) -> PropertyItem
-        item = self.create_property(item_key, params, label_name)
-        self.add_property_item(item)
         return item
 
     def first_property_index(self):
@@ -177,7 +167,6 @@ class PropertyWidget(QTableView):
                 key = list(setting.keys())[0]
                 params = params_dict.get(key, {}).copy()
                 params.update(setting[key])
-                # params = {**params_dict.get(setting, {}), **setting}
             else:
                 raise ValueError(setting)
 
@@ -224,6 +213,14 @@ class PropertyWidget(QTableView):
             return item.description
         return None
 
+    def title(self, index):
+        # type: (QModelIndex) -> str or None
+        if not index.isValid():
+            return None
+
+        item = self._model.item(index.row())
+        return item.text()
+
     @staticmethod
     def _html(dec, title, title_prefix="#"):
         md = """
@@ -233,23 +230,6 @@ class PropertyWidget(QTableView):
 
         mdo = markdown.Markdown(extensions=["gfm"])
         return mdo.convert(md)
-
-    def html(self, index):
-        # type: (QModelIndex) -> str or None
-        index = self.index(index.row(), 0)
-
-        dec = self.description(index)
-        if dec:
-            md = """
-# {title}
-{}
-            """.strip().format(dec, title=index.data())
-
-            mdo = markdown.Markdown(extensions=["gfm"])
-            html = CssStyle + mdo.convert(md)
-            return html
-
-        return None
 
     def closeEditor(self, editor, _):
         super(PropertyWidget, self).closeEditor(editor, QAbstractItemDelegate.EditNextItem)
@@ -275,10 +255,7 @@ class PropertyWidget(QTableView):
 
     def set_default_value(self, key, value, update=True):
         self._model.set_default_value(key, value, update)
-
-        for param_key, item in self.property_map().items():
-            if param_key == "key" and item.was_default():
-                item.update_link()
+        self.update_default()
 
     def default_value(self, key):
         return self._model.default_value(key)
@@ -289,6 +266,7 @@ class PropertyWidget(QTableView):
 
     def set_default_dict(self, default_dict):
         self._model.set_default_dict(default_dict)
+        self.update_default()
 
 
 class PropertyItemDelegate(QStyledItemDelegate):

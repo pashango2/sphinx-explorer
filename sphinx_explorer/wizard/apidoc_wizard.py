@@ -51,7 +51,7 @@ class ApiDocExecCommandPage(ExecCommandPage):
 
 
 def create_wizard(params_dict, default_settings, parent=None):
-    wizard = ApidocWizard(parent)
+    wizard = ApidocWizard(default_settings, parent)
 
     # for Windows
     # For default VistaStyle painting hardcoded in source of QWizard(qwizard.cpp[1805]).

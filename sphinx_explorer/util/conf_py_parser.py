@@ -58,18 +58,14 @@ class Parser(object):
         return "".join(self._source)
 
 
-def extend_conf_py(conf_py_path, extensions=None, html_theme=None):
+def extend_conf_py(conf_py_path, params, extensions=None):
     extensions = extensions or []
 
     if os.path.isfile(conf_py_path):
         parser = Parser(conf_py_path)
-        replace_dict = {}
 
-        if html_theme:
-            replace_dict["html_theme"] = html_theme
-
-        if replace_dict:
-            parser.replace(replace_dict)
+        if params:
+            parser.replace(params)
 
         for key in extensions:
             if key.startswith("ext-"):

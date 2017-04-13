@@ -8,57 +8,7 @@ from sphinx_explorer.util.QConsoleWidget import QConsoleWidget
 from .. import icon
 
 from sphinx_explorer import property_widget
-
-
-class DefaultValues(object):
-    def __init__(self, values_dict):
-        self._dicts = [values_dict or {}]
-
-    def __getitem__(self, key):
-        for d in self._dicts:
-            if key in d:
-                return d[key]
-        raise KeyError(key)
-
-    def __contains__(self, key):
-        for d in self._dicts:
-            if key in d:
-                return True
-        return False
-
-    def items(self):
-        for key in self.keys():
-            yield key, self[key]
-
-    def get(self, key, default=None):
-        for d in self._dicts:
-            if key in d:
-                return d[key]
-        return default
-
-    def push(self, d):
-        self._dicts.insert(0, d or {})
-
-    def pop(self, index=0):
-        index = len(self._dicts) - 1 - index
-        if index < 0:
-            return
-        try:
-            self._dicts.pop(index)
-        except IndexError:
-            pass
-
-    def keys(self):
-        keys = set()
-        for d in self._dicts:
-            keys |= set(d.keys())
-        return keys
-
-    def copy(self):
-        d = {}
-        for key, value in self.items():
-            d[key] = value
-        return d
+from sphinx_explorer.property_widget import DescriptionWidget, DefaultValues
 
 
 class ExecCommandPage(QWizardPage):
@@ -95,7 +45,7 @@ class PropertyPage(QWizardPage):
 
         self.property_widget = property_widget.PropertyWidget(self)
         self.property_widget.set_default_dict(default_dict or {})
-        self.text_browser = QTextBrowser(self)
+        self.text_browser = DescriptionWidget(self)
         self.splitter = QSplitter(self)
 
         self.splitter.addWidget(self.property_widget)
@@ -129,9 +79,10 @@ class PropertyPage(QWizardPage):
         return super(PropertyPage, self).nextId()
 
     def _onCurrentChanged(self, current, _):
-        html = self.property_widget.html(current)
-        if html:
-            self.text_browser.setHtml(html)
+        title = self.property_widget.title(current)
+        description = self.property_widget.description(current)
+        if description:
+            self.text_browser.setMarkdown(description, title=title)
         else:
             self.text_browser.clear()
 

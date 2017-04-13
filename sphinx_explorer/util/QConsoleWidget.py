@@ -44,8 +44,11 @@ class QConsoleWidget(QTextEdit):
 
         if six.PY2:
             cmd = cmd.encode(sys.getfilesystemencoding())
+            output_cmd = b"> " + cmd + b"\n"
+        else:
+            output_cmd = "> " + cmd + "\n"
 
-        self._output("> " + cmd + "\n", self.COMMAND_COLOR)
+        self._output(output_cmd, self.COMMAND_COLOR)
         self._process.start(cmd)
 
     @Slot()

@@ -20,23 +20,6 @@ try:
 except AttributeError:
     pass
 
-CssStyle = """
-<style>
-a {color: #4183C4; }
-a.absent {color: #cc0000; }
-a.anchor {
-  display: block;
-  padding-left: 30px;
-  margin-left: -30px;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0; }
-
-</style>
-"""
-
 
 class PluginDialog(QDialog):
     def __init__(self, plugin_dir_path, parent=None):
@@ -89,20 +72,7 @@ class PluginDialog(QDialog):
     def _setup_preview(self, current):
         # type: (QModelIndex) -> None
         item = self.theme_model.itemFromIndex(current)
-
-        md = """
-# {}
-
-{}
-
-![]({})
-        """.strip().format(item.text(), item.description, item.thumb_path)
-
-        mdo = markdown.Markdown(extensions=["gfm"])
-        html = CssStyle + mdo.convert(md)
-        self.ui.text_edit_preview.setHtml(html)
-        # self.ui.text_edit_preview.setHtml(CssStyle + CommonMark.commonmark(md))
-        # print(CommonMark.commonmark(md))
+        self.ui.text_edit_preview.setMarkdown(item.description, item.text(), thumbnail=item.thumb_path)
 
     def selectedItems(self):
         # type: () -> [str]
