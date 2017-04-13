@@ -51,7 +51,7 @@ class DefaultValues(object):
     def keys(self):
         keys = set()
         for d in self._dicts:
-            keys |= d.keys()
+            keys |= set(d.keys())
         return keys
 
     def copy(self):

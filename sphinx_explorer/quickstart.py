@@ -41,6 +41,9 @@ def quickstart_cmd(d):
         "ext-ifconfig",
         "ext-viewcode",
     ]
+    allow_params = [
+        "suffix", "master", "epub",  "dot"
+    ]
 
     if "ext-imgmath" in d and "ext-mathjax" in d:
         del d["ext-imgmath"]
@@ -57,10 +60,11 @@ def quickstart_cmd(d):
         if key.startswith("ext-") and key not in arrow_extension:
             continue
 
-        if value is True:
-            opts.append("--" + key)
-        else:
-            opts.append("--" + key + "=" + quote(value))
+        if key in allow_params:
+            if value is True:
+                opts.append("--" + key)
+            else:
+                opts.append("--" + key + "=" + quote(value))
 
     return command(
         " ".join(
@@ -78,7 +82,7 @@ def quickstart_cmd(d):
 
 def get_source_and_build(d):
     source_dir = "source" if d.get("sep", False) else "."
-    build_dir = "build" if d.get("sep", False) else "{}build".format(d.get("prefix", "_"))
+    build_dir = "build" if d.get("sep", False) else "{}build".format(d.get("dot") or "_")
 
     return source_dir, build_dir
 

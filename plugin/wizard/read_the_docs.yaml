@@ -15,6 +15,7 @@ wizard:
             require_input: false
         - author
         - version
+        - release
 
 default_values:
     html_theme: sphinx_rtd_theme
