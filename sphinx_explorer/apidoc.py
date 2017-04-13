@@ -19,8 +19,9 @@ module_dir = '{module_dir}'
 """.strip()
 
 
-def create_command(project_path, source_dir, settings):
+def create_command(project_path, source_dir, settings=None):
     # type: (string_types, string_types, dict) -> string_types
+    settings = settings or {}
     cmds = [
         "sphinx-apidoc",
         source_dir,

@@ -4,8 +4,8 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import os
 from sphinx_explorer.util import conf_py_parser
 
-here = os.path.dirname(__file__)
-conf_py_path = os.path.join("conf", "conf.py")
+here = os.path.abspath(os.path.dirname(__file__))
+conf_py_path = os.path.join(here, "conf", "conf.py")
 
 
 def test_parser():
