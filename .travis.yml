@@ -28,3 +28,12 @@ install:
   
 script:
     - "python deploy.py"
+
+deploy:
+  provider: releases
+  api_key:
+    secure: "XNjsi7FIZTNoJSw+fUDQwL+3CaJsc0vAh2QiHaCHriAop3sldYnI35rjG4Go/Ba2hd22Oj944kJL6N97BE6v0/uveZ54yaOz7FtaOYQbf00r5MARwsPVtRiD2X/MHlOI5CuRMKwhByju64rM33NjrTVCs9ma9FPIFFJguLC2uvEcXyN73A7fPZrJ0FKXtHdeoon0v1wAc2GLtdXeG+7x3FgIB4QYOI7gSUL/elmqIIVOQCxeINeSyvHivsr3rxQP4KzNk177lcuLsXbA+GZaw3dDEbdKeDy4RqZthFM/8F8h3MmL6mw6Ks9oVWmEc+9d4PeIqEr+hqAGEQzL/9+DD1deFDucNWlR8s+yJw4rWblWmN0+MALHB8lKN6824SlaHmKcmZL7sLwUjGyRtT7HACU0qwpE0wAi63u9XagU9nzKbr5pUza2WLA5xiARDde4QmQLj70xoVOSC0uKOs1/pN1TQqtcwJm/CLsDBdS9eBkVCB8yAiOqeCsA7t/JYYMqzpkwq/OGudUV5JCEf+pWv4sWRbOZANEpMOIxk9fvqmIq4A5xDtkNfunrhsmtr7zo0/TA8dOScp79v0xHMnYU8F2nwe/i02OKXmhriQNskL6/5VHtrapG1KQZQWVx10it8umSfz+TPXkgHocX3cytyVJAhgxc0SxiDNslbEHksp0="
+  file: "sphinx-explorer_*.zip"
+  skip_cleanup: true
+  on:
+    tags: true
