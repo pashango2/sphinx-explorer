@@ -11,8 +11,16 @@ matrix:
 
 install:
   - if [ "$TRAVIS_OS_NAME" == "osx"   ] ; then   mac-build/install.sh ; fi
-    pip install pyside
-    pip install markdown
-    pip install py-gfm
+  - "pip install pyside"
+  - "pip install pyinstaller"
+  - "pip install toml"
+  - "pip install pyYaml"
+  - "pip install qdarkstyle"
+  - "pip install six"
+  - "pip install markdown"
+  - "pip install py-gfm"
+  - "pip install docutils"
+  - "pip install typing"
   
-  
+script:
+    - "python deploy.py"
