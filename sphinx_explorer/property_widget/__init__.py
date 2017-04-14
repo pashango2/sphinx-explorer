@@ -194,7 +194,11 @@ class PropertyWidget(QTableView):
         return {
             item.key: item
             for item in self.properties()
-            }
+        }
+
+    def item(self, name):
+        # type: (string_types) -> PropertyItem
+        return self.property_map().get(name)
 
     def properties(self):
         # type: () -> Iterator[PropertyItem]

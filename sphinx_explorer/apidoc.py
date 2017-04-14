@@ -22,6 +22,10 @@ module_dir = '{module_dir}'
 def create_command(project_path, source_dir, settings=None):
     # type: (string_types, string_types, dict) -> string_types
     settings = settings or {}
+
+    if not os.path.isabs(source_dir):
+        source_dir = os.path.abspath(os.path.join(project_path, source_dir))
+
     cmds = [
         "sphinx-apidoc",
         source_dir,
@@ -41,12 +45,12 @@ def create_command(project_path, source_dir, settings=None):
         cmds += ["-R", settings.get("release")]
 
     cmds += settings.get("pathnames", [])
-    return " ".join(cmds)
+    return create_cmd(cmds)
 
 
 def fix_apidoc(project_path, source_dir, params):
     # type: (string_types, string_types, dict) -> None
-    if os.path.abspath(source_dir):
+    if not os.path.isabs(source_dir):
         module_dir = source_dir
     else:
         try:
@@ -65,7 +69,11 @@ def fix_apidoc(project_path, source_dir, params):
     fd.close()
 
     conf_py_path = os.path.join(project_path, "conf.py")
-    extend_conf_py(conf_py_path, params)
+
+    path, b = os.path.split(module_dir)
+    if not b:
+        path, _ = os.path.split(path)
+    extend_conf_py(conf_py_path, params, insert_paths=[path])
 
 
 def create(project_path, source_dir, settings, cwd=None):
@@ -75,7 +83,7 @@ def create(project_path, source_dir, settings, cwd=None):
     if not os.path.exists(project_path):
         os.makedirs(project_path)
 
-    return exec_(create_cmd(cmd), cwd)
+    return exec_(cmd, cwd)
 
 
 def update_cmd(source_dir, output_dir, settings):

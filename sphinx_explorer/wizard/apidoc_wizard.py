@@ -20,10 +20,10 @@ class ApiDocSecondPropertyPage(PropertyPage):
     def initializePage(self):
         super(ApiDocSecondPropertyPage, self).initializePage()
 
-        self.property_widget.set_default_value(
-            "project",
-            os.path.basename(self.wizard().value("apidoc-sourcedir"))
-        )
+        root_path = self.wizard().value("path")
+        item = self.property_widget.item("apidoc-sourcedir")
+        item.set_link_value(root_path)
+
         self.property_widget.update_default()
 
 
@@ -38,7 +38,7 @@ class ApiDocExecCommandPage(ExecCommandPage):
             settings["apidoc-sourcedir"],
             settings,
         )
-        self.exec_command(cmd, cwd=settings["path"])
+        self.exec_command(cmd)
 
     def finished(self, return_code):
         super(ApiDocExecCommandPage, self).finished(return_code)
@@ -64,8 +64,9 @@ def create_wizard(params_dict, default_settings, parent=None):
         params_dict,
         "Path setting",
         [
+            "project",
             "path",
-            "apidoc-sourcedir",
+
         ],
         default_settings,
         parent=wizard,
@@ -75,7 +76,7 @@ def create_wizard(params_dict, default_settings, parent=None):
         params_dict,
         "Project setting",
         [
-            "project",
+            "apidoc-sourcedir",
             "author",
             "html_theme",
             "apidoc-separate",

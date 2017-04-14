@@ -47,7 +47,29 @@ class Parser(object):
 
         self._tree = ast.parse(open(conf_path, "r").read())
 
-    def replace(self, replace_dict):
+    def add_sys_path(self, path_list):
+        if not path_list:
+            return
+
+        insert_sys_flag = False
+        new_lines = []
+        for line in self._source:
+            if line.strip() == "# import os":
+                new_lines.append("import os\n")
+            elif line.strip() == "# import sys":
+                new_lines.append("import sys\n")
+            elif "sys.path.insert" in line and insert_sys_flag is False:
+                insert_sys_flag = True
+                new_lines.append(line)
+                for path in path_list:
+                    path = "u'" + path + "'"
+                    new_lines.append("sys.path.insert(0, os.path.abspath({}))\n".format(path))
+            else:
+                new_lines.append(line)
+        self._source = new_lines
+        self._tree = ast.parse(self.dumps().encode(CONF_PY_ENCODING))
+
+    def assign_replace(self, replace_dict):
         self._source = MyNodeVisitor(self._source, replace_dict).visit(self._tree)
         return self._source
 
@@ -57,15 +79,21 @@ class Parser(object):
     def dumps(self):
         return "".join(self._source)
 
+    @property
+    def lines(self):
+        return self._source
 
-def extend_conf_py(conf_py_path, params, extensions=None):
+
+def extend_conf_py(conf_py_path, params, extensions=None, insert_paths=None):
     extensions = extensions or []
 
     if os.path.isfile(conf_py_path):
         parser = Parser(conf_py_path)
 
         if params:
-            parser.replace(params)
+            parser.assign_replace(params)
+
+        parser.add_sys_path(insert_paths)
 
         for key in extensions:
             if key.startswith("ext-"):

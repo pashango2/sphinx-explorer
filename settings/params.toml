@@ -8,7 +8,6 @@ required = true
 [path]
 label = "Root path"
 value_type = "TypeDirPath"
-require_input = true
 required = true
 link="project"
 
@@ -136,7 +135,7 @@ default = false
 
 [apidoc-sourcedir]
 label = "Module directory"
-value_type = "TypeRelDirPath"
+value_type = "TypeDirPath"
 required = true
 require_input = true
 link="path"

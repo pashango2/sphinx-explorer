@@ -17,6 +17,12 @@ CategoryItemType = QStandardItem.UserType + 1
 PropertyItemType = CategoryItemType + 1
 
 
+class ValueItem(object):
+    def __init__(self, value):
+        self.value = value
+        self._linked = []
+
+
 class PropertyModel(QStandardItemModel):
     DEFAULT_VALUE_FOREGROUND_COLOR = QColor(0x80, 0x80, 0x80)
 
@@ -255,6 +261,10 @@ class PropertyItem(QStandardItem):
         # noinspection PyProtectedMember
         link._linked.append(self)
         self.update_link(link.value)
+
+    def set_link_value(self, value):
+        link = ValueItem(value)
+        self.set_link(link)
 
     def is_complete(self):
         # type: () -> bool
