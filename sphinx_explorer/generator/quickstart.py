@@ -21,6 +21,7 @@ build_dir = '{rbuilddir}'
 
 def quickstart_cmd(d):
     # type: (dict) -> string_types
+    print(d)
     ignore_params = ["project", "prefix", "path", "version", "release"]
     arrow_extension = [
         "ext-autodoc",

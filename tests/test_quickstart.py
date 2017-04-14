@@ -4,7 +4,6 @@ import os
 
 import toml
 
-from sphinx_explorer import quickstart
 from sphinx_explorer.generator import apidoc, quickstart
 
 sys_path = os.path.join(

@@ -72,6 +72,7 @@ class MainWindow(QMainWindow):
         self.apidoc_act = QAction(icon.load("update"), self.tr("Update sphinx-apidoc"), self, triggered=self._apidoc)
         self.open_html_act = QAction(icon.load("chrome"), self.tr("Open browser"), self, triggered=self._open_browser)
         self.close_act = QAction(self.tr("Exit"), self, triggered=self.close)
+        self.make_html_act = QAction("HTML", self, triggered=self._on_make_html)
 
         # setup ui
         self.ui = Ui_MainWindow()
@@ -172,9 +173,9 @@ class MainWindow(QMainWindow):
         self.terminal_act.setData(doc_path)
         self.apidoc_act.setData(item.index() if can_apidoc else None)
         self.auto_build_act.setData(item.index())
+        self.make_html_act.setData(item.index())
         self.open_html_act.setData(item.index())
 
-        self.open_html_act.setEnabled(item.has_html())
         # Warning: don't use lambda to connect!!
         # Process finished with exit code -1073741819 (0xC0000005) ...
         #
@@ -187,6 +188,12 @@ class MainWindow(QMainWindow):
         menu.addAction(self.terminal_act)
 
         menu.addSeparator()
+
+        make_menu = QMenu(self)
+        make_menu.addAction(self.make_html_act)
+        make_menu.setTitle("Make")
+        menu.addMenu(make_menu)
+
         if can_apidoc:
             menu.addAction(self.apidoc_act)
 
@@ -241,6 +248,23 @@ class MainWindow(QMainWindow):
         if path:
             open_terminal(path)
 
+    def _on_make_html(self):
+        # type: () -> None
+        index = self.sender().data()
+        if index and index.isValid():
+            pass
+
+        item = self.project_list_model.itemFromIndex(index)
+        self._make("html", item.path())
+
+    def _make(self, make_cmd, cwd, callback=None):
+        self.ui.plain_output.exec_command(
+            "make " + make_cmd,
+            cwd,
+            clear=True,
+            callback=callback
+        )
+
     def _auto_build(self):
         # type: () -> None
         index = self.sender().data()
@@ -259,9 +283,15 @@ class MainWindow(QMainWindow):
 
         item = self.project_list_model.itemFromIndex(index)  # type: ProjectItem
         if item:
-            html_path = item.html_path()
-            if os.path.isfile(html_path):
-                webbrowser.open(html_path)
+            if not item.has_html():
+                html_path = item.html_path()
+                print(html_path)
+                if html_path:
+                    self._make("html", item.path(), lambda: webbrowser.open(html_path))
+            else:
+                html_path = item.html_path()
+                if os.path.isfile(html_path):
+                    webbrowser.open(html_path)
 
     def _apidoc(self):
         # type: () -> None
