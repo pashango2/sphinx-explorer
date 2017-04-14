@@ -34,7 +34,7 @@ def quickstart_cmd(d):
         "ext-viewcode",
     ]
     allow_params = [
-        "suffix", "master", "epub",  "dot"
+        "suffix", "master", "epub",  "dot", "sep"
     ]
 
     if "ext-imgmath" in d and "ext-mathjax" in d:
@@ -72,9 +72,10 @@ def quickstart_cmd(d):
     )
 
 
-def get_source_and_build(d):
+def get_source_and_build(d, api_doc=False):
     source_dir = "source" if d.get("sep", False) else "."
-    build_dir = "_build" if d.get("sep", False) else "{}build".format(d.get("dot") or "_")
+    default_build = "_build" if api_doc else "build"
+    build_dir = default_build if d.get("sep", False) else "{}build".format(d.get("dot") or "_")
 
     return source_dir, build_dir
 

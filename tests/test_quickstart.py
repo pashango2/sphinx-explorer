@@ -35,6 +35,7 @@ def check_build_path(temp_dir, d, build_dir):
     cmd = quickstart.quickstart_cmd(d)
     os.system(cmd)
 
+    print(os.listdir(temp_dir))
     assert build_dir in os.listdir(temp_dir)
 
 
@@ -59,4 +60,12 @@ def test_build_path2(tmpdir):
     assert source_dir == "."
     check_build_path(temp_dir, d, build_dir)
 
+
+def test_build_path3(tmpdir):
+    temp_dir = str(tmpdir)
+    d = {'author': 'Toshiyuki Ishii', 'html_theme': 'sphinx_rtd_theme', 'language': 'ja',
+         'path': '/home/toshiyuki/sphix_docs/rgdfsg', 'project': 'rgdfsg', 'sep': True, "path": temp_dir}
+    source_dir, build_dir = quickstart.get_source_and_build(d)
+    assert source_dir == "source"
+    check_build_path(temp_dir, d, build_dir)
 

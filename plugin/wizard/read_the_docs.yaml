@@ -17,5 +17,14 @@ wizard:
         - version
         - release
 
+    - More Extensions
+    -
+        [
+          "ext-commonmark",
+          "ext-nbsphinx",
+          "ext-fontawesome",
+          "ext-blockdiag",
+        ]
+
 default_values:
     html_theme: sphinx_rtd_theme
