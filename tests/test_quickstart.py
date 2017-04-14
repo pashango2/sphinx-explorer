@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sphinx_explorer import quickstart, apidoc
 import os
+
 import toml
+
+from sphinx_explorer import quickstart
+from sphinx_explorer.generator import apidoc, quickstart
 
 sys_path = os.path.join(
     os.path.dirname(__file__),

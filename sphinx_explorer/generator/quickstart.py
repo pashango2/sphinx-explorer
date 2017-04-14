@@ -7,8 +7,8 @@ import os
 
 from six import string_types
 
-from .util.conf_py_parser import extend_conf_py
-from .util.exec_sphinx import quote, command
+from sphinx_explorer.util.conf_py_parser import extend_conf_py
+from sphinx_explorer.util.exec_sphinx import quote, command
 
 TOML_PATH = "settings/quickstart.toml"
 CONF_PY_ENCODING = "utf-8"

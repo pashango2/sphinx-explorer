@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+
 import os
-from PySide.QtGui import *
+
 from PySide.QtCore import *
-from .sphinx_analyzer import SphinxInfo, QSphinxAnalyzer
-from . import icon
-from .util.exec_sphinx import quote
-from .util.QConsoleWidget import QConsoleWidget
-from . import apidoc
+from PySide.QtGui import *
 from six import string_types
+
+from sphinx_explorer.generator import apidoc
+from . import icon
+from .sphinx_analyzer import SphinxInfo, QSphinxAnalyzer
+from .util.QConsoleWidget import QConsoleWidget
+from .util.exec_sphinx import quote
 
 
 class ProjectListModel(QStandardItemModel):

@@ -261,6 +261,12 @@ class PropertyWidget(QTableView):
         self._model.set_default_value(key, value, update)
         self.update_default()
 
+    def set_values(self, values_dict):
+        prop_map = self.property_map()
+        for key, value in values_dict.items():
+            if key in prop_map:
+                prop_map[key].set_value(value, force_update=True)
+
     def default_value(self, key):
         return self._model.default_value(key)
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-# from PySide.QtCore import *
+from PySide.QtCore import *
 from PySide.QtGui import *
 from six import string_types
 from sphinx_explorer.util.QConsoleWidget import QConsoleWidget
@@ -12,31 +12,81 @@ from sphinx_explorer.property_widget import DescriptionWidget, DefaultValues
 
 
 class ExecCommandPage(QWizardPage):
+    BUTTON_HEIGHT = 64
+    BUTTON_ICON_SIZE = 28
+
     def __init__(self, title, parent=None):
         # type: (string_types, QWidget) -> None
         super(ExecCommandPage, self).__init__(parent)
         self.console_widget = QConsoleWidget(self)
-        self.console_widget.finished.connect(self.finished)
+        self.property_widget = property_widget.PropertyWidget(self)
+        self.gen_button = QPushButton(self)
+        self.gen_button.setMinimumHeight(self.BUTTON_HEIGHT)
+        self.gen_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.gen_button.setIconSize(QSize(self.BUTTON_ICON_SIZE, self.BUTTON_ICON_SIZE))
+        # self.gen_button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+
+        self.v_layout = QVBoxLayout(self)
+        self.v_layout.addWidget(self.gen_button)
+        self.v_layout.addWidget(self.console_widget)
+        self.v_layout.setContentsMargins(0, 0, 0, 0)
+        self.panel = QWidget(self)
+        self.panel.setLayout(self.v_layout)
+        self.panel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        self.splitter = QSplitter(self)
+        self.splitter.addWidget(self.property_widget)
+        self.splitter.addWidget(self.panel)
+        self.splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         layout = QVBoxLayout(self)
-        layout.addWidget(self.console_widget)
+        layout.addWidget(self.splitter)
         self.setLayout(layout)
 
+        self.console_widget.finished.connect(self.finished)
+        # noinspection PyUnresolvedReferences
+        self.gen_button.clicked.connect(self.exec_)
+
         self.setTitle(title)
-        self.can_finished = False
+        self.gen_button.setText(self.tr(str("Generate")))
+        self.gen_button.setIcon(icon.load("thunder"))
+
+        self.setTabOrder(self.gen_button, self.console_widget)
+        self.setTabOrder(self.console_widget, self.property_widget)
+        self.succeeded = False
+
+    def initializePage(self):
+        self.validatePage()
+
+        settings, params_dict = self.wizard().all_props()
+        self.property_widget.load_settings(settings, params_dict)
+        self.property_widget.set_values(self.wizard().dump())
+
+        self.property_widget.resizeColumnsToContents()
+        self.gen_button.setFocus()
+
+    def isComplete(self):
+        return self.succeeded
 
     def validatePage(self):
-        return self.can_finished
+        return self.succeeded
+
+    def exec_(self):
+        self.console_widget.clear()
 
     def exec_command(self, cmd, cwd=None):
         self.console_widget.exec_command(cmd, cwd)
 
     def finished(self, return_code):
-        self.can_finished = return_code == 0
+        self.succeeded = return_code == 0
+        self.completeChanged.emit()
         self.validatePage()
 
-        if self.can_finished is False:
+        if self.succeeded is False:
+            QMessageBox.critical(self, "Error", "Error")
             self.wizard().button(QWizard.BackButton).setEnabled(True)
+        else:
+            self.gen_button.setEnabled(False)
 
 
 class PropertyPage(QWizardPage):
@@ -107,11 +157,15 @@ class PropertyPage(QWizardPage):
 
         return True
 
+    def keys(self):
+        return self.property_widget.dump().keys()
+
 
 class BaseWizard(QWizard):
-    def __init__(self, default_values, parent=None):
+    def __init__(self, params_dict, default_values, parent=None):
         super(BaseWizard, self).__init__(parent)
         self._value_dict = {}
+        self.params_dict = params_dict
         self.default_values = DefaultValues(default_values)
 
         self.setOption(QWizard.HaveCustomButton1, True)
@@ -150,3 +204,14 @@ class BaseWizard(QWizard):
         d = self.default_values.copy()
         d.update(self._value_dict)
         return d
+
+    def all_props(self):
+        props = []
+        for page_id in self.visitedPages():
+            page = self.page(page_id)
+            if isinstance(page, PropertyPage):
+                props.append("# " + page.title())
+                props += page.keys()
+
+        return props, self.params_dict
+

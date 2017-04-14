@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from ..property_widget import DescriptionWidget
-from sphinx_explorer import quickstart
+from sphinx_explorer.generator import quickstart
 from .base_wizard import PropertyPage, BaseWizard, ExecCommandPage
+from ..property_widget import DescriptionWidget
 
 
 class ChoiceTemplatePage(QWizardPage):
@@ -63,9 +64,8 @@ class ChoiceTemplatePage(QWizardPage):
 
 
 class QuickstartExecCommandPage(ExecCommandPage):
-    def initializePage(self):
-        self.validatePage()
-        self.console_widget.clear()
+    def exec_(self):
+        super(QuickstartExecCommandPage, self).exec_()
 
         settings = self.wizard().dump()
         cmd = quickstart.quickstart_cmd(settings)
@@ -83,7 +83,7 @@ class QuickstartExecCommandPage(ExecCommandPage):
 
 class QuickStartWizard(BaseWizard):
     def __init__(self, params_dict, default_settings, parent=None):
-        super(QuickStartWizard, self).__init__(default_settings, parent)
+        super(QuickStartWizard, self).__init__(params_dict, default_settings, parent)
         self.params_dict = params_dict
         self.page_dict = {}
 

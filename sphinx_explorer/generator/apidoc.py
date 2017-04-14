@@ -8,7 +8,7 @@ import os
 from six import string_types
 
 from sphinx_explorer.util.conf_py_parser import extend_conf_py
-from .util.exec_sphinx import create_cmd, exec_
+from sphinx_explorer.util.exec_sphinx import create_cmd, exec_
 
 TEMPLATE_SETTING = """
 source_dir = '{rsrcdir}'

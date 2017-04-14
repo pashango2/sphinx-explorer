@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-import os
+
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+from sphinx_explorer.generator import apidoc
 from .base_wizard import BaseWizard, PropertyPage, ExecCommandPage
-from .. import apidoc
 
 WIZARD_TOML = "apidoc.toml"
 
@@ -28,9 +28,8 @@ class ApiDocSecondPropertyPage(PropertyPage):
 
 
 class ApiDocExecCommandPage(ExecCommandPage):
-    def initializePage(self):
-        self.validatePage()
-        self.console_widget.clear()
+    def exec_(self):
+        super(ApiDocExecCommandPage, self).exec_()
 
         settings = self.wizard().dump()
         cmd = apidoc.create_command(
@@ -51,7 +50,7 @@ class ApiDocExecCommandPage(ExecCommandPage):
 
 
 def create_wizard(params_dict, default_settings, parent=None):
-    wizard = ApidocWizard(default_settings, parent)
+    wizard = ApidocWizard(params_dict, default_settings, parent)
 
     # for Windows
     # For default VistaStyle painting hardcoded in source of QWizard(qwizard.cpp[1805]).
