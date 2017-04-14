@@ -1,0 +1,41 @@
+title: Read The Docs Template
+
+description: |
+    This is 'Read The Docs'(https://readthedocs.org/) mode.
+
+    - Use recommonmark
+    - MathJax
+    - Jupyter Notebook
+    - Font Awesome
+    - BlockDiag
+
+    <img src="../theme/sphinx_rtd_theme.png" width="10px" />
+
+
+
+wizard:
+    - Required params
+    -
+        - project
+        - path :
+            require_input: false
+        - author
+        - version
+        - release
+
+    - More Extensions
+    -
+        [
+          "ext-fontawesome",
+          "ext-blockdiag",
+        ]
+
+default_values:
+    html_theme: sphinx_rtd_theme
+    ext-commonmark: yes
+    ext-fontawesome: yes
+    ext-nbsphinx: yes
+    ext-mathjax: yes
+    ext-viewcode: yes
+    ext-githubpage: yes
+

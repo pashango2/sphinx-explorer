@@ -1,7 +1,7 @@
-title: Standard Quickstart
+title: ApiDoc And Document Template
 
 description: |
-    This is standard "sphinx-quickstart" mode.
+    This is standard EBooks Template.
 
 wizard:
     - Required params
@@ -41,7 +41,7 @@ wizard:
         ]
     - More Extensions
     -
-          [
+        [
             "ext-commonmark",
             "ext-nbsphinx",
             "ext-fontawesome",

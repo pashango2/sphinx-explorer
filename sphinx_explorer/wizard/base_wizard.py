@@ -38,6 +38,7 @@ class ExecCommandPage(QWizardPage):
         self.splitter.addWidget(self.property_widget)
         self.splitter.addWidget(self.panel)
         self.splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.splitter.setStretchFactor(1, 1)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.splitter)
@@ -77,16 +78,24 @@ class ExecCommandPage(QWizardPage):
     def exec_command(self, cmd, cwd=None):
         self.console_widget.exec_command(cmd, cwd)
 
+    def dump(self):
+        return self.property_widget.dump()
+
     def finished(self, return_code):
         self.succeeded = return_code == 0
         self.completeChanged.emit()
         self.validatePage()
 
         if self.succeeded is False:
+            # noinspection PyCallByClass
             QMessageBox.critical(self, "Error", "Error")
             self.wizard().button(QWizard.BackButton).setEnabled(True)
         else:
             self.gen_button.setEnabled(False)
+
+            path = self.wizard().path()
+            if path:
+                self.wizard().addDocumentRequested.emit(path)
 
 
 class PropertyPage(QWizardPage):
@@ -103,6 +112,7 @@ class PropertyPage(QWizardPage):
         self.splitter.setSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Expanding
         )
+        self.splitter.setStretchFactor(1, 1)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.splitter)
@@ -162,21 +172,23 @@ class PropertyPage(QWizardPage):
 
 
 class BaseWizard(QWizard):
+    addDocumentRequested = Signal(str)
+
     def __init__(self, params_dict, default_values, parent=None):
         super(BaseWizard, self).__init__(parent)
         self._value_dict = {}
         self.params_dict = params_dict
         self.default_values = DefaultValues(default_values)
 
-        self.setOption(QWizard.HaveCustomButton1, True)
-        self.setButtonText(QWizard.CustomButton1, self.tr("Add Bookmark"))
-        self.setButtonLayout([
-            QWizard.CustomButton1, QWizard.Stretch, QWizard.BackButton,
-            QWizard.NextButton, QWizard.FinishButton, QWizard.CancelButton
-        ])
+        # self.setOption(QWizard.HaveCustomButton1, True)
+        # self.setButtonText(QWizard.CustomButton1, self.tr("Add Bookmark"))
+        # self.setButtonLayout([
+        #     QWizard.CustomButton1, QWizard.Stretch, QWizard.BackButton,
+        #     QWizard.NextButton, QWizard.FinishButton, QWizard.CancelButton
+        # ])
 
-        button = self.button(QWizard.CustomButton1)
-        button.setIcon(icon.load("bookmark"))
+        # button = self.button(QWizard.CustomButton1)
+        # button.setIcon(icon.load("bookmark"))
 
     def setup(self, setting_dict, params_dict, default_dict=None):
         # type: (dict) -> None

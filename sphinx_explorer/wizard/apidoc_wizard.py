@@ -31,7 +31,7 @@ class ApiDocExecCommandPage(ExecCommandPage):
     def exec_(self):
         super(ApiDocExecCommandPage, self).exec_()
 
-        settings = self.wizard().dump()
+        settings = self.dump()
         cmd = apidoc.create_command(
             settings["path"],
             settings["apidoc-sourcedir"],

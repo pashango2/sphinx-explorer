@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+
+import ast
 import codecs
 import os
-from sphinx_explorer import extension
-import ast
+
 from six import string_types
+
+from sphinx_explorer.plugin import extension
 
 CONF_PY_ENCODING = "utf-8"
 

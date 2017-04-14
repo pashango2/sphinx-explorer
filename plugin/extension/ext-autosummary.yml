@@ -1,0 +1,9 @@
+require_extensions: ["ext-autodoc"]
+
+setting_params:
+    autosummary_generate:
+        value_type: TypeBool
+        default: true
+
+conf_py: |
+    add_extension: sphinx.ext.autosummary

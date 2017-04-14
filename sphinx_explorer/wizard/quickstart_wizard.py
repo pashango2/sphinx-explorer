@@ -16,18 +16,20 @@ class ChoiceTemplatePage(QWizardPage):
         self.tree_view_template = QTreeView(self)
         self.text_browser = DescriptionWidget(self)
         self.splitter = QSplitter(self)
+        # self.splitter.setSizes([])
 
         self.splitter.addWidget(self.tree_view_template)
         self.splitter.addWidget(self.text_browser)
         self.splitter.setSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Expanding
         )
+        self.splitter.setStretchFactor(1, 1)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.splitter)
         self.setLayout(layout)
 
-        self.setTitle(self.tr("Choice template"))
+        self.setTitle(self.tr(str("Choice template")))
         self.tree_view_template.setModel(template_model)
         self.tree_view_template.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
@@ -54,9 +56,6 @@ class ChoiceTemplatePage(QWizardPage):
         else:
             self.text_browser.clear()
 
-    # def initializePage(self):
-    #     self.setFinalPage(False)
-
     def choice(self):
         # type() -> TemplateItem
         index = self.tree_view_template.currentIndex()
@@ -67,7 +66,7 @@ class QuickstartExecCommandPage(ExecCommandPage):
     def exec_(self):
         super(QuickstartExecCommandPage, self).exec_()
 
-        settings = self.wizard().dump()
+        settings = self.dump()
         cmd = quickstart.quickstart_cmd(settings)
         self.exec_command(cmd)
 

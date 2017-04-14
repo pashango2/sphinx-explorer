@@ -2,31 +2,26 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 
-import os
-import toml
-import fnmatch
-import webbrowser
-import platform
 import ctypes
+import os
+import platform
+import webbrowser
 from collections import OrderedDict
 
+import toml
 from PySide.QtCore import *
 from PySide.QtGui import *
-from six import string_types, PY2
+from six import PY2
 
-from sphinx_explorer.wizard import quickstart_wizard, apidoc_wizard
-from . import editor
-from . import extension
+from .wizard import quickstart_wizard, apidoc_wizard
 from . import icon
 from . import sphinx_value_types
 from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel, ProjectItem
-from .settings import SettingsDialog, Settings
-from .util.exec_sphinx import launch, console, show_directory, open_terminal
-from .template_model import TemplateModel
+from .system_settings import SystemSettingsDialog, SystemSettings
+from . import plugin
 
-if False:
-    from typing import Iterator
+from .util.exec_sphinx import launch, console, show_directory, open_terminal
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -41,26 +36,30 @@ class MainWindow(QMainWindow):
 
     def __init__(self, sys_dir, home_dir, parent=None):
         super(MainWindow, self).__init__(parent)
-        self.template_model = TemplateModel(self)
         self.wizard_path = os.path.join(sys_dir, "settings")
 
         # make setting dir
         self.setting_dir = home_dir
         if not os.path.isdir(self.setting_dir):
             os.makedirs(self.setting_dir)
-        self.settings = Settings(os.path.join(self.setting_dir, SETTINGS_TOML))
+        self.settings = SystemSettings(os.path.join(self.setting_dir, SETTINGS_TOML))
 
-        # load extension
-        self._load_plugin(sys_dir)
+        # setting value types
+        sphinx_value_types.init()
+
+        # load plugin
+        plugin.load_plugin(sys_dir, self)
+        # self._load_plugin(sys_dir)
 
         # setup params dict
         toml_path = os.path.join(self.wizard_path, "params.toml")
         self.params_dict = toml.load(toml_path, OrderedDict)
 
-        for ext_name, ext in extension.list_iter():
+        for ext_name, ext in plugin.extension.list_iter():
             self.params_dict[ext_name] = {
                 "value_type": "TypeBool",
-                "default": True
+                "default": True,
+                "description": ext.get("description")
             }
 
         # create actions
@@ -158,27 +157,6 @@ class MainWindow(QMainWindow):
 
     def _save(self):
         self.settings.dump(self.project_list_model.dump())
-
-    def _load_plugin(self, sys_dir):
-        # type: (string_types) -> None
-        sphinx_value_types.init()
-        extension.init(os.path.join(sys_dir, "plugin", "extension"))
-
-        editor_dir = os.path.join(sys_dir, "plugin", "editor")
-        editor.init()
-        for file_path in self._walk_files(editor_dir, "*.yaml"):
-            editor.load_plugin(file_path)
-
-        wizard_dir = os.path.join(sys_dir, "plugin", "wizard")
-        for file_path in self._walk_files(wizard_dir, "*.yaml"):
-            self.template_model.load_plugin(file_path)
-
-    @staticmethod
-    def _walk_files(dir_path, ext):
-        # type: (string_types, string_types) -> Iterator[string_types]
-        for root, _, files in os.walk(dir_path):
-            for file_path in fnmatch.filter(files, ext):
-                yield os.path.join(root, file_path)
 
     def _create_context_menu(self, item, doc_path):
         # type : (ProjectItem, str) -> QMenu
@@ -303,7 +281,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def on_action_settings_triggered(self):
-        dlg = SettingsDialog(self)
+        dlg = SystemSettingsDialog(self)
         dlg.setup(self.settings, self.params_dict)
         if dlg.exec_() == QDialog.Accepted:
             dlg.update_settings(self.settings)
@@ -318,20 +296,20 @@ class MainWindow(QMainWindow):
         # () -> None
         # quickstart_wizard.main(self.settings.default_values, self.add_document, self)
         wizard = quickstart_wizard.create_wizard(
-            self.template_model,
+            plugin.template_model,
             self.params_dict,
             self.settings.default_values,
             self
         )
-        if wizard.exec_() == QDialog.Accepted:
-            self.add_document(wizard.path())
+        wizard.addDocumentRequested.connect(self.add_document)
+        wizard.exec_()
 
     @Slot()
     def on_action_apidoc_triggered(self):
         # () -> None
         wizard = apidoc_wizard.create_wizard(self.params_dict, self.settings.default_values, self)
-        if wizard.exec_() == QDialog.Accepted:
-            self.add_document(wizard.path())
+        wizard.addDocumentRequested.connect(self.add_document)
+        wizard.exec_()
 
     @Slot(str)
     def add_document(self, path):
