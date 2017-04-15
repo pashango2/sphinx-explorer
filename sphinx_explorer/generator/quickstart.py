@@ -4,11 +4,13 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 
 import codecs
 import os
+import toml
 
 from six import string_types
 
 from sphinx_explorer.util.conf_py_parser import extend_conf_py
 from sphinx_explorer.util.exec_sphinx import quote, command
+from ..project_list_model import ProjectSettings
 
 TOML_PATH = "settings/quickstart.toml"
 CONF_PY_ENCODING = "utf-8"
@@ -21,7 +23,6 @@ build_dir = '{rbuilddir}'
 
 def quickstart_cmd(d):
     # type: (dict) -> string_types
-    print(d)
     ignore_params = ["project", "prefix", "path", "version", "release"]
     arrow_extension = [
         "ext-autodoc",
@@ -81,19 +82,15 @@ def get_source_and_build(d, api_doc=False):
     return source_dir, build_dir
 
 
-def fix(d):
+def fix(d, cmd):
     source_dir, build_dir = get_source_and_build(d)
     conf_py_path = os.path.abspath(os.path.join(d["path"], source_dir, "conf.py"))
     project_path = d["path"]
 
-    fd = codecs.open(os.path.join(project_path, "setting.toml"), "w", "utf-8")
-    fd.write(
-        TEMPLATE_SETTING.format(
-            rsrcdir=source_dir,
-            rbuilddir=build_dir,
-        )
-    )
-    fd.close()
+    setting_obj = ProjectSettings.dump(source_dir, build_dir)
+    setting_path = os.path.join(project_path, ProjectSettings.SETTING_NAME)
+    with open(setting_path, "w") as fd:
+        toml.dump(setting_obj, fd)
 
     if conf_py_path and os.path.isfile(conf_py_path):
         extend_conf_py(conf_py_path, d, extensions=d)

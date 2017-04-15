@@ -4,6 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 
 import json
 import markdown
+from collections import OrderedDict
 # noinspection PyUnresolvedReferences
 from six import string_types
 # noinspection PyUnresolvedReferences
@@ -191,10 +192,10 @@ class PropertyWidget(QTableView):
 
     def property_map(self):
         # type: () -> Dict[string_types, PropertyItem]
-        return {
-            item.key: item
-            for item in self.properties()
-        }
+        prop_map = OrderedDict()
+        for item in self.properties():
+            prop_map[item.key] = item
+        return prop_map
 
     def item(self, name):
         # type: (string_types) -> PropertyItem

@@ -55,6 +55,7 @@ class ExecCommandPage(QWizardPage):
         self.setTabOrder(self.gen_button, self.console_widget)
         self.setTabOrder(self.console_widget, self.property_widget)
         self.succeeded = False
+        self.cmd = ""
 
     def initializePage(self):
         self.validatePage()
@@ -76,10 +77,15 @@ class ExecCommandPage(QWizardPage):
         self.console_widget.clear()
 
     def exec_command(self, cmd, cwd=None):
+        self.cmd = cmd
         self.console_widget.exec_command(cmd, cwd)
 
     def dump(self):
-        return self.property_widget.dump()
+        # type: () -> dict
+        wizard = self.wizard()  # type: BaseWizard
+        d = wizard.default_values.copy()
+        d.update(self.property_widget.dump())
+        return d
 
     def finished(self, return_code):
         self.succeeded = return_code == 0

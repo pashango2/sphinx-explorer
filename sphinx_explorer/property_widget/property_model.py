@@ -31,7 +31,7 @@ class PropertyModel(QStandardItemModel):
         self.setHorizontalHeaderLabels(["Property", "Value"])
         self._readonly = False
         self._use_default = False
-        self._default_dict = {}
+        self._default_dict = DefaultValues()
 
     def set_default_dict(self, default_dict):
         # (dict) -> None

@@ -77,19 +77,22 @@ class ProjectListModel(QStandardItemModel):
         thread_pool = QThreadPool.globalInstance()
         thread_pool.start(ana)
 
-    def onAnalyzeFinished(self, info, project_path):
-        # type: (ProjectSettings, str) -> None
+    @Slot(object, str)
+    def onAnalyzeFinished(self, settings, project_path):
+        # type: (ProjectSettings, str, str) -> None
         index = self.find(project_path)
         if not index.isValid():
             return
 
         item = self.itemFromIndex(index)
-        item.setInfo(info)
-        if info.is_valid():
+        item.setInfo(settings)
+        if settings.is_valid():
             item.setIcon(icon.load("book"))
             self.sphinxInfoLoaded.emit(item.index())
         else:
             item.setIcon(icon.load("error"))
+            # TODO: err output
+            print(settings.error_msg)
 
         if item.model():
             left = item.index()
@@ -193,8 +196,24 @@ class ProjectSettings(object):
         self.source_dir = None
         # self.conf = {}
         self.settings = {}
+        self.error_msg = ""
 
         self._analyze()
+
+    @staticmethod
+    def dump(source_dir, build_dir, module_dir=None, cmd=None):
+        d = {
+            "source_dir": source_dir,
+            "build_dir": build_dir,
+        }
+        if cmd:
+            d["command"] = cmd
+
+        if module_dir:
+            d["apidoc"] = {
+                "module_dir": module_dir,
+            }
+        return d
 
     def _analyze(self):
         # search conf.py
@@ -204,11 +223,14 @@ class ProjectSettings(object):
 
         path = os.path.join(self.path, self.SETTING_NAME)
         if os.path.isfile(path):
-            self.settings = toml.load(path)
+            try:
+                self.settings = toml.load(path)
+            except toml.TomlDecodeError as e:
+                self.error_msg = "TomlDecodeError: {}".format(e)
 
     def is_valid(self):
         # type: () -> bool
-        return bool(self.conf_py_path)
+        return bool(self.conf_py_path and self.settings)
 
     def can_autobuild(self):
         # type: () -> bool
@@ -272,8 +294,6 @@ class LoadSettingObject(QObject, QRunnable):
         self.project_path = project_path
 
     def run(self):
-        info = ProjectSettings(self.doc_path)
-        # if info.conf_py_path:
-        #     info.read_conf()
-        self.finished.emit(info, self.project_path)
+        settings = ProjectSettings(self.doc_path)
+        self.finished.emit(settings, self.project_path)
 

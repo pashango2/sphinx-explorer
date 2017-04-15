@@ -71,3 +71,12 @@ def test_build_path3(tmpdir):
     assert source_dir == "source"
     check_build_path(temp_dir, d, build_dir)
 
+
+def test_build_path4(tmpdir):
+    temp_dir = str(tmpdir)
+    d = {'ext-fontawesome': True, 'author': 'Toshiyuki Ishii', 'path': '/home/toshiyuki/sphix_docs/read_the_docs',
+         'ext-blockdiag': True, 'project': 'read_the_docs'}
+    d["path"] = temp_dir
+    source_dir, build_dir = quickstart.get_source_and_build(d)
+    assert source_dir == "."
+    check_build_path(temp_dir, d, build_dir)

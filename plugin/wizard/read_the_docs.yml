@@ -8,7 +8,7 @@ description: |
     - Jupyter Notebook
     - Font Awesome
     - BlockDiag
-
+    
     <img src="../theme/sphinx_rtd_theme.png" width="10px" />
 
 
@@ -22,13 +22,9 @@ wizard:
         - author
         - version
         - release
+        - "# More Extensions"
+        - ext-blockdiag
 
-    - More Extensions
-    -
-        [
-          "ext-fontawesome",
-          "ext-blockdiag",
-        ]
 
 default_values:
     html_theme: sphinx_rtd_theme

@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 
 
 class DefaultValues(object):
-    def __init__(self, values_dict):
+    def __init__(self, values_dict=None):
         self._dicts = [values_dict or {}]
 
     def __getitem__(self, key):
