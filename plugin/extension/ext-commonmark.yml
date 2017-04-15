@@ -1,4 +1,4 @@
-package: [
+packages: [
     "commonmark",
     "recommonmark"
 ]
@@ -16,12 +16,7 @@ conf_py:
           import: AutoStructify
 
     extra_code: |
-        from recommonmark.parser import CommonMarkParser
-        from recommonmark.transform import AutoStructify
-
         source_suffix = [source_suffix, '.md']
-
-        from recommonmark.parser import CommonMarkParser
         source_parsers = {
            '.md': CommonMarkParser,
         }

@@ -1,4 +1,4 @@
-package: [
+packages: [
     'sphinxcontrib.blockdiag',
     'sphinxcontrib.seqdiag',
     'sphinxcontrib.actdiag',

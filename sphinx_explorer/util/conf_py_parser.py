@@ -9,6 +9,7 @@ import os
 from six import string_types
 
 from sphinx_explorer.plugin import extension
+from sphinx_explorer.plugin.extension import Extension
 
 CONF_PY_ENCODING = "utf-8"
 
@@ -100,13 +101,16 @@ def extend_conf_py(conf_py_path, params, extensions=None, insert_paths=None):
 
         for key in extensions:
             if key.startswith("ext-"):
-                ext = extension.get(key)
-                if ext and ext.get("conf_py", {}).get("extra_code"):
+                ext = extension.get(key)    # type: Extension
+                if ext and ext.extra_code:
                     comment = "# -- {} ".format(key)
                     comment += "-" * (75 - len(comment))
                     parser.append("\n\n")
                     parser.append(comment + "\n")
-                    parser.append(ext.get("conf_py", {}).get("extra_code"))
+                    for imp in ext.imports:
+                        parser.append(imp + "\n")
+                    parser.append("\n")
+                    parser.append(ext.extra_code)
 
         with codecs.open(conf_py_path, "w", CONF_PY_ENCODING) as fd:
             fd.write(parser.dumps())

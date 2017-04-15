@@ -60,7 +60,7 @@ class MainWindow(QMainWindow):
             self.params_dict[ext_name] = {
                 "value_type": "TypeBool",
                 "default": True,
-                "description": ext.get("description")
+                "description": ext.description
             }
 
         # create actions
