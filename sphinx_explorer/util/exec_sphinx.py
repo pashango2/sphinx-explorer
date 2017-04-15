@@ -143,11 +143,11 @@ def show_directory(path):
     # type: (string_types) -> None
     path = os.path.normpath(path)
     if platform.system() == "Windows":
-        cmd = ["explorer", path]
+        cmd = ["explorer", quote(path)]
     elif platform.system() == "Darwin":
-        cmd = ["open", path]
+        cmd = ["open", quote(path)]
     else:
-        cmd = ["xdg-open", path]
+        cmd = ["xdg-open", quote(path)]
 
     launch(" ".join(cmd), path)
 

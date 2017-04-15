@@ -16,11 +16,6 @@ def init(plugin_dir):
 
     Extensions = {}
     for root, dirs, files in os.walk(plugin_dir):
-        # for file_name in fnmatch.filter(files, "ext-*.py"):
-        #     ext_name = file_name[:-len(".py")]
-        #     Extensions[ext_name] = toml.load(os.path.join(root, file_name))
-            # Extensions[ext_name] = __import__(ext_name)
-
         for file_name in fnmatch.filter(files, "ext-*.yml"):
             ext_name = file_name[:-len(".yml")]
             Extensions[ext_name] = yaml.load(open(os.path.join(root, file_name)))

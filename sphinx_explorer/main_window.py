@@ -20,6 +20,7 @@ from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel, ProjectItem
 from .system_settings import SystemSettingsDialog, SystemSettings
 from . import plugin
+from .util.exec_sphinx import command
 
 from .util.exec_sphinx import launch, console, show_directory, open_terminal
 
@@ -259,7 +260,7 @@ class MainWindow(QMainWindow):
 
     def _make(self, make_cmd, cwd, callback=None):
         self.ui.plain_output.exec_command(
-            "make " + make_cmd,
+            command("make " + make_cmd),
             cwd,
             clear=True,
             callback=callback
