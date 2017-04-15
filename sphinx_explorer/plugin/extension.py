@@ -5,6 +5,7 @@ import sys
 import os
 import fnmatch
 import yaml
+from six import string_types
 
 Extensions = {}
 
@@ -62,6 +63,7 @@ class Extension(object):
                 ret.append("from {} import {}".format(imp["from"], imp["import"]))
             else:
                 ret.append("import {}".format(imp["import"]))
+
         return ret
 
     @property
@@ -75,7 +77,12 @@ class Extension(object):
     def add_extensions(self):
         d = self.conf_py.get("add_extension")
         if d is None:
-            return self.packages
-        if d is False:
-            return []
+            d = self.packages
+        elif d is False:
+            d = []
+        elif isinstance(d, string_types):
+            d = [d]
+
+        d = ["'" + x + "'" for x in d]
+
         return d

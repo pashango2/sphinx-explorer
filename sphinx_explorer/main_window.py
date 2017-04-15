@@ -195,6 +195,8 @@ class MainWindow(QMainWindow):
         make_menu.setTitle("Make")
         menu.addMenu(make_menu)
 
+        menu.addSeparator()
+
         if can_apidoc:
             menu.addAction(self.apidoc_act)
 

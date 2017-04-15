@@ -5,5 +5,5 @@ setting_params:
         value_type: TypeBool
         default: true
 
-conf_py: |
+conf_py:
     add_extension: sphinx.ext.autosummary

@@ -19,9 +19,9 @@ conf_py:
         source_suffix = [source_suffix, '.md']
         source_parsers = {
            '.md': CommonMarkParser,
+
         }
 
-        #from recommonmark.transform import AutoStructify
         github_doc_root = 'https://github.com/rtfd/recommonmark/tree/master/doc/'
 
         def setup(app):

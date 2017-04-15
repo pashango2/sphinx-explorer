@@ -7,6 +7,9 @@ packages: [
     'sphinxcontrib.packetdiag',
 ]
 
+conf_py:
+    add_extensions_surround_quote: yes
+
 setting_params:
     blockdiag_html_image_format:
         value_type: TypeChoice

@@ -88,8 +88,9 @@ class PropertyWidget(QTableView):
         # type: (int, int) -> QModelIndex
         return self._model.index(row, column)
 
-    def add_category(self, key, name):
+    def add_category(self, key, name=None):
         # type: (string_types, string_types) -> PropertyCategoryItem
+        name = name or key
         item = self._model.add_category(key, name)
         self.setSpan(item.row(), 0, 1, 2)
         return item
