@@ -101,12 +101,12 @@ def extend_conf_py(conf_py_path, params, extensions=None, insert_paths=None):
         for key in extensions:
             if key.startswith("ext-"):
                 ext = extension.get(key)
-                if ext and hasattr(ext, "conf_py"):
+                if ext and ext.get("conf_py", {}).get("extra_code"):
                     comment = "# -- {} ".format(key)
                     comment += "-" * (75 - len(comment))
                     parser.append("\n\n")
                     parser.append(comment + "\n")
-                    parser.append(ext.conf_py)
+                    parser.append(ext.get("conf_py", {}).get("extra_code"))
 
         with codecs.open(conf_py_path, "w", CONF_PY_ENCODING) as fd:
             fd.write(parser.dumps())

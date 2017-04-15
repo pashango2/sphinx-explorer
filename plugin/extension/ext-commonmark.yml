@@ -16,12 +16,15 @@ conf_py:
           import: AutoStructify
 
     extra_code: |
-        # source_suffix = [source_suffix, '.md']
-        #
-        # from recommonmark.parser import CommonMarkParser
-        # source_parsers = {
-        #     '.md': CommonMarkParser,
-        # }
+        from recommonmark.parser import CommonMarkParser
+        from recommonmark.transform import AutoStructify
+
+        source_suffix = [source_suffix, '.md']
+
+        from recommonmark.parser import CommonMarkParser
+        source_parsers = {
+           '.md': CommonMarkParser,
+        }
 
         #from recommonmark.transform import AutoStructify
         github_doc_root = 'https://github.com/rtfd/recommonmark/tree/master/doc/'

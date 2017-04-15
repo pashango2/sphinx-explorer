@@ -17,8 +17,7 @@ wizard:
     - Required params
     -
         - project
-        - path :
-            require_input: false
+        - path
         - author
         - version
         - release
