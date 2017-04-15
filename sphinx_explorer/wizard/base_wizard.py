@@ -8,23 +8,22 @@ from sphinx_explorer.util.QConsoleWidget import QConsoleWidget
 from .. import icon
 
 from sphinx_explorer import property_widget
-from sphinx_explorer.property_widget import DescriptionWidget, DefaultValues
+from sphinx_explorer.property_widget import PropertyModel, DescriptionWidget, DefaultValues
 
 
 class ExecCommandPage(QWizardPage):
     BUTTON_HEIGHT = 64
     BUTTON_ICON_SIZE = 28
 
-    def __init__(self, title, parent=None):
+    def __init__(self, title, property_model, parent=None):
         # type: (string_types, QWidget) -> None
         super(ExecCommandPage, self).__init__(parent)
         self.console_widget = QConsoleWidget(self)
-        self.property_widget = property_widget.PropertyWidget(self)
+        self.property_widget = property_widget.PropertyWidget(self, property_model)
         self.gen_button = QPushButton(self)
         self.gen_button.setMinimumHeight(self.BUTTON_HEIGHT)
         self.gen_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.gen_button.setIconSize(QSize(self.BUTTON_ICON_SIZE, self.BUTTON_ICON_SIZE))
-        # self.gen_button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         self.v_layout = QVBoxLayout(self)
         self.v_layout.addWidget(self.gen_button)
@@ -39,6 +38,7 @@ class ExecCommandPage(QWizardPage):
         self.splitter.addWidget(self.panel)
         self.splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.splitter.setStretchFactor(1, 1)
+        self.splitter.setSizes([310, 643])
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.splitter)
@@ -60,8 +60,9 @@ class ExecCommandPage(QWizardPage):
     def initializePage(self):
         self.validatePage()
 
-        settings, params_dict = self.wizard().all_props()
-        self.property_widget.load_settings(settings, params_dict)
+        # settings, params_dict = self.wizard().all_props()
+        # self.property_widget.load_settings(settings, params_dict)
+        self.property_widget.setup()
         self.property_widget.set_values(self.wizard().dump())
 
         self.property_widget.resizeColumnsToContents()
@@ -105,10 +106,11 @@ class ExecCommandPage(QWizardPage):
 
 
 class PropertyPage(QWizardPage):
-    def __init__(self, params_dict, title, items, default_dict, parent=None):
+    def __init__(self, title, filter_model, default_dict, parent=None):
         super(PropertyPage, self).__init__(parent)
+        self.filter_model = filter_model
 
-        self.property_widget = property_widget.PropertyWidget(self)
+        self.property_widget = property_widget.PropertyWidget(self, self.filter_model)
         self.property_widget.set_default_dict(default_dict or {})
         self.text_browser = DescriptionWidget(self)
         self.splitter = QSplitter(self)
@@ -119,6 +121,7 @@ class PropertyPage(QWizardPage):
             QSizePolicy.Expanding, QSizePolicy.Expanding
         )
         self.splitter.setStretchFactor(1, 1)
+        self.splitter.setSizes([310, 643])
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.splitter)
@@ -126,11 +129,6 @@ class PropertyPage(QWizardPage):
 
         self.property_widget.currentChanged.connect(self._onCurrentChanged)
         self.property_widget.setCurrentIndex(self.property_widget.index(0, 1))
-
-        self.property_widget.load_settings(
-            items,
-            params_dict=params_dict,
-        )
 
         self.property_widget.resizeColumnsToContents()
         self.property_widget.itemChanged.connect(self._onItemChanged)
@@ -185,16 +183,7 @@ class BaseWizard(QWizard):
         self._value_dict = {}
         self.params_dict = params_dict
         self.default_values = DefaultValues(default_values)
-
-        # self.setOption(QWizard.HaveCustomButton1, True)
-        # self.setButtonText(QWizard.CustomButton1, self.tr("Add Bookmark"))
-        # self.setButtonLayout([
-        #     QWizard.CustomButton1, QWizard.Stretch, QWizard.BackButton,
-        #     QWizard.NextButton, QWizard.FinishButton, QWizard.CancelButton
-        # ])
-
-        # button = self.button(QWizard.CustomButton1)
-        # button.setIcon(icon.load("bookmark"))
+        self.property_model = PropertyModel(self)
 
     def setup(self, setting_dict, params_dict, default_dict=None):
         # type: (dict) -> None

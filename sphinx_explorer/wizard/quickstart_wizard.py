@@ -24,6 +24,7 @@ class ChoiceTemplatePage(QWizardPage):
             QSizePolicy.Expanding, QSizePolicy.Expanding
         )
         self.splitter.setStretchFactor(1, 1)
+        self.splitter.setSizes([310, 643])
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.splitter)
@@ -90,7 +91,7 @@ class QuickStartWizard(BaseWizard):
         return self._value_dict.get("path")
 
     def create_final_page(self):
-        page = QuickstartExecCommandPage("finish", self)
+        page = QuickstartExecCommandPage("finish", self.property_model, self)
         page.setFinalPage(True)
         return page
 
@@ -101,13 +102,19 @@ class QuickStartWizard(BaseWizard):
         self.default_values.pop(1)
         self.default_values.push(template_item.default_values)
 
+        self.property_model.removeRows(0, self.property_model.rowCount())
+
         page_ids = []
         last_page = None
         for category_name, params in template_item.wizard_iter():
+            self.property_model.load_settings(
+                ["#{}".format(category_name)] + params,
+                self.params_dict
+            )
+
             last_page = PropertyPage(
-                self.params_dict,
                 category_name,
-                params,
+                self.property_model.create_filter_model(params),
                 self.default_values
             )
             page_id = self.addPage(last_page)

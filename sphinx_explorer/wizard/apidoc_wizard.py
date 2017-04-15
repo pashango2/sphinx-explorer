@@ -59,35 +59,55 @@ def create_wizard(params_dict, default_settings, parent=None):
     # last page is disable back button.
     wizard.setOption(QWizard.DisabledBackButtonOnLastPage, True)
 
-    first_page = PropertyPage(
-        params_dict,
-        "Path setting",
+    property_model = wizard.property_model
+
+    property_model.load_settings(
         [
+            "#Path setting",
             "project",
             "path",
-
-        ],
-        default_settings,
-        parent=wizard,
-    )
-
-    sec_page = ApiDocSecondPropertyPage(
-        params_dict,
-        "Project setting",
-        [
+            "#Project setting",
             "apidoc-sourcedir",
             "author",
             "html_theme",
             "apidoc-separate",
             "apidoc-private",
         ],
+        params_dict
+    )
+
+    first_page = PropertyPage(
+        "Path setting",
+        property_model.create_filter_model([
+            "project",
+            "path",
+        ]),
+        default_settings,
+        parent=wizard,
+    )
+
+    sec_page = ApiDocSecondPropertyPage(
+        "Project setting",
+        property_model.create_filter_model([
+            "apidoc-sourcedir",
+            "author",
+            "html_theme",
+            "apidoc-separate",
+            "apidoc-private",
+        ]),
         default_settings,
         parent=wizard,
     )
 
     wizard.addPage(first_page)
     wizard.addPage(sec_page)
-    wizard.addPage(ApiDocExecCommandPage("create api doc", parent=wizard))
+    wizard.addPage(
+        ApiDocExecCommandPage(
+            "create api doc",
+            property_model,
+            parent=wizard
+        )
+    )
 
     wizard.setWindowTitle("Sphinx Apidoc Wizard")
     wizard.resize(QSize(1000, 600).expandedTo(wizard.minimumSizeHint()))

@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sphinx_explorer.property_widget import PropertyWidget, PropertyItem, TypeBool
+from sphinx_explorer.property_widget import PropertyWidget,\
+    PropertyItem,\
+    TypeBool,\
+    PropertyModel
 import sys
 import os
 from PySide.QtGui import *
@@ -197,6 +200,29 @@ def test_link_format():
     }
     widget.set_default_dict(default_values)
     assert item_b.value == "sphinx/test_b"
+
+
+def test_property_filter():
+    model = PropertyModel()
+
+    settings = [
+        "#category",
+        "a",
+        "b",
+        "#category2",
+        "c",
+    ]
+
+    model.load_settings(settings)
+    assert model.rowCount() == 5
+
+    filter_model = model.create_filter_model(
+        [
+            "a", "b"
+        ]
+    )
+
+    assert filter_model.rowCount() == 2
 
 
 def test_add_item():

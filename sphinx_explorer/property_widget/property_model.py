@@ -4,8 +4,11 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from .value_types import find_value_type, TypeBase
 from six import string_types
 from PySide.QtCore import *
-from PySide.QtGui import *
 from .default_value_dict import DefaultValues
+from .property_filter_model import PropertyFilterModel
+from collections import OrderedDict
+import markdown
+from PySide.QtGui import *
 
 __all__ = [
     "PropertyModel",
@@ -33,6 +36,81 @@ class PropertyModel(QStandardItemModel):
         self._use_default = False
         self._default_dict = DefaultValues()
 
+    def create_filter_model(self, property_filter, parent=None):
+        return PropertyFilterModel(self, property_filter, parent)
+
+    def create_property(self, key, params, label_name=None):
+        # type: (string_types, dict, string_types or None) -> PropertyItem
+        label_name = label_name or params.get("label") or key
+        value = params.get("value")
+        default_value = self.default_value(key) or params.get("default")
+
+        item = PropertyItem(key, label_name, value, params, default_value)
+
+        # if "default" in params:
+        #     self._model.set_default_value(key, params["default"], update=False)
+
+        item.update_link(self.default_value(key))
+        item.set_required(params.get("required", False))
+
+        if params.get("description"):
+            html = self._html(params.get("description").strip(), label_name, "###")
+            item.setToolTip(html)
+
+        return item
+
+    def _load_settings(self, settings, params_dict):
+        key_item_map = {}
+
+        for setting in settings:
+            if isinstance(setting, string_types):
+                if "#" == setting[0]:
+                    self.add_category(setting, setting[1:].strip())
+                    continue
+                else:
+                    key = setting
+                    params = params_dict.get(setting, {})
+            elif isinstance(setting, dict):
+                key = list(setting.keys())[0]
+                params = params_dict.get(key, {}).copy()
+                params.update(setting[key])
+            else:
+                raise ValueError(setting)
+
+            item = self.create_property(key, params)
+            self.add_property_item(item)
+            key_item_map[key] = [item, params]
+
+        return key_item_map
+
+    def load_settings(self, settings, params_dict=None):
+        # (dict) -> None
+        params_dict = params_dict or {}
+
+        key_item_map = self._load_settings(settings, params_dict)
+
+        # setup link
+        prop_map = self.property_map()
+        for key, (item, params) in key_item_map.items():
+            if "link" not in params:
+                continue
+            item = prop_map[key]
+            item.set_link(prop_map.get(params["link"]))
+
+    def properties(self):
+        # type: () -> Iterator[PropertyItem]
+        for row in range(self.rowCount()):
+            item = self.item(row)
+            if item.type() == PropertyItemType:
+                yield item
+
+    def property_map(self):
+        # type: () -> Dict[string_types, PropertyItem]
+        prop_map = OrderedDict()
+        for item in self.properties():
+            prop_map[item.key] = item
+        return prop_map
+
     def set_default_dict(self, default_dict):
         # (dict) -> None
         if isinstance(default_dict, DefaultValues):
@@ -55,11 +133,17 @@ class PropertyModel(QStandardItemModel):
             return
         self._default_dict.set_default_value(key, value)
 
-    def add_category(self, item):
+    def add_category(self, key, name):
+        # type: (string_types, string_types) -> PropertyCategoryItem
+        item = PropertyCategoryItem(key, name)
+        self.add_category_item(item)
+        return item
+
+    def add_category_item(self, item):
         # type: (PropertyCategoryItem) -> None
         self.appendRow(item)
 
-    def add_property(self, item):
+    def add_property_item(self, item):
         # type: (PropertyItem) -> None
         self.appendRow(item)
 
@@ -81,6 +165,16 @@ class PropertyModel(QStandardItemModel):
         if item.type() == PropertyItemType:
             return item
         return None
+
+    @staticmethod
+    def _html(dec, title, title_prefix="#"):
+        md = """
+    {title_prefix} {title}
+    {}
+            """.strip().format(dec, title=title, title_prefix=title_prefix)
+
+        mdo = markdown.Markdown(extensions=["gfm"])
+        return mdo.convert(md)
 
     def data(self, index, role=Qt.DisplayRole):
         if role == Qt.DisplayRole or role == Qt.EditRole:
@@ -120,6 +214,7 @@ class PropertyModel(QStandardItemModel):
 
 
 class PropertyCategoryItem(QStandardItem):
+    is_category = True
     BACKGROUND_COLOR = QColor(71, 74, 77)
     FOREGROUND_COLOR = QColor(0xFF, 0xFF, 0xFF)
 
@@ -127,10 +222,10 @@ class PropertyCategoryItem(QStandardItem):
     def type():
         return CategoryItemType
 
-    def __init__(self, name):
-        # type: (string_types) -> None
+    def __init__(self, key, name):
+        # type: (string_types, string_types) -> None
         super(PropertyCategoryItem, self).__init__(name)
-
+        self.key = key
         self.setBackground(QBrush(self.BACKGROUND_COLOR))
         self.setForeground(self.FOREGROUND_COLOR)
         font = self.font()
@@ -141,6 +236,7 @@ class PropertyCategoryItem(QStandardItem):
 
 
 class PropertyItem(QStandardItem):
+    is_category = False
     REQUIRED_FOREGROUND_COLOR = QColor("#f8b862")
     BOLD_FONT = QFont()
     BOLD_FONT.setBold(True)
