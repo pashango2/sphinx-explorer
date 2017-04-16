@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/main_window.ui'
 #
-# Created: Mon Apr 17 07:38:55 2017
+# Created: Mon Apr 17 08:51:23 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -80,6 +80,7 @@ class Ui_MainWindow(object):
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
         self.dock_outputs = QtGui.QDockWidget(MainWindow)
+        self.dock_outputs.setFeatures(QtGui.QDockWidget.DockWidgetFloatable|QtGui.QDockWidget.DockWidgetMovable)
         self.dock_outputs.setObjectName("dock_outputs")
         self.dockWidgetContents = QtGui.QWidget()
         self.dockWidgetContents.setObjectName("dockWidgetContents")
