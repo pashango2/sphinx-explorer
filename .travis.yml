@@ -26,9 +26,9 @@ install:
   - "pip install docutils"
   - "pip install typing"
   
-before_deploy:
+script:
     - "python deploy.py"
-
+    
 deploy:
   provider: releases
   api_key:
