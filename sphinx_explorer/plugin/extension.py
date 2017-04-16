@@ -133,9 +133,10 @@ class Extension(object):
             parser.append("]")
 
         # setting params
-        for param_name, value in self.setting_params:
-            value = settings.get(param_name, value)
-            parser.append("{} = {}".format(param_name, repr(value)))
+        for param_name, param_setting in self.setting_params:
+            value = settings.get(param_name, param_setting.get("default"))
+            if value:
+                parser.append("{} = {}".format(param_name, repr(value)))
 
         # add extra code
         if self.extra_code:
