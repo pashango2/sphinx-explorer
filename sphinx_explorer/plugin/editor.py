@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import os
 import yaml
 from PySide.QtGui import *
-from .util.exec_sphinx import launch
+from sphinx_explorer.util.exec_sphinx import launch
 from typing import Iterator
 from six import string_types
 
@@ -22,7 +22,7 @@ def load_plugin(file_name):
     global Editors
 
     root = os.path.dirname(file_name)
-    ext_name = os.path.basename(file_name)[:-len(".yaml")]
+    ext_name = os.path.basename(file_name)[:-len(".yml")]
     setting_dict = yaml.load(open(file_name))
     Editors[ext_name] = Editor(root, ext_name, setting_dict)
 

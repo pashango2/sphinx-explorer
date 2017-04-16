@@ -1,0 +1,6 @@
+order:
+    - ext-commonmark
+    - ext-nbsphinx
+    - ext-blockdiag
+    - ext-fontawesome
+

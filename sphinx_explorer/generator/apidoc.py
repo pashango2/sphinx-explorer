@@ -8,7 +8,7 @@ import os
 from six import string_types
 
 from sphinx_explorer.util.conf_py_parser import extend_conf_py
-from .util.exec_sphinx import create_cmd, exec_
+from sphinx_explorer.util.exec_sphinx import create_cmd, exec_
 
 TEMPLATE_SETTING = """
 source_dir = '{rsrcdir}'
@@ -19,8 +19,13 @@ module_dir = '{module_dir}'
 """.strip()
 
 
-def create_command(project_path, source_dir, settings):
+def create_command(project_path, source_dir, settings=None):
     # type: (string_types, string_types, dict) -> string_types
+    settings = settings or {}
+
+    if not os.path.isabs(source_dir):
+        source_dir = os.path.abspath(os.path.join(project_path, source_dir))
+
     cmds = [
         "sphinx-apidoc",
         source_dir,
@@ -40,13 +45,12 @@ def create_command(project_path, source_dir, settings):
         cmds += ["-R", settings.get("release")]
 
     cmds += settings.get("pathnames", [])
-    # print(" ".join(cmds))
-    return " ".join(cmds)
+    return create_cmd(cmds)
 
 
 def fix_apidoc(project_path, source_dir, params):
     # type: (string_types, string_types, dict) -> None
-    if os.path.abspath(source_dir):
+    if not os.path.isabs(source_dir):
         module_dir = source_dir
     else:
         try:
@@ -65,13 +69,21 @@ def fix_apidoc(project_path, source_dir, params):
     fd.close()
 
     conf_py_path = os.path.join(project_path, "conf.py")
-    extend_conf_py(conf_py_path, html_theme=params.get("html_theme"))
+
+    path, b = os.path.split(module_dir)
+    if not b:
+        path, _ = os.path.split(path)
+    extend_conf_py(conf_py_path, params, insert_paths=[path])
 
 
 def create(project_path, source_dir, settings, cwd=None):
     # type: (string_types, string_types, dict, string_types or None) -> int
     cmd = create_command(project_path, source_dir, settings)
-    return exec_(create_cmd(cmd), cwd)
+
+    if not os.path.exists(project_path):
+        os.makedirs(project_path)
+
+    return exec_(cmd, cwd)
 
 
 def update_cmd(source_dir, output_dir, settings):

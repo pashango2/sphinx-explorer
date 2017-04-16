@@ -1,37 +1,61 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+
 from PySide.QtCore import *
 from PySide.QtGui import *
 
-from sphinx_explorer import quickstart
+from sphinx_explorer.generator import quickstart
 from .base_wizard import PropertyPage, BaseWizard, ExecCommandPage
+from ..property_widget import DescriptionWidget
 
 
 class ChoiceTemplatePage(QWizardPage):
     def __init__(self, template_model, parent=None):
         super(ChoiceTemplatePage, self).__init__(parent)
         self.tree_view_template = QTreeView(self)
-        self.text_browser = QTextBrowser(self)
+        self.text_browser = DescriptionWidget(self)
         self.splitter = QSplitter(self)
+        # self.splitter.setSizes([])
 
         self.splitter.addWidget(self.tree_view_template)
         self.splitter.addWidget(self.text_browser)
         self.splitter.setSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Expanding
         )
+        self.splitter.setStretchFactor(1, 1)
+        self.splitter.setSizes([310, 643])
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.splitter)
         self.setLayout(layout)
 
-        self.setTitle(self.tr("Choice template"))
+        self.setTitle(self.tr(str("Choice template")))
         self.tree_view_template.setModel(template_model)
         self.tree_view_template.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
+        self.template_selection_model = self.tree_view_template.selectionModel()
+        self.template_selection_model.currentChanged.connect(self._on_template_current_changed)
+        # noinspection PyUnresolvedReferences
+        self.tree_view_template.doubleClicked.connect(self._on_double_clicked)
         self.tree_view_template.setCurrentIndex(template_model.index(0, 0))
 
-    # def initializePage(self):
-    #     self.setFinalPage(False)
+    def _on_double_clicked(self, _):
+        # type: (QModelIndex) -> None
+        self.wizard().next()
+
+    def _on_template_current_changed(self, current, _):
+        # type: (QModelIndex, QModelIndex) -> None
+        item = self.tree_view_template.model().itemFromIndex(current)
+
+        if item.description:
+            self.text_browser.setMarkdown(
+                item.description,
+                title=item.text(),
+                search_path=item.root_path,
+            )
+        else:
+            self.text_browser.clear()
 
     def choice(self):
         # type() -> TemplateItem
@@ -40,19 +64,18 @@ class ChoiceTemplatePage(QWizardPage):
 
 
 class QuickstartExecCommandPage(ExecCommandPage):
-    def initializePage(self):
-        self.validatePage()
-        self.console_widget.clear()
+    def exec_(self):
+        super(QuickstartExecCommandPage, self).exec_()
 
-        settings = self.wizard().dump()
+        settings = self.dump()
         cmd = quickstart.quickstart_cmd(settings)
         self.exec_command(cmd)
 
     def finished(self, return_code):
         super(QuickstartExecCommandPage, self).finished(return_code)
         if return_code == 0:
-            settings = self.wizard().dump()
-            quickstart.fix(settings)
+            settings = self.dump()
+            quickstart.fix(settings, self.cmd)
 
     def nextId(self):
         return -1
@@ -60,7 +83,7 @@ class QuickstartExecCommandPage(ExecCommandPage):
 
 class QuickStartWizard(BaseWizard):
     def __init__(self, params_dict, default_settings, parent=None):
-        super(QuickStartWizard, self).__init__(default_settings, parent)
+        super(QuickStartWizard, self).__init__(params_dict, default_settings, parent)
         self.params_dict = params_dict
         self.page_dict = {}
 
@@ -68,7 +91,7 @@ class QuickStartWizard(BaseWizard):
         return self._value_dict.get("path")
 
     def create_final_page(self):
-        page = QuickstartExecCommandPage("finish", self)
+        page = QuickstartExecCommandPage("finish", self.property_model, self)
         page.setFinalPage(True)
         return page
 
@@ -79,13 +102,19 @@ class QuickStartWizard(BaseWizard):
         self.default_values.pop(1)
         self.default_values.push(template_item.default_values)
 
+        self.property_model.removeRows(0, self.property_model.rowCount())
+
         page_ids = []
         last_page = None
         for category_name, params in template_item.wizard_iter():
+            self.property_model.load_settings(
+                ["#{}".format(category_name)] + params,
+                self.params_dict
+            )
+
             last_page = PropertyPage(
-                self.params_dict,
                 category_name,
-                params,
+                self.property_model.create_filter_model(params),
                 self.default_values
             )
             page_id = self.addPage(last_page)

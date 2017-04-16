@@ -1,0 +1,50 @@
+title: EBooks Template
+
+description: |
+    This is standard EBooks Template.
+
+wizard:
+    - Required params
+    -
+        - project
+        - path :
+            require_input: false
+        - author
+        - version
+        - release
+    - Document params
+    -
+        - language
+        - html_theme
+        - epub
+    - Options
+    -
+        [
+            "sep",
+            "prefix",
+            "suffix",
+            "master",
+            "#Build params",
+            "makefile",
+            "batchfile",
+            '#Extensions',
+            "ext-autodoc",
+            "ext-doctest",
+            "ext-intersphinx",
+            "ext-todo",
+            "ext-coverage",
+            "ext-imgmath",
+            "ext-mathjax",
+            "ext-ifconfig",
+            "ext-viewcode",
+            "ext-githubpage",
+        ]
+    - More Extensions
+    -
+        [
+            "ext-commonmark",
+            "ext-nbsphinx",
+            "ext-fontawesome",
+            "ext-blockdiag",
+            "ext-autosummary",
+        ]

@@ -1,0 +1,37 @@
+packages: [
+    'sphinxcontrib.blockdiag',
+    'sphinxcontrib.seqdiag',
+    'sphinxcontrib.actdiag',
+    'sphinxcontrib.nwdiag',
+    'sphinxcontrib.rackdiag',
+    'sphinxcontrib.packetdiag',
+]
+
+conf_py:
+    add_extensions_surround_quote: yes
+
+setting_params:
+    blockdiag_html_image_format:
+        value_type: TypeChoice
+        choices: ["PNG", "SVG"]
+        default: "SVG"
+    seqdiag_html_image_format:
+        value_type: TypeChoice
+        choices: ["PNG", "SVG"]
+        default: "SVG"
+    actdiag_html_image_format:
+        value_type: TypeChoice
+        choices: ["PNG", "SVG"]
+        default: "SVG"
+    nwdiag_html_image_format:
+        value_type: TypeChoice
+        choices: ["PNG", "SVG"]
+        default: "SVG"
+    rackiag_html_image_format:
+        value_type: TypeChoice
+        choices: ["PNG", "SVG"]
+        default: "SVG"
+    packetdiag_html_image_format:
+        value_type: TypeChoice
+        choices: ["PNG", "SVG"]
+        default: "SVG"

@@ -34,7 +34,7 @@
         <enum>QListView::SinglePass</enum>
        </property>
        <property name="viewMode">
-        <enum>QListView::IconMode</enum>
+        <enum>QListView::ListMode</enum>
        </property>
        <property name="modelColumn">
         <number>0</number>
@@ -42,7 +42,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QTextBrowser" name="text_edit_preview"/>
+      <widget class="DescriptionWidget" name="text_edit_preview"/>
      </item>
     </layout>
    </item>
@@ -58,6 +58,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DescriptionWidget</class>
+   <extends>QTextBrowser</extends>
+   <header>sphinx_explorer.property_widget</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sphinx_explorer.property_widget import PropertyWidget, PropertyItem, TypeBool
+from sphinx_explorer.property_widget import PropertyWidget,\
+    PropertyItem,\
+    TypeBool,\
+    PropertyModel
 import sys
 import os
 from PySide.QtGui import *
@@ -30,14 +33,16 @@ def test_load_settings():
     settings = [
         "#category",
         {
-            "key": "a",
-            "label": "Document",
+            "a": {
+                "label": "Document",
+            },
         },
         {
-            "key": "b",
-            "label": "Check",
-            "value_type": "TypeBool",
-            "default": False
+            "b": {
+                "label": "Check",
+                "value_type": "TypeBool",
+                "default": False
+            }
         },
     ]
     widget.load_settings(settings)
@@ -53,14 +58,17 @@ def test_link():
     settings = [
         "#category",
         {
-            "key": "a",
-            "label": "Document",
-            "default": "test",
+            "a": {
+                "label": "Document",
+                "default": "test",
+            },
         },
         {
-            "key": "b",
-            "label": "Document",
-            "link": "a",
+            "b": {
+                "label": "Document",
+                "link": "a",
+            }
+
         },
     ]
     widget.load_settings(settings)
@@ -86,18 +94,20 @@ def test_link_and_default():
     settings = [
         "#category",
         {
-            "key": "a",
-            "label": "Document",
-            "default": "test",
+            "a": {
+                "label": "Document",
+                "default": "test",
+            }
         },
         {
-            "key": "b",
-            "label": "Document",
-            "link": "a",
+            "b": {
+                "label": "Document",
+                "link": "a",
+            }
         },
     ]
     widget.set_default_dict(default_values)
-    widget.load_settings(settings, default_values)
+    widget.load_settings(settings)
 
     prop_map = widget.property_map()
     item_a = prop_map["a"]
@@ -113,9 +123,10 @@ def test_required():
     settings = [
         "#category",
         {
-            "key": "a",
-            "label": "Document",
-            "required": True,
+            "a": {
+                "label": "Document",
+                "required": True,
+            }
         },
     ]
     widget.load_settings(settings)
@@ -128,10 +139,11 @@ def test_required():
     settings = [
         "#category",
         {
-            "key": "a",
-            "label": "Document",
-            "required": True,
-            "default": "test"
+            "a": {
+                "label": "Document",
+                "required": True,
+                "default": "test"
+            }
         },
     ]
     widget.load_settings(settings)
@@ -144,9 +156,10 @@ def test_required():
     settings = [
         "#category",
         {
-            "key": "a",
-            "label": "Document",
-            "required": True,
+            "a": {
+                "label": "Document",
+                "required": True,
+            }
         },
     ]
     widget.set_default_dict(default_values)
@@ -160,16 +173,18 @@ def test_link_format():
     settings = [
         "#category",
         {
-            "key": "a",
-            "label": "Document",
-            "default": "test",
+            "a": {
+                "label": "Document",
+                "default": "test_a",
+            }
         },
         {
-            "key": "b",
-            "label": "Document",
-            "link": "a",
-            "default": "test",
-            "link_format": "{_default}{_path_sep}{_link}",
+            "b": {
+                "label": "Document",
+                "link": "a",
+                "default": "test_b",
+                "link_format": "{_link_value}/{_default_value}"
+            }
         },
     ]
     widget.load_settings(settings)
@@ -177,13 +192,37 @@ def test_link_format():
     prop_map = widget.property_map()
     item_a = prop_map["a"]
     item_b = prop_map["b"]
-    assert item_a.value == "test"
-    assert item_b.value == os.path.join("test", "test")
+    assert item_a.value == "test_a"
+    assert item_b.value == "test_a/test_b"
 
     default_values = {
         "a": "sphinx"
     }
     widget.set_default_dict(default_values)
+    assert item_b.value == "sphinx/test_b"
+
+
+def test_property_filter():
+    model = PropertyModel()
+
+    settings = [
+        "#category",
+        "a",
+        "b",
+        "#category2",
+        "c",
+    ]
+
+    model.load_settings(settings)
+    assert model.rowCount() == 5
+
+    filter_model = model.create_filter_model(
+        [
+            "a", "b"
+        ]
+    )
+
+    assert filter_model.rowCount() == 2
 
 
 def test_add_item():

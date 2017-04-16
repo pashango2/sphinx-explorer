@@ -43,8 +43,6 @@ def test_encoding():
     print(widget.toPlainText())
 
 
-
-
 if __name__ == "__main__":
     import pytest
     pytest.main()
