@@ -216,9 +216,21 @@ class TypeRelDirPath(TypeDirPath):
 
 
 class TypeChoice(TypeBase):
+    @classmethod
+    def create(cls, params):
+        return cls(params.get("choices", []))
+
     def __init__(self, selects):
-        self.selects = selects
-        self._data_dict = {item["value"]: item for item in selects}
+        self.selects = []
+
+        for item in selects:
+            if isinstance(item, string_types):
+                item = {
+                    "text": item,
+                    "value": item,
+                }
+            self.selects.append(item)
+        self._data_dict = {item["value"]: item for item in self.selects}
 
     def control(self, delegate, parent):
         combo = QComboBox(parent)
@@ -246,8 +258,10 @@ class TypeChoice(TypeBase):
 
     # noinspection PyMethodOverriding
     def icon(self, value):
-        return self._data_dict[value]["icon"] if value in self._data_dict else None
-
+        try:
+            return self._data_dict[value]["icon"] if value in self._data_dict else None
+        except KeyError:
+            return None
 
 AllTypes = [
     TypeBool,

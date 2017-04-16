@@ -7,6 +7,7 @@ import os
 import platform
 import subprocess
 import sys
+import tempfile
 from six import string_types, PY2
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
@@ -130,7 +131,7 @@ def console(cmd, cwd=None):
             creationflags=subprocess.CREATE_NEW_CONSOLE,
         )
     elif platform.system() == "Linux":
-        cmd = "gnome-terminal -e '/bin/bash -i -c \"{}\"'".format(cmd)
+        cmd = "gnome-terminal -e '/bin/bash -i -c \"{}\"'".format(cmd.replace('"', '\"'))
         return subprocess.Popen(cmd, cwd=cwd, shell=True)
     else:
         # cmd = command(cmd)

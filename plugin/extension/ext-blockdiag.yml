@@ -11,27 +11,29 @@ conf_py:
     add_extensions_surround_quote: yes
 
 setting_params:
-    blockdiag_html_image_format:
+    - blockdiag_html_image_format:
+          value_type: TypeChoice
+          choices: ["PNG", "SVG"]
+          default: "SVG"
+    - seqdiag_html_image_format:
         value_type: TypeChoice
         choices: ["PNG", "SVG"]
         default: "SVG"
-    seqdiag_html_image_format:
+    - actdiag_html_image_format:
         value_type: TypeChoice
         choices: ["PNG", "SVG"]
         default: "SVG"
-    actdiag_html_image_format:
+    - nwdiag_html_image_format:
         value_type: TypeChoice
         choices: ["PNG", "SVG"]
         default: "SVG"
-    nwdiag_html_image_format:
+    - rackiag_html_image_format:
         value_type: TypeChoice
         choices: ["PNG", "SVG"]
         default: "SVG"
-    rackiag_html_image_format:
+    - packetdiag_html_image_format:
         value_type: TypeChoice
         choices: ["PNG", "SVG"]
         default: "SVG"
-    packetdiag_html_image_format:
-        value_type: TypeChoice
-        choices: ["PNG", "SVG"]
-        default: "SVG"
+    - blockdiag_fontpath:
+        value_type: TypeFontList

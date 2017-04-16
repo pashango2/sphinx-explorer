@@ -22,6 +22,10 @@ def init(plugin_dir):
             Extensions[ext_name] = Extension(yaml.load(open(os.path.join(root, file_name))))
 
 
+def extensions():
+    return Extensions.items()
+
+
 def get(ext_name):
     return Extensions.get(ext_name)
 
@@ -86,3 +90,19 @@ class Extension(object):
         d = ["'" + x + "'" for x in d]
 
         return d
+
+    @property
+    def exclude_patterns(self):
+        return self.conf_py.get("exclude_poatterns", [])
+
+    def has_setting_params(self):
+        return bool(self.ext_setting.get("setting_params"))
+
+    @property
+    def setting_params(self):
+        for ext in self.ext_setting.get("setting_params", []):
+            for key, value in ext.items():
+                yield key, value
+
+    def generate_py_script(self):
+        pass

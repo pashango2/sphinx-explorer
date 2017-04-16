@@ -10,6 +10,7 @@ from PySide.QtGui import *
 
 from sphinx_explorer.plugin import editor
 from .property_widget import TypeChoice
+from .plugin import extension
 from .settings_ui import Ui_Form
 
 
@@ -130,6 +131,17 @@ class SystemSettingsDialog(QDialog):
         for key, params in params_dict.items():
             if key in self.DEFAULT_SETTING_KEYS:
                 widget.add_property(key, params)
+
+        widget.add_category("Extensions")
+        for ext_name, ext in extension.extensions():
+            if ext.has_setting_params():
+                widget.add_category(ext_name)
+
+                for param_name, params in ext.setting_params:
+                    widget.add_property(
+                        param_name,
+                        params
+                    )
 
         d = settings.default_values.copy()
         d.update(settings)
