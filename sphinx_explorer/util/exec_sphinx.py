@@ -98,7 +98,7 @@ def exec_(cmd, cwd=None):
 
 def launch(cmd, cwd=None):
     # type: (string_types, string_types or None) -> None
-    cmd = command(cmd)
+    # cmd = command(cmd)
 
     if platform.system() == "Windows":
         startupinfo = subprocess.STARTUPINFO()
@@ -114,7 +114,16 @@ def launch(cmd, cwd=None):
             startupinfo=startupinfo
         )
     else:
-        subprocess.Popen(cmd, cwd=cwd, shell=True)
+        print(cmd)
+        subprocess.Popen(
+            cmd,
+            cwd=cwd,
+            shell=True,
+            env=os.environ.copy(),
+            # stdin=subprocess.PIPE,
+            # stdout=subprocess.PIPE,
+            # stderr=subprocess.STDOUT,
+        )
 
 
 def console(cmd, cwd=None):

@@ -31,7 +31,7 @@ class ProjectListModel(QStandardItemModel):
     def dump(self):
         # type: () -> [str]
         return [
-            self.index(row, 0).data()
+            self.item(row, 0).path()
             for row in range(self.rowCount())
         ]
 
@@ -68,9 +68,9 @@ class ProjectListModel(QStandardItemModel):
             self._analyze_item(item)
 
     def _analyze_item(self, item):
-        project_path = item.text()
+        project_path = item.path()
 
-        ana = LoadSettingObject(project_path, item.text())
+        ana = LoadSettingObject(project_path, item.path())
         ana.finished.connect(self.onAnalyzeFinished)
 
         # noinspection PyArgumentList
@@ -110,8 +110,8 @@ class ProjectListModel(QStandardItemModel):
 
     def path(self, index):
         # type: (QModelIndex) -> str
-        index = self.index(index.row(), 0)
-        return index.data()
+        item = self.item(index.row(), 0)
+        return item and item.path()
 
     def rowItem(self, index):
         # type: (QModelIndex) -> ProjectItem
@@ -123,10 +123,11 @@ class ProjectItem(QStandardItem):
     def __init__(self, name):
         super(ProjectItem, self).__init__(name)
         self.settings = None    # type: ProjectSettings
+        self._path = name
 
     def path(self):
         # type: () -> string_types
-        return self.text()
+        return self._path
 
     def html_path(self):
         # type: () -> string_types
@@ -163,7 +164,7 @@ class ProjectItem(QStandardItem):
         if not module_dir or not self.settings.source_dir:
             return
 
-        project_dir = self.text()
+        project_dir = self.path()
         source_dir = os.path.join(project_dir, self.settings.source_dir)
         module_dir = os.path.join(source_dir, module_dir)
         cmd = apidoc.update_cmd(
@@ -186,6 +187,14 @@ class ProjectItem(QStandardItem):
         # type: () -> bool
         return self.settings.can_apidoc()
 
+    def data(self, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole:
+            if self.settings and self.settings.project:
+                return self.settings.project
+            else:
+                return self._path
+        return super(ProjectItem, self).data(role)
+
 
 class ProjectSettings(object):
     SETTING_NAME = "setting.toml"
@@ -197,6 +206,7 @@ class ProjectSettings(object):
         # self.conf = {}
         self.settings = {}
         self.error_msg = ""
+        self.project = None
 
         self._analyze()
 
@@ -227,6 +237,8 @@ class ProjectSettings(object):
                 self.settings = toml.load(path)
             except toml.TomlDecodeError as e:
                 self.error_msg = "TomlDecodeError: {}".format(e)
+
+        self.project = self.settings.get("project", self.path)
 
     def is_valid(self):
         # type: () -> bool
