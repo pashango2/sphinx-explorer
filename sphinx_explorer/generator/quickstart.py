@@ -81,15 +81,13 @@ def get_source_and_build(d, api_doc=False):
     return source_dir, build_dir
 
 
-def fix(d, cmd):
+def fix(d, settings, cmd):
     source_dir, build_dir = get_source_and_build(d)
+    project = d.get("project")
     conf_py_path = os.path.abspath(os.path.join(d["path"], source_dir, "conf.py"))
     project_path = d["path"]
 
-    setting_obj = ProjectSettings.dump(source_dir, build_dir)
-    setting_path = os.path.join(project_path, ProjectSettings.SETTING_NAME)
-    with open(setting_path, "w") as fd:
-        toml.dump(setting_obj, fd)
+    ProjectSettings.save(project_path, source_dir, build_dir, project)
 
     if conf_py_path and os.path.isfile(conf_py_path):
-        extend_conf_py(conf_py_path, d, extensions=d)
+        extend_conf_py(conf_py_path, d, settings, extensions=d)

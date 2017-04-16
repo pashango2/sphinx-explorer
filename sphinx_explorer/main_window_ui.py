@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/main_window.ui'
 #
-# Created: Mon Apr 10 21:55:29 2017
+# Created: Mon Apr 17 07:38:55 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -41,7 +41,9 @@ class Ui_MainWindow(object):
         self.tree_view_projects.setSizePolicy(sizePolicy)
         self.tree_view_projects.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.tree_view_projects.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.tree_view_projects.setRootIsDecorated(False)
         self.tree_view_projects.setObjectName("tree_view_projects")
+        self.tree_view_projects.header().setVisible(True)
         self.horizontalLayout_2.addWidget(self.tree_view_projects)
         self.verticalLayout_3 = QtGui.QVBoxLayout()
         self.verticalLayout_3.setObjectName("verticalLayout_3")
@@ -67,7 +69,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 24))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 25))
         self.menubar.setObjectName("menubar")
         self.menuFile_F = QtGui.QMenu(self.menubar)
         self.menuFile_F.setObjectName("menuFile_F")
@@ -133,8 +135,8 @@ class Ui_MainWindow(object):
         self.action_wizard.setToolTip(QtGui.QApplication.translate("MainWindow", "wizard mode", None, QtGui.QApplication.UnicodeUTF8))
         self.action_apidoc.setText(QtGui.QApplication.translate("MainWindow", "apidoc", None, QtGui.QApplication.UnicodeUTF8))
         self.action_apidoc.setToolTip(QtGui.QApplication.translate("MainWindow", "apidoc", None, QtGui.QApplication.UnicodeUTF8))
-        self.action_reload.setText(QtGui.QApplication.translate("MainWindow", "reload", None, QtGui.QApplication.UnicodeUTF8))
-        self.action_reload.setToolTip(QtGui.QApplication.translate("MainWindow", "reload", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_reload.setText(QtGui.QApplication.translate("MainWindow", "リロード", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_reload.setToolTip(QtGui.QApplication.translate("MainWindow", "リロード", None, QtGui.QApplication.UnicodeUTF8))
         self.action_reload.setShortcut(QtGui.QApplication.translate("MainWindow", "F5", None, QtGui.QApplication.UnicodeUTF8))
         self.action_move_up.setText(QtGui.QApplication.translate("MainWindow", "Move up", None, QtGui.QApplication.UnicodeUTF8))
         self.action_move_up.setToolTip(QtGui.QApplication.translate("MainWindow", "Move up", None, QtGui.QApplication.UnicodeUTF8))

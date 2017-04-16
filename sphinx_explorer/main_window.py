@@ -124,12 +124,11 @@ class MainWindow(QMainWindow):
         self.ui.tree_view_projects.addAction(self.ui.action_reload)
 
         self.ui.tree_view_projects.setIndentation(0)
-        self.ui.tree_view_projects.setHeaderHidden(True)
         self.ui.tree_view_projects.setModel(self.project_list_model)
         self.ui.tree_view_projects.resizeColumnToContents(0)
 
         # setup project model
-        self.project_list_model.sphinxInfoLoaded.connect(self.onSphinxInfoLoaded)
+        self.project_list_model.projectLoaded.connect(self.onProjectLoaded)
 
         # setup context menu
         self.ui.tree_view_projects.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -320,14 +319,13 @@ class MainWindow(QMainWindow):
             dlg.update_settings(self.settings)
 
     @Slot(QModelIndex)
-    def onSphinxInfoLoaded(self, index):
+    def onProjectLoaded(self, index):
         # type: (QModelIndex) -> None
-        pass
+        self.ui.tree_view_projects.resizeColumnToContents(0)
 
     @Slot()
     def on_action_wizard_triggered(self):
         # () -> None
-        # quickstart_wizard.main(self.settings.default_values, self.add_document, self)
         wizard = quickstart_wizard.create_wizard(
             plugin.template_model,
             self.params_dict,
@@ -369,6 +367,7 @@ class MainWindow(QMainWindow):
     def on_action_delete_document_triggered(self):
         # () -> None
         indexes = self.ui.tree_view_projects.selectedIndexes()
+        indexes = [x for x in indexes if x.column() == 0]
 
         if indexes:
             # noinspection PyCallByClass
@@ -385,6 +384,7 @@ class MainWindow(QMainWindow):
     def _move(self, up_flag):
         # type: (bool) -> None
         indexes = self.ui.tree_view_projects.selectedIndexes()
+        indexes = [index for index in indexes if index.column() == 0]
         if indexes:
             indexes.sort(key=lambda x: x.row(), reverse=not up_flag)
 
@@ -392,9 +392,11 @@ class MainWindow(QMainWindow):
             selection = QItemSelection()
 
             stop_idx = -1 if up_flag else self.project_list_model.rowCount()
+            first_item = None
 
             for index in indexes:
                 item = self.project_list_model.itemFromIndex(index)
+                first_item = first_item or item
                 if up_flag:
                     insert_row = item.row() - 1
                     movable = stop_idx < insert_row
@@ -408,12 +410,13 @@ class MainWindow(QMainWindow):
                 else:
                     stop_idx = item.row()
 
-                selection.select(item.index(), item.index())
+                selection.select(item.index(), item.index().sibling(item.row(), 1))
 
             selection_model.select(
                 selection,
                 QItemSelectionModel.ClearAndSelect
             )
+            selection_model.setCurrentIndex(first_item.index(), QItemSelectionModel.Current)
 
     @Slot()
     def on_action_move_up_triggered(self):

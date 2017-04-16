@@ -114,15 +114,11 @@ def launch(cmd, cwd=None):
             startupinfo=startupinfo
         )
     else:
-        print(cmd)
         subprocess.Popen(
             cmd,
             cwd=cwd,
             shell=True,
             env=os.environ.copy(),
-            # stdin=subprocess.PIPE,
-            # stdout=subprocess.PIPE,
-            # stderr=subprocess.STDOUT,
         )
 
 

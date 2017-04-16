@@ -74,8 +74,8 @@ class QuickstartExecCommandPage(ExecCommandPage):
     def finished(self, return_code):
         super(QuickstartExecCommandPage, self).finished(return_code)
         if return_code == 0:
-            settings = self.dump()
-            quickstart.fix(settings, self.cmd)
+            params = self.dump()
+            quickstart.fix(params, self.wizard().default_values, self.cmd)
 
     def nextId(self):
         return -1

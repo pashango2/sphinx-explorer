@@ -8,6 +8,7 @@ import yaml
 from six import string_types
 
 Extensions = {}
+CONF_PY_NUM_INDENT = 4
 
 
 def init(plugin_dir):
@@ -19,7 +20,10 @@ def init(plugin_dir):
     for root, dirs, files in os.walk(plugin_dir):
         for file_name in fnmatch.filter(files, "ext-*.yml"):
             ext_name = file_name[:-len(".yml")]
-            Extensions[ext_name] = Extension(yaml.load(open(os.path.join(root, file_name))))
+            Extensions[ext_name] = Extension(
+                ext_name,
+                yaml.load(open(os.path.join(root, file_name)))
+            )
 
 
 def extensions():
@@ -37,7 +41,8 @@ def list_iter():
 
 class Extension(object):
     # TODO: ast check
-    def __init__(self, ext_setting):
+    def __init__(self, name, ext_setting):
+        self.name = name
         self.ext_setting = ext_setting
 
     @property
@@ -104,5 +109,36 @@ class Extension(object):
             for key, value in ext.items():
                 yield key, value
 
-    def generate_py_script(self):
-        pass
+    def generate_py_script(self, params, settings):
+        parser = []
+
+        # add comment
+        comment = "# -- {} ".format(self.name)
+        comment += "-" * (75 - len(comment))
+        parser.append("")
+        parser.append("")
+        parser.append(comment)
+
+        # add imports
+        if self.imports:
+            for imp in self.imports:
+                parser.append(imp)
+            parser.append("")
+
+        # add extensions
+        if self.add_extensions:
+            parser.append("extensions += [")
+            for add_ext in self.add_extensions:
+                parser.append((" " * CONF_PY_NUM_INDENT) + add_ext)
+            parser.append("]")
+
+        # setting params
+        for param_name, value in self.setting_params:
+            value = settings.get(param_name, value)
+            parser.append("{} = {}".format(param_name, repr(value)))
+
+        # add extra code
+        if self.extra_code:
+            parser.append(self.extra_code)
+
+        return "\n".join(parser)

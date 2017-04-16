@@ -12,7 +12,6 @@ from sphinx_explorer.plugin import extension
 from sphinx_explorer.plugin.extension import Extension
 
 CONF_PY_ENCODING = "utf-8"
-CONF_PY_NUM_INDENT = 4
 
 
 # memo:
@@ -89,7 +88,7 @@ class Parser(object):
         return self._source
 
 
-def extend_conf_py(conf_py_path, params, extensions=None, insert_paths=None):
+def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths=None):
     extensions = extensions or []
 
     if os.path.isfile(conf_py_path):
@@ -104,28 +103,8 @@ def extend_conf_py(conf_py_path, params, extensions=None, insert_paths=None):
             if key.startswith("ext-"):
                 ext = extension.get(key)    # type: Extension
                 if ext:
-                    # add comment
-                    comment = "# -- {} ".format(key)
-                    comment += "-" * (75 - len(comment))
-                    parser.append("\n\n")
-                    parser.append(comment + "\n")
-
-                    # add imports
-                    if ext.imports:
-                        for imp in ext.imports:
-                            parser.append(imp + "\n")
-                        parser.append("\n")
-
-                    # add extensions
-                    if ext.add_extensions:
-                        parser.append("extensions += [\n")
-                        for add_ext in ext.add_extensions:
-                            parser.append((" " * CONF_PY_NUM_INDENT) + add_ext + ",\n")
-                        parser.append("]\n")
-
-                    # add extra code
-                    if ext.extra_code:
-                        parser.append(ext.extra_code)
+                    parser.append(ext.generate_py_script(params, settings))
+                    parser.append("\n")
 
         with codecs.open(conf_py_path, "w", CONF_PY_ENCODING) as fd:
             fd.write(parser.dumps())

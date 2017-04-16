@@ -8,18 +8,21 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 from six import string_types
 
-from sphinx_explorer.generator import apidoc
 from . import icon
 from .util.QConsoleWidget import QConsoleWidget
-from .util.exec_sphinx import quote
+from .util.exec_sphinx import quote, create_cmd
 
 
 class ProjectListModel(QStandardItemModel):
-    sphinxInfoLoaded = Signal(QModelIndex)
+    projectLoaded = Signal(QModelIndex)
     autoBuildRequested = Signal(str, QStandardItem)
 
     def __init__(self, parent=None):
         super(ProjectListModel, self).__init__(parent)
+        self.setHorizontalHeaderLabels([
+            "Project Name",
+            "Path",
+        ])
 
     def load(self, project_list):
         # type: ([str]) -> None
@@ -49,13 +52,14 @@ class ProjectListModel(QStandardItemModel):
         # type: (str) -> QModelIndex
         for row in range(self.rowCount()):
             index = self.index(row, 0)
-            if index.data() == doc_path:
+            item = self.itemFromIndex(index)
+            if item.path() == doc_path:
                 return index
         return QModelIndex()
 
     def _create_item(self, project_path):
         # type: (str) -> QStandardItem
-        item = ProjectItem(os.path.normpath(project_path))
+        item = ProjectItem("-", os.path.normpath(project_path))
         item.setIcon(icon.load("eye"))
 
         self._analyze_item(item)
@@ -88,7 +92,7 @@ class ProjectListModel(QStandardItemModel):
         item.setInfo(settings)
         if settings.is_valid():
             item.setIcon(icon.load("book"))
-            self.sphinxInfoLoaded.emit(item.index())
+            self.projectLoaded.emit(item.index())
         else:
             item.setIcon(icon.load("error"))
             # TODO: err output
@@ -101,10 +105,14 @@ class ProjectListModel(QStandardItemModel):
 
     def data(self, index, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
-            if index.column() == 1:
+            if index.column() == 0:
                 index = self.index(index.row(), 0)
                 item = self.itemFromIndex(index)
                 return item.project()
+            elif index.column() == 1:
+                index = self.index(index.row(), 0)
+                item = self.itemFromIndex(index)
+                return item.path()
 
         return super(ProjectListModel, self).data(index, role)
 
@@ -120,10 +128,13 @@ class ProjectListModel(QStandardItemModel):
 
 
 class ProjectItem(QStandardItem):
-    def __init__(self, name):
+    def __init__(self, name, path):
         super(ProjectItem, self).__init__(name)
-        self.settings = None    # type: ProjectSettings
-        self._path = name
+        self.settings = ProjectSettings(path)    # type: ProjectSettings
+        self._path = path
+
+    def project(self):
+        return self.settings.project
 
     def path(self):
         # type: () -> string_types
@@ -167,7 +178,7 @@ class ProjectItem(QStandardItem):
         project_dir = self.path()
         source_dir = os.path.join(project_dir, self.settings.source_dir)
         module_dir = os.path.join(source_dir, module_dir)
-        cmd = apidoc.update_cmd(
+        cmd = self.api_update_cmd(
             module_dir,
             source_dir,
             {}
@@ -175,9 +186,23 @@ class ProjectItem(QStandardItem):
 
         output_widget.exec_command(cmd, cwd=self.settings.source_dir)
 
-    def setInfo(self, info):
+    @staticmethod
+    def update_cmd(source_dir, output_dir, settings):
+        # type: (string_types, string_types, dict, string_types or None) -> int
+        command = [
+                      "sphinx-apidoc",
+                      source_dir,
+                      "-o", output_dir,
+                      # "-e" if settings.get("separate", True) else "",
+                      "-f",
+                  ] + settings.get("pathnames", [])
+
+        return create_cmd(command)
+
+    def setInfo(self, settings):
         # type: (ProjectSettings) -> None
-        self.settings = info
+        self.setText(settings.project)
+        self.settings = settings
 
     def can_make(self):
         # type: () -> bool
@@ -187,13 +212,13 @@ class ProjectItem(QStandardItem):
         # type: () -> bool
         return self.settings.can_apidoc()
 
-    def data(self, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole:
-            if self.settings and self.settings.project:
-                return self.settings.project
-            else:
-                return self._path
-        return super(ProjectItem, self).data(role)
+    # def data(self, role=Qt.DisplayRole):
+    #     if role == Qt.DisplayRole:
+    #         if self.settings and self.settings.project:
+    #             return self.settings.project
+    #         else:
+    #             return self._path
+    #     return super(ProjectItem, self).data(role)
 
 
 class ProjectSettings(object):
@@ -206,16 +231,31 @@ class ProjectSettings(object):
         # self.conf = {}
         self.settings = {}
         self.error_msg = ""
-        self.project = None
+        self.project = "-"
 
         self._analyze()
 
     @staticmethod
-    def dump(source_dir, build_dir, module_dir=None, cmd=None):
+    def save(project_path, source_dir, build_dir, project, module_dir=None, cmd=None):
+        setting_path = os.path.join(project_path, ProjectSettings.SETTING_NAME)
+        setting_obj = ProjectSettings.dump(
+            source_dir,
+            build_dir,
+            project,
+            module_dir,
+            cmd
+        )
+        with open(setting_path, "w") as fd:
+            toml.dump(setting_obj, fd)
+
+    @staticmethod
+    def dump(source_dir, build_dir, project, module_dir=None, cmd=None):
         d = {
             "source_dir": source_dir,
             "build_dir": build_dir,
         }
+        if project:
+            d["project"] = project
         if cmd:
             d["command"] = cmd
 
@@ -238,7 +278,7 @@ class ProjectSettings(object):
             except toml.TomlDecodeError as e:
                 self.error_msg = "TomlDecodeError: {}".format(e)
 
-        self.project = self.settings.get("project", self.path)
+        self.project = self.settings.get("project", "-")
 
     def is_valid(self):
         # type: () -> bool
@@ -308,4 +348,3 @@ class LoadSettingObject(QObject, QRunnable):
     def run(self):
         settings = ProjectSettings(self.doc_path)
         self.finished.emit(settings, self.project_path)
-
