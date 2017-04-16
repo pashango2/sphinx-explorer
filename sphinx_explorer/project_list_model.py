@@ -187,7 +187,7 @@ class ProjectItem(QStandardItem):
         output_widget.exec_command(cmd, cwd=self.settings.source_dir)
 
     @staticmethod
-    def update_cmd(source_dir, output_dir, settings):
+    def api_update_cmd(source_dir, output_dir, settings):
         # type: (string_types, string_types, dict, string_types or None) -> int
         command = [
                       "sphinx-apidoc",

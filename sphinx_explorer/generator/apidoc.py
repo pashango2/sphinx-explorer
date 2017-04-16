@@ -49,7 +49,12 @@ def fix_apidoc(project_path, source_dir, params, settings):
         except ValueError:
             module_dir = os.path.abspath(source_dir)
 
-    ProjectSettings.save(project_path, ".", "_build", params.get("project"))
+    ProjectSettings.save(
+        project_path,
+        ".", "_build",
+        params.get("project"),
+        module_dir=module_dir
+    )
 
     conf_py_path = os.path.join(project_path, "conf.py")
 

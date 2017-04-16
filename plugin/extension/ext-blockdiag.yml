@@ -1,10 +1,10 @@
 packages: [
     'sphinxcontrib.blockdiag',
-    'sphinxcontrib.seqdiag',
-    'sphinxcontrib.actdiag',
-    'sphinxcontrib.nwdiag',
-    'sphinxcontrib.rackdiag',
-    'sphinxcontrib.packetdiag',
+#    'sphinxcontrib.seqdiag',
+#    'sphinxcontrib.actdiag',
+#    'sphinxcontrib.nwdiag',
+#    'sphinxcontrib.rackdiag',
+#    'sphinxcontrib.packetdiag',
 ]
 
 conf_py:
@@ -15,25 +15,25 @@ setting_params:
           value_type: TypeChoice
           choices: ["PNG", "SVG"]
           default: "SVG"
-    - seqdiag_html_image_format:
-        value_type: TypeChoice
-        choices: ["PNG", "SVG"]
-        default: "SVG"
-    - actdiag_html_image_format:
-        value_type: TypeChoice
-        choices: ["PNG", "SVG"]
-        default: "SVG"
-    - nwdiag_html_image_format:
-        value_type: TypeChoice
-        choices: ["PNG", "SVG"]
-        default: "SVG"
-    - rackiag_html_image_format:
-        value_type: TypeChoice
-        choices: ["PNG", "SVG"]
-        default: "SVG"
-    - packetdiag_html_image_format:
-        value_type: TypeChoice
-        choices: ["PNG", "SVG"]
-        default: "SVG"
+#    - seqdiag_html_image_format:
+#        value_type: TypeChoice
+#        choices: ["PNG", "SVG"]
+#        default: "SVG"
+#    - actdiag_html_image_format:
+#        value_type: TypeChoice
+#        choices: ["PNG", "SVG"]
+#        default: "SVG"
+#    - nwdiag_html_image_format:
+#        value_type: TypeChoice
+#        choices: ["PNG", "SVG"]
+#        default: "SVG"
+#    - rackiag_html_image_format:
+#        value_type: TypeChoice
+#        choices: ["PNG", "SVG"]
+#        default: "SVG"
+#    - packetdiag_html_image_format:
+#        value_type: TypeChoice
+#        choices: ["PNG", "SVG"]
+#        default: "SVG"
     - blockdiag_fontpath:
         value_type: TypeFontList
