@@ -20,9 +20,10 @@ from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel, ProjectItem
 from .system_settings import SystemSettingsDialog, SystemSettings
 from . import plugin
+from .project_tools import ProjectTools
 from .util.exec_sphinx import command
-
 from .util.exec_sphinx import launch, console, show_directory, open_terminal, make_command
+
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -122,6 +123,9 @@ class MainWindow(QMainWindow):
         self.ui.tree_view_projects.setIndentation(0)
         self.ui.tree_view_projects.setModel(self.project_list_model)
         self.ui.tree_view_projects.resizeColumnToContents(0)
+        self.projects_selection_model = self.ui.tree_view_projects.selectionModel()
+
+        self.projects_selection_model.currentChanged.connect(self._on_project_changed)
 
         # setup project model
         self.project_list_model.projectLoaded.connect(self.onProjectLoaded)
@@ -148,6 +152,13 @@ class MainWindow(QMainWindow):
                 pass
 
         self.setWindowIcon(icon.load("sphinx"))
+
+        # set icon
+        ProjectTools.set_file_icons(
+            folder_icon=icon.load("folder"),
+            file_icon=icon.load("file_text")
+        )
+
 
     def _setup(self):
         self.project_list_model.load(self.settings.projects)
@@ -253,6 +264,19 @@ class MainWindow(QMainWindow):
             item = self.project_list_model.itemFromIndex(index)
             self._make("html", item.path())
 
+    def _on_project_changed(self, current, prev):
+        # type: (QModelIndex, QModelIndex) -> None
+
+        item = self.project_list_model.itemFromIndex(current)
+        if item:
+            tools = ProjectTools(item.path(), self)
+            self.ui.treeView.setModel(tools.file_model)
+            self.ui.treeView.setRootIndex(tools.file_model.index(item.source_dir_path()))
+            self.ui.treeView.hideColumn(1)
+            self.ui.treeView.hideColumn(2)
+            self.ui.treeView.hideColumn(3)
+            item.set_tools(tools)
+
     def _make(self, make_cmd, cwd, callback=None):
         cmd = make_command(make_cmd, cwd)
         self.ui.plain_output.exec_command(
@@ -316,7 +340,8 @@ class MainWindow(QMainWindow):
     @Slot(QModelIndex)
     def onProjectLoaded(self, index):
         # type: (QModelIndex) -> None
-        self.ui.tree_view_projects.resizeColumnToContents(0)
+        # self.ui.tree_view_projects.resizeColumnToContents(0)
+        pass
 
     @Slot()
     def on_action_wizard_triggered(self):

@@ -16,6 +16,7 @@ from .util.exec_sphinx import quote, create_cmd
 class ProjectListModel(QStandardItemModel):
     projectLoaded = Signal(QModelIndex)
     autoBuildRequested = Signal(str, QStandardItem)
+    loadFinished = Signal()
 
     def __init__(self, parent=None):
         super(ProjectListModel, self).__init__(parent)
@@ -56,6 +57,11 @@ class ProjectListModel(QStandardItemModel):
             if item.path() == doc_path:
                 return index
         return QModelIndex()
+
+    def itemFromIndex(self, index):
+        # type: (QModelIndex) -> ProjectItem
+        index = self.index(index.row(), 0)
+        return super(ProjectListModel, self).itemFromIndex(index)
 
     def _create_item(self, project_path):
         # type: (str) -> QStandardItem
@@ -132,6 +138,10 @@ class ProjectItem(QStandardItem):
         super(ProjectItem, self).__init__(name)
         self.settings = ProjectSettings(path)    # type: ProjectSettings
         self._path = path
+        self._tools = None
+
+    def set_tools(self, tools):
+        self._tools = tools
 
     def project(self):
         return self.settings.project
@@ -139,6 +149,13 @@ class ProjectItem(QStandardItem):
     def path(self):
         # type: () -> string_types
         return self._path
+
+    def source_dir_path(self):
+        # type: () -> string_types
+        try:
+            return os.path.join(self._path, self.settings.source_dir)
+        except ValueError:
+            return self._path
 
     def html_path(self):
         # type: () -> string_types
