@@ -10,7 +10,7 @@ from six import string_types
 # noinspection PyUnresolvedReferences
 from PySide.QtCore import *
 from PySide.QtGui import *
-from .property_model import PropertyItem, PropertyCategoryItem, PropertyModel
+from .property_model import PropertyItem, CategoryItem, PropertyModel, PropertyModel2
 from .property_model import PropertyItemType
 from .description_widget import DescriptionWidget
 from .default_value_dict import DefaultValues
@@ -35,7 +35,8 @@ __version__ = "1.0"
 __release__ = __version__ + "b"
 
 
-class PropertyWidget(QTableView):
+# class PropertyWidget(QTableView):
+class PropertyWidget(QTreeView):
     """
     Widget to edit properties collectively.
 
@@ -57,24 +58,43 @@ class PropertyWidget(QTableView):
         self._delegate = PropertyItemDelegate(self)
         self.setItemDelegate(self._delegate)
 
-        self.verticalHeader().hide()
-        self.horizontalHeader().setStretchLastSection(True)
+        # self.verticalHeader().hide()
+        # self.horizontalHeader().setStretchLastSection(True)
         self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.setTabKeyNavigation(False)
 
         self.setup()
         self._connect()
 
-    def setup(self):
-        self.clearSpans()
+    def resizeColumnsToContents(self):
+        pass
 
-        for row in range(self._model.rowCount()):
-            item = self._model.item(row)
+    def setModel(self, model):
+        self._model = model
+        super(PropertyWidget, self).setModel(model)
+        self.setup()
+
+    def setRootIndex(self, index):
+        super(PropertyWidget, self).setRootIndex(index)
+        self.setup()
+
+    def setup(self):
+        # self.clearSpans()
+        self._first_property_index = QModelIndex()
+
+        for row in range(self._model.rowCount(self.rootIndex())):
+            index = self._model.index(row, 0, self.rootIndex())
+            item = self._model.itemFromIndex(index)
+
             if item.is_category:
-                self.setSpan(row, 0, 1, 2)
+                # self.setSpan(row, 0, 1, 2)
+                self.setFirstColumnSpanned(row, index, True)
             else:
+                self.setFirstColumnSpanned(row, index, False)
                 if not self._first_property_index.isValid():
-                    self._first_property_index = self.index(row, 1)
+                    self._first_property_index = self.index(row, 1, self.rootIndex())
+
+        self.setCurrentIndex(self._first_property_index)
 
     def clear(self):
         self._model.removeRows(0, self._model.rowCount())
@@ -84,12 +104,12 @@ class PropertyWidget(QTableView):
         self.selection_model.currentChanged.connect(self.currentChanged.emit)
         self._model.itemChanged.connect(self.itemChanged.emit)
 
-    def index(self, row, column):
+    def index(self, row, column, parent=QModelIndex()):
         # type: (int, int) -> QModelIndex
-        return self._model.index(row, column)
+        return self._model.index(row, column, parent)
 
     def add_category(self, key, name=None):
-        # type: (string_types, string_types) -> PropertyCategoryItem
+        # type: (string_types, string_types) -> CategoryItem
         name = name or key
         item = self._model.add_category(key, name)
         self.setSpan(item.row(), 0, 1, 2)

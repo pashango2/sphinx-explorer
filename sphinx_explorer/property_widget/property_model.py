@@ -12,7 +12,7 @@ from PySide.QtGui import *
 
 __all__ = [
     "PropertyModel",
-    "PropertyCategoryItem",
+    "CategoryItem",
     "PropertyItem",
 ]
 
@@ -24,6 +24,147 @@ class ValueItem(object):
     def __init__(self, value):
         self.value = value
         self._linked = []
+
+
+class PropertyModel2(QStandardItemModel):
+    DEFAULT_VALUE_FOREGROUND_COLOR = QColor(0x80, 0x80, 0x80)
+
+    def __init__(self, parent=None):
+        super(PropertyModel2, self).__init__(parent)
+        self.setHorizontalHeaderLabels(["Property", "Value"])
+
+    def _load_settings(self, settings, parent_item, params_dict):
+        last_item = None
+        for setting in settings:
+            if isinstance(setting, dict):
+                key = setting.keys()[0]
+                setting_param = setting.values()[0][0]
+            if isinstance(setting, (list, tuple)):
+                assert last_item is not None
+                self._load_settings(setting, last_item, params_dict)
+                continue
+            elif isinstance(setting, string_types):
+                key = setting.strip()
+                setting_param = {}
+
+            if not key:
+                continue
+
+            if key[0] == "#":
+                label = setting_param.get("label", key[1:].strip())
+                last_item = self.create_category(key, label)
+                parent_item.appendRow(last_item)
+            else:
+                last_item = self.create_property(key, setting_param)
+                parent_item.appendRow(last_item)
+
+    def load_settings(self, settings, params_dict=None):
+        root_item = self.invisibleRootItem()
+        self._load_settings(settings, root_item, params_dict)
+
+    @staticmethod
+    def create_category(key, label):
+        # type: (string_types, string_types) -> CategoryItem
+        return CategoryItem(key, label)
+
+    @staticmethod
+    def create_property(key, params):
+        return PropertyItem(
+            key,
+            params.get("label", key),
+            params.get("value"),
+            params
+        )
+
+    def add_property(self, parent_item, *args, **kwargs):
+        item = self.create_property(*args, **kwargs)
+        if item:
+            parent_item.appendRow(item)
+
+    def rowItem(self, index):
+        # type: (QModelIndex) -> PropertyItem
+        index = self.index(index.row(), 0, index.parent()) if index.column() != 0 else index
+        return self.itemFromIndex(index)
+
+    def _property_item(self, index):
+        # type: (QModelIndex) -> PropertyItem or None
+        if not index.isValid():
+            return None
+
+        item = self.itemFromIndex(self.index(index.row(), 0, index.parent()))
+        if item.type() == PropertyItemType:
+            return item
+        return None
+
+    def get(self, keys):
+        if isinstance(keys, string_types):
+            keys = (keys,)
+
+        parent = self.invisibleRootItem()
+        for key in keys:
+            for row in range(parent.rowCount()):
+                item = parent.child(row)
+                if item.key == key:
+                    parent = item
+                    break
+            else:
+                return None
+
+        return parent
+
+    def data(self, index, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole or role == Qt.EditRole:
+            if index.column() == 1:
+                item = self._property_item(index)
+                if item:
+                    value = item.value
+                    if value is None:
+                        value = self._default_dict.get(item.key)
+                    return item.value_type.data(value) if item.value_type else value
+        elif role == Qt.DecorationRole:
+            if index.column() == 1:
+                item = self._property_item(index)
+                if item:
+                    if item.value_type:
+                        return item.value_type.icon(item.value)
+        elif role == Qt.ForegroundRole:
+            if index.column() == 1:
+                item = self._property_item(index)
+                if item:
+                    if item.was_default():
+                        return self.DEFAULT_VALUE_FOREGROUND_COLOR
+
+        return super(PropertyModel2, self).data(index, role)
+
+    def flags(self, index):
+        if index.column() == 1:
+            return Qt.ItemIsEditable | Qt.ItemIsEnabled
+
+        return super(PropertyModel2, self).flags(index)
+
+    def setData(self, index, value, role=Qt.EditRole):
+        if role == Qt.EditRole:
+            if index.column() == 1:
+                index = self.index(index.row(), 0, index)
+                item = self.itemFromIndex(index)
+                item.set_value(value)
+                # noinspection PyUnresolvedReferences
+                self.itemChanged.emit(item)
+                return True
+
+        return super(PropertyModel2, self).setData(index, value, role)
+
+    def columnCount(self, parent):
+        count = super(PropertyModel2, self).columnCount(parent)
+        if count > 0:
+            return 2
+        return count
+        # if not parent.isValid():
+        #     return 2
+        # print(parent, super(PropertyModel2, self).columnCount(parent))
+        # return super(PropertyModel2, self).columnCount(parent)
+
+
 
 
 class PropertyModel(QStandardItemModel):
@@ -134,13 +275,13 @@ class PropertyModel(QStandardItemModel):
         self._default_dict.set_default_value(key, value)
 
     def add_category(self, key, name):
-        # type: (string_types, string_types) -> PropertyCategoryItem
-        item = PropertyCategoryItem(key, name)
+        # type: (string_types, string_types) -> CategoryItem
+        item = CategoryItem(key, name)
         self.add_category_item(item)
         return item
 
     def add_category_item(self, item):
-        # type: (PropertyCategoryItem) -> None
+        # type: (CategoryItem) -> None
         self.appendRow(item)
 
     def add_property_item(self, item):
@@ -203,7 +344,7 @@ class PropertyModel(QStandardItemModel):
     def setData(self, index, value, role=Qt.EditRole):
         if role == Qt.EditRole:
             if index.column() == 1:
-                index = self.index(index.row(), 0)
+                index = self.index(index.row(), 0, index.parent())
                 item = self.itemFromIndex(index)
                 item.set_value(value)
                 # noinspection PyUnresolvedReferences
@@ -213,7 +354,21 @@ class PropertyModel(QStandardItemModel):
         return super(PropertyModel, self).setData(index, value, role)
 
 
-class PropertyCategoryItem(QStandardItem):
+class BaseItem(QStandardItem):
+    def tree_key(self):
+        keys = []
+        item = self
+        while item:
+            keys.append(item.key)
+            item = item.parent()
+
+        return tuple(reversed(keys))
+
+    def add_property(self, *args, **kwargs):
+        self.model().add_property(self, *args, **kwargs)
+
+
+class CategoryItem(BaseItem):
     is_category = True
     BACKGROUND_COLOR = QColor(71, 74, 77)
     FOREGROUND_COLOR = QColor(0xFF, 0xFF, 0xFF)
@@ -224,7 +379,7 @@ class PropertyCategoryItem(QStandardItem):
 
     def __init__(self, key, name):
         # type: (string_types, string_types) -> None
-        super(PropertyCategoryItem, self).__init__(name)
+        super(CategoryItem, self).__init__(name)
         self.key = key
         self.setBackground(QBrush(self.BACKGROUND_COLOR))
         self.setForeground(self.FOREGROUND_COLOR)
@@ -235,7 +390,7 @@ class PropertyCategoryItem(QStandardItem):
         self.setEnabled(True)
 
 
-class PropertyItem(QStandardItem):
+class PropertyItem(BaseItem):
     is_category = False
     REQUIRED_FOREGROUND_COLOR = QColor("#f8b862")
     BOLD_FONT = QFont()
@@ -375,3 +530,5 @@ class PropertyItem(QStandardItem):
 
     def type_class(self):
         return self.value_type or TypeBase
+
+

@@ -6,12 +6,17 @@ import locale
 from collections import OrderedDict
 
 import toml
+import yaml
+from PySide.QtCore import *
 from PySide.QtGui import *
 
 from sphinx_explorer.plugin import editor
-from .property_widget import TypeChoice
+from .property_widget import TypeChoice, PropertyModel2
 from .plugin import extension
 from .settings_ui import Ui_Form
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class SystemSettings(OrderedDict):
@@ -77,6 +82,52 @@ class CategoryModel(QStandardItemModel):
         super(CategoryModel, self).__init__(parent)
 
 
+class CategoryFilterModel(QSortFilterProxyModel):
+    def filterAcceptsRow(self, source_row, source_parent):
+        source_index = self.sourceModel().index(source_row, 0, source_parent)
+        item = self.sourceModel().itemFromIndex(source_index)
+
+        return item and item.key.startswith("#*")
+
+    def itemFromIndex(self, index):
+        source_index = self.mapToSource(index)
+        return self.sourceModel().itemFromIndex(source_index)
+
+    def columnCount(self, _):
+        return 1
+    
+    def data(self, index, role=Qt.DisplayRole):
+        if role == Qt.BackgroundColorRole:
+            return None
+        elif role == Qt.ForegroundRole:
+            return None
+
+        return super(CategoryFilterModel, self).data(index, role)
+
+    def flags(self, index):
+        return (
+            Qt.ItemIsSelectable | Qt.ItemIsEnabled
+
+        )
+
+
+SYSTEM_SETTINGS = """
+- "#*Editor":
+    - label: Editor
+- "#*Default Values":
+    - label: Default Values
+-
+    - path
+    - author
+    - language
+    - html_theme
+    - sep
+
+- "#*Extensions":
+    - label: Extensions
+"""
+
+
 class SystemSettingsDialog(QDialog):
     DEFAULT_SETTING_KEYS = [
         "path",
@@ -95,7 +146,10 @@ class SystemSettingsDialog(QDialog):
         self.settings = None
         self.params_dict = {}
 
-        self.category_model = CategoryModel(parent=self)
+        self.property_model = PropertyModel2(self)
+        self.category_model = CategoryFilterModel(self)
+        self.category_model.setSourceModel(self.property_model)
+        self.ui.property_widget.setModel(self.property_model)
 
         self._buttons = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
@@ -115,39 +169,67 @@ class SystemSettingsDialog(QDialog):
         self.setWindowTitle(self.tr(str("SystemSettings")))
         self.resize(1000, 600)
 
-        self._setup_category()
+        # self._setup_category()
         self.ui.tree_view_category.setModel(self.category_model)
-
         self.category_selection_model = self.ui.tree_view_category.selectionModel()
-
-        first_index = self.category_model.index(0, 0)
-        self.category_selection_model.select(first_index, QItemSelectionModel.Select)
-        self.category_selection_model.currentChanged.connect(self._on_category_changed)
 
     def _on_category_changed(self, current, prev):
         item = self.category_model.itemFromIndex(current)
         if item:
-            cat_name = item.text().replace(" ", "_")
+            root_item = self.property_model.get(item.tree_key())
+            self.ui.property_widget.setRootIndex(root_item.index())
+            self.ui.property_widget.setup()
 
-            self.ui.property_widget.clear()
-            setting_func = getattr(self, "setup_" + cat_name)
-            if setting_func:
-                setting_func()
 
-    def _setup_category(self):
-        categories = [
-            "Settings",
-            "Default Values",
-            "Extensions",
-        ]
+            # setting_func = getattr(self, "setup_" + cat_name)
+            # if setting_func:
+            #     setting_func()
 
-        for category in categories:
-            item = QStandardItem(category)
-            self.category_model.appendRow(item)
+    # def _setup_category(self):
+    #     categories = [
+    #         "Settings",
+    #         "Default Values",
+    #         "Extensions",
+    #     ]
+    #
+    #     for category in categories:
+    #         item = QStandardItem(category)
+    #         self.category_model.appendRow(item)
 
     def setup(self, settings, params_dict):
         self.settings = settings
         self.params_dict = params_dict
+
+        d = yaml.load(SYSTEM_SETTINGS)
+        self.property_model.load_settings(d, params_dict)
+        self.ui.property_widget.setup()
+
+        editor_item = self.property_model.get("#*Editor")
+        if not editor_item:
+            logger.warning("editor item don't find.")
+            return
+
+        items = []
+        for name, ed in editor.editors():
+            items.append({
+                "text": ed.name,
+                "value": name,
+                "icon": ed.icon,
+            })
+
+        editor_choice = TypeChoice(items)
+        editor_item.add_property(
+            "editor",
+            {
+                "name": "Editor",
+                "value": settings.default_editor(),
+                "value_type": editor_choice
+            }
+        )
+
+        first_index = self.category_model.index(0, 0)
+        self.category_selection_model.select(first_index, QItemSelectionModel.Select)
+        self.category_selection_model.currentChanged.connect(self._on_category_changed)
 
     def setup_Settings(self):
         # type: () -> None

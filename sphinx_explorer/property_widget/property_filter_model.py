@@ -26,6 +26,10 @@ class PropertyFilterModel(QSortFilterProxyModel):
         index = self.mapToSource(self.index(row, 0))
         return self.sourceModel().itemFromIndex(index)
 
+    def itemFromIndex(self, index):
+        index = self.mapToSource(index)
+        return self.sourceModel().itemFromIndex(index)
+
     @property
     def itemChanged(self):
         return self.sourceModel().itemChanged

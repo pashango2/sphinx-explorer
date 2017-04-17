@@ -16,6 +16,7 @@ import sys
 import os
 import qdarkstyle
 from .main_window import MainWindow
+import logging
 
 HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx-explorer")
 
@@ -27,6 +28,7 @@ def main():
     #     sys.stdout = codecs.open("sphinx-exploere.log", "w", "utf-8")
     # if sys.stderr.encoding is None:
     #     sys.stderr = codecs.open("sphinx-exploere_error.log", "w", "utf-8")
+    logging.basicConfig()
 
     app = QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet())

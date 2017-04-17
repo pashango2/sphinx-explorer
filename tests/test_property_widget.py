@@ -3,15 +3,96 @@
 from sphinx_explorer.property_widget import PropertyWidget,\
     PropertyItem,\
     TypeBool,\
-    PropertyModel
+    PropertyModel, \
+    PropertyModel2
 import sys
 import os
+import yaml
 from PySide.QtGui import *
 
 try:
     app = QApplication(sys.argv)
 except RuntimeError:
     pass
+
+
+def test_load_settings2():
+    model = PropertyModel2()
+    settings = """
+- "# categoryA"
+-
+    - a
+    - b
+    - c
+- "# categoryB"
+-
+    - d
+    - e
+    - f
+    """.strip()
+
+    model.load_settings(yaml.load(settings))
+    assert model.rowCount() == 2
+
+    model.clear()
+    settings = """
+- a
+- b
+- c
+    """.strip()
+
+    model.load_settings(yaml.load(settings))
+    assert model.rowCount() == 3
+
+    model.clear()
+    settings = """
+- "# cat"
+- a
+- b
+    """.strip()
+
+    model.load_settings(yaml.load(settings))
+    assert model.rowCount() == 3
+
+    model.clear()
+    settings = """
+- a:
+    - default_value: default
+      link: b
+- b:
+    - value: value
+- c
+        """.strip()
+
+    print(yaml.load(settings))
+    model.load_settings(yaml.load(settings))
+    assert model.rowCount() == 3
+
+
+def test_get_property():
+    model = PropertyModel2()
+    settings = """
+- "# categoryA"
+-
+    - a
+- "# categoryB"
+-
+    - b
+- c
+    """.strip()
+
+    model.load_settings(yaml.load(settings))
+
+    item = model.get("c")
+    assert item.text() == "c"
+
+    item = model.get(("# categoryA", "a"))
+    assert item.text() == "a"
+    assert item.tree_key() == ("# categoryA", "a")
+
+
+
+
 
 
 def test_load_settings():
