@@ -29,6 +29,15 @@ def _encoding():
     return TERM_ENCODING or sys.getfilesystemencoding()
 
 
+def make_command(make_cmd, cwd):
+    # type: (string_types, string_types) -> string_types
+    if platform.system() == "Windows":
+        make_bat = os.path.join(cwd, "make.bat")
+        return make_bat + " " + make_cmd
+    else:
+        return "make " + make_cmd
+
+
 def command(cmd):
     # type: (string_types) -> string_types
     if platform.system() in ("Windows", "Darwin"):

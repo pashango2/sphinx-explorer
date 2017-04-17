@@ -22,7 +22,7 @@ from .system_settings import SystemSettingsDialog, SystemSettings
 from . import plugin
 from .util.exec_sphinx import command
 
-from .util.exec_sphinx import launch, console, show_directory, open_terminal
+from .util.exec_sphinx import launch, console, show_directory, open_terminal, make_command
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -250,14 +250,13 @@ class MainWindow(QMainWindow):
         # type: () -> None
         index = self.sender().data()
         if index and index.isValid():
-            pass
-
-        item = self.project_list_model.itemFromIndex(index)
-        self._make("html", item.path())
+            item = self.project_list_model.itemFromIndex(index)
+            self._make("html", item.path())
 
     def _make(self, make_cmd, cwd, callback=None):
+        cmd = make_command(make_cmd, cwd)
         self.ui.plain_output.exec_command(
-            command("make " + make_cmd),
+            command(cmd),
             cwd,
             clear=True,
             callback=callback
