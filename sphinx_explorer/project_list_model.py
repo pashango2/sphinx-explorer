@@ -11,6 +11,7 @@ from six import string_types
 from . import icon
 from .util.QConsoleWidget import QConsoleWidget
 from .util.exec_sphinx import quote, create_cmd
+from .util.conf_py_parser import Parser
 
 
 class ProjectListModel(QStandardItemModel):
@@ -21,8 +22,7 @@ class ProjectListModel(QStandardItemModel):
     def __init__(self, parent=None):
         super(ProjectListModel, self).__init__(parent)
         self.setHorizontalHeaderLabels([
-            "Project Name",
-            "Path",
+            "Project List",
         ])
 
     def load(self, project_list):
@@ -104,23 +104,15 @@ class ProjectListModel(QStandardItemModel):
             # TODO: err output
             print(settings.error_msg)
 
+        if settings.project:
+            item.setText("{} ({})".format(settings.project, project_path))
+        else:
+            item.setText(project_path)
+
         if item.model():
             left = item.index()
             right = item.model().index(left.row(), 1)
             item.model().dataChanged.emit(left, right)
-
-    def data(self, index, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole:
-            if index.column() == 0:
-                index = self.index(index.row(), 0)
-                item = self.itemFromIndex(index)
-                return item.project()
-            elif index.column() == 1:
-                index = self.index(index.row(), 0)
-                item = self.itemFromIndex(index)
-                return item.path()
-
-        return super(ProjectListModel, self).data(index, role)
 
     def path(self, index):
         # type: (QModelIndex) -> str
@@ -229,14 +221,6 @@ class ProjectItem(QStandardItem):
         # type: () -> bool
         return self.settings.can_apidoc()
 
-    # def data(self, role=Qt.DisplayRole):
-    #     if role == Qt.DisplayRole:
-    #         if self.settings and self.settings.project:
-    #             return self.settings.project
-    #         else:
-    #             return self._path
-    #     return super(ProjectItem, self).data(role)
-
 
 class ProjectSettings(object):
     SETTING_NAME = "setting.toml"
@@ -248,7 +232,7 @@ class ProjectSettings(object):
         # self.conf = {}
         self.settings = {}
         self.error_msg = ""
-        self.project = "-"
+        self.project = ""
 
         self._analyze()
 
@@ -364,4 +348,8 @@ class LoadSettingObject(QObject, QRunnable):
 
     def run(self):
         settings = ProjectSettings(self.doc_path)
+
+        parser = Parser(settings.conf_py_path)
+        settings.project = parser.params().get("project", "")
+
         self.finished.emit(settings, self.project_path)

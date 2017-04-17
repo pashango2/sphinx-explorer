@@ -5,7 +5,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import ast
 import codecs
 import os
-
+from collections import OrderedDict
 from six import string_types
 
 from sphinx_explorer.plugin import extension
@@ -26,6 +26,7 @@ class MyNodeVisitor(ast.NodeVisitor):
 
         self._source_lines = source_lines[:]
         self.replace_dict = replace_dict or {}
+        self._params_map = OrderedDict()
 
     def visit_Assign(self, node):
         # type: (ast.Assign) -> ast.Assign
@@ -36,7 +37,13 @@ class MyNodeVisitor(ast.NodeVisitor):
                 new_line = "{} = {}\n".format(left_name, repr(self.replace_dict[left_name]))
                 self._source_lines[node.lineno - 1] = new_line
 
+            if isinstance(node.value, ast.Str):
+                self._params_map[left_name] = node.value.s
+
         return node
+
+    def params(self):
+        return self._params_map
 
     def visit(self, tree):
         super(MyNodeVisitor, self).visit(tree)
@@ -82,6 +89,11 @@ class Parser(object):
 
     def dumps(self):
         return "".join(self._source)
+
+    def params(self):
+        parser = MyNodeVisitor(self._source)
+        parser.visit(self._tree)
+        return parser.params()
 
     @property
     def lines(self):

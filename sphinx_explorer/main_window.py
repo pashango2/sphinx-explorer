@@ -133,9 +133,8 @@ class MainWindow(QMainWindow):
         # setup context menu
         self.ui.tree_view_projects.setContextMenuPolicy(Qt.CustomContextMenu)
 
-        self.setAcceptDrops(True)
-        self._setup()
-        self.ui.tree_view_projects.setFocus()
+        # setup toolbar
+        self.ui.toolBar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
 
         # move to center
         r = self.geometry()
@@ -159,12 +158,27 @@ class MainWindow(QMainWindow):
             file_icon=icon.load("file_text")
         )
 
+        # setup end
+        self.setAcceptDrops(True)
+        self._setup()
+        self.ui.tree_view_projects.setFocus()
 
     def _setup(self):
         self.project_list_model.load(self.settings.projects)
 
+        # load layout
+        layout = QSettings(os.path.join(self.setting_dir, "layout.ini"), QSettings.IniFormat)
+        if layout:
+            self.restoreGeometry(layout.value("geometry"))
+            self.restoreState(layout.value("windowState"))
+
     def _save(self):
         self.settings.dump(self.project_list_model.dump())
+
+        # save layout
+        layout = QSettings(os.path.join(self.setting_dir, "layout.ini"), QSettings.IniFormat)
+        layout.setValue("geometry", self.saveGeometry())
+        layout.setValue("windowState", self.saveState())
 
     def _create_context_menu(self, item, doc_path):
         # type : (ProjectItem, str) -> QMenu
@@ -272,6 +286,7 @@ class MainWindow(QMainWindow):
             tools = ProjectTools(item.path(), self)
             self.ui.treeView.setModel(tools.file_model)
             self.ui.treeView.setRootIndex(tools.file_model.index(item.source_dir_path()))
+            self.ui.treeView.header().hide()
             self.ui.treeView.hideColumn(1)
             self.ui.treeView.hideColumn(2)
             self.ui.treeView.hideColumn(3)

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/settings.ui'
+# Form implementation generated from reading ui file 'settings.ui'
 #
-# Created: Wed Mar 29 21:56:19 2017
+# Created: Mon Apr 17 13:50:57 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,13 +12,19 @@ from PySide import QtCore, QtGui
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(400, 300)
+        Form.resize(795, 385)
         self.verticalLayout = QtGui.QVBoxLayout(Form)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.property_widget = PropertyWidget(Form)
+        self.splitter = QtGui.QSplitter(Form)
+        self.splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter.setObjectName("splitter")
+        self.tree_view_category = QtGui.QTreeView(self.splitter)
+        self.tree_view_category.setRootIsDecorated(False)
+        self.tree_view_category.setObjectName("tree_view_category")
+        self.tree_view_category.header().setVisible(False)
+        self.property_widget = PropertyWidget(self.splitter)
         self.property_widget.setObjectName("property_widget")
-        self.verticalLayout.addWidget(self.property_widget)
+        self.verticalLayout.addWidget(self.splitter)
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)

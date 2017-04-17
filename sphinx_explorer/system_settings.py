@@ -72,6 +72,11 @@ class SystemSettings(OrderedDict):
         return self.editor().icon if self.editor() else QIcon()
 
 
+class CategoryModel(QStandardItemModel):
+    def __init__(self, parent=None):
+        super(CategoryModel, self).__init__(parent)
+
+
 class SystemSettingsDialog(QDialog):
     DEFAULT_SETTING_KEYS = [
         "path",
@@ -86,6 +91,11 @@ class SystemSettingsDialog(QDialog):
         self.widget = QWidget(self)
         self.ui = Ui_Form()
         self.ui.setupUi(self.widget)
+
+        self.settings = None
+        self.params_dict = {}
+
+        self.category_model = CategoryModel(parent=self)
 
         self._buttons = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
@@ -105,9 +115,44 @@ class SystemSettingsDialog(QDialog):
         self.setWindowTitle(self.tr(str("SystemSettings")))
         self.resize(1000, 600)
 
+        self._setup_category()
+        self.ui.tree_view_category.setModel(self.category_model)
+
+        self.category_selection_model = self.ui.tree_view_category.selectionModel()
+
+        first_index = self.category_model.index(0, 0)
+        self.category_selection_model.select(first_index, QItemSelectionModel.Select)
+        self.category_selection_model.currentChanged.connect(self._on_category_changed)
+
+    def _on_category_changed(self, current, prev):
+        item = self.category_model.itemFromIndex(current)
+        if item:
+            cat_name = item.text().replace(" ", "_")
+
+            self.ui.property_widget.clear()
+            setting_func = getattr(self, "setup_" + cat_name)
+            if setting_func:
+                setting_func()
+
+    def _setup_category(self):
+        categories = [
+            "Settings",
+            "Default Values",
+            "Extensions",
+        ]
+
+        for category in categories:
+            item = QStandardItem(category)
+            self.category_model.appendRow(item)
+
     def setup(self, settings, params_dict):
-        # type: (SystemSettings) -> None
+        self.settings = settings
+        self.params_dict = params_dict
+
+    def setup_Settings(self):
+        # type: () -> None
         widget = self.ui.property_widget
+        settings = self.settings
 
         items = []
         for name, ed in editor.editors():
@@ -127,10 +172,20 @@ class SystemSettingsDialog(QDialog):
             }
         )
 
+    def setup_Default_Values(self):
+        # type: () -> None
+        widget = self.ui.property_widget
+        params_dict = self.params_dict
+
         widget.add_category("Default values")
         for key, params in params_dict.items():
             if key in self.DEFAULT_SETTING_KEYS:
                 widget.add_property(key, params)
+
+    def setup_Extensions(self):
+        # type: () -> None
+        widget = self.ui.property_widget
+        settings = self.settings
 
         widget.add_category("Extensions")
         for ext_name, ext in extension.extensions():
