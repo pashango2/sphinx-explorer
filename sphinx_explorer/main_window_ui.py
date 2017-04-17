@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/main_window.ui'
 #
-# Created: Mon Apr 17 08:51:23 2017
+# Created: Mon Apr 17 09:23:45 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,19 +17,6 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.horizontalLayout = QtGui.QHBoxLayout()
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.tool_button_quick_start = QtGui.QToolButton(self.centralwidget)
-        self.tool_button_quick_start.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        self.tool_button_quick_start.setObjectName("tool_button_quick_start")
-        self.horizontalLayout.addWidget(self.tool_button_quick_start)
-        self.tool_setting = QtGui.QToolButton(self.centralwidget)
-        self.tool_setting.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        self.tool_setting.setObjectName("tool_setting")
-        self.horizontalLayout.addWidget(self.tool_setting)
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem)
-        self.verticalLayout.addLayout(self.horizontalLayout)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setSpacing(0)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
@@ -63,8 +50,8 @@ class Ui_MainWindow(object):
         self.button_del.setAutoRaise(True)
         self.button_del.setObjectName("button_del")
         self.verticalLayout_3.addWidget(self.button_del)
-        spacerItem1 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_3.addItem(spacerItem1)
+        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_3.addItem(spacerItem)
         self.horizontalLayout_2.addLayout(self.verticalLayout_3)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -91,6 +78,21 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.plain_output)
         self.dock_outputs.setWidget(self.dockWidgetContents)
         MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(8), self.dock_outputs)
+        self.dockWidget_2 = QtGui.QDockWidget(MainWindow)
+        self.dockWidget_2.setFeatures(QtGui.QDockWidget.DockWidgetFloatable|QtGui.QDockWidget.DockWidgetMovable)
+        self.dockWidget_2.setObjectName("dockWidget_2")
+        self.dockWidgetContents_3 = QtGui.QWidget()
+        self.dockWidgetContents_3.setObjectName("dockWidgetContents_3")
+        self.verticalLayout_4 = QtGui.QVBoxLayout(self.dockWidgetContents_3)
+        self.verticalLayout_4.setObjectName("verticalLayout_4")
+        self.treeView = QtGui.QTreeView(self.dockWidgetContents_3)
+        self.treeView.setObjectName("treeView")
+        self.verticalLayout_4.addWidget(self.treeView)
+        self.dockWidget_2.setWidget(self.dockWidgetContents_3)
+        MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(2), self.dockWidget_2)
+        self.toolBar = QtGui.QToolBar(MainWindow)
+        self.toolBar.setObjectName("toolBar")
+        MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
         self.action_add_document = QtGui.QAction(MainWindow)
         self.action_add_document.setObjectName("action_add_document")
         self.action_settings = QtGui.QAction(MainWindow)
@@ -112,14 +114,15 @@ class Ui_MainWindow(object):
         self.menuCreate_C.addAction(self.action_apidoc)
         self.menubar.addAction(self.menuFile_F.menuAction())
         self.menubar.addAction(self.menuCreate_C.menuAction())
+        self.toolBar.addAction(self.action_wizard)
+        self.toolBar.addAction(self.action_apidoc)
+        self.toolBar.addAction(self.action_settings)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Sphinx Explorer", None, QtGui.QApplication.UnicodeUTF8))
-        self.tool_button_quick_start.setText(QtGui.QApplication.translate("MainWindow", "Create", None, QtGui.QApplication.UnicodeUTF8))
-        self.tool_setting.setText(QtGui.QApplication.translate("MainWindow", "Setting", None, QtGui.QApplication.UnicodeUTF8))
         self.button_add.setText(QtGui.QApplication.translate("MainWindow", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.button_up.setText(QtGui.QApplication.translate("MainWindow", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.button_down.setText(QtGui.QApplication.translate("MainWindow", "...", None, QtGui.QApplication.UnicodeUTF8))
@@ -127,6 +130,8 @@ class Ui_MainWindow(object):
         self.menuFile_F.setTitle(QtGui.QApplication.translate("MainWindow", "File(&F)", None, QtGui.QApplication.UnicodeUTF8))
         self.menuCreate_C.setTitle(QtGui.QApplication.translate("MainWindow", "Create(&C)", None, QtGui.QApplication.UnicodeUTF8))
         self.dock_outputs.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Outputs", None, QtGui.QApplication.UnicodeUTF8))
+        self.dockWidget_2.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Project", None, QtGui.QApplication.UnicodeUTF8))
+        self.toolBar.setWindowTitle(QtGui.QApplication.translate("MainWindow", "toolBar", None, QtGui.QApplication.UnicodeUTF8))
         self.action_add_document.setText(QtGui.QApplication.translate("MainWindow", "Add Document", None, QtGui.QApplication.UnicodeUTF8))
         self.action_add_document.setToolTip(QtGui.QApplication.translate("MainWindow", "Add Document", None, QtGui.QApplication.UnicodeUTF8))
         self.action_settings.setText(QtGui.QApplication.translate("MainWindow", "Settings...", None, QtGui.QApplication.UnicodeUTF8))

@@ -87,7 +87,6 @@ class MainWindow(QMainWindow):
         self.ui.menuFile_F.addAction(self.close_act)
 
         # setup icon
-        self.ui.tool_button_quick_start.setIcon(icon.load("book"))
         self.ui.action_add_document.setIcon(icon.load("plus"))
         self.ui.action_settings.setIcon(icon.load("setting"))
         self.ui.action_wizard.setIcon(icon.load("magic"))
@@ -97,7 +96,6 @@ class MainWindow(QMainWindow):
         self.ui.action_delete_document.setIcon(icon.load("remove"))
 
         # setup tool button
-        self.ui.tool_setting.setDefaultAction(self.ui.action_settings)
         self.ui.button_add.setDefaultAction(self.ui.action_add_document)
         self.ui.button_up.setDefaultAction(self.ui.action_move_up)
         self.ui.button_down.setDefaultAction(self.ui.action_move_down)
@@ -114,8 +112,6 @@ class MainWindow(QMainWindow):
         self.quick_start_menu = QMenu(self)
         self.quick_start_menu.addAction(self.ui.action_wizard)
         self.quick_start_menu.addAction(self.ui.action_apidoc)
-        self.ui.tool_button_quick_start.setMenu(self.quick_start_menu)
-        self.ui.tool_button_quick_start.setPopupMode(QToolButton.InstantPopup)
 
         # setup project tree view
         self.ui.tree_view_projects.addAction(self.ui.action_move_up)
