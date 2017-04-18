@@ -3,13 +3,11 @@ label = "Project name"
 description = """
 The project name will occur in several places in the built documentation.
 """
-required = true
 
 [path]
 label = "Root path"
 value_type = "TypeDirPath"
-required = true
-link="project"
+link="{_default}/{project}"
 
 description = """
 Root path for documentation.
@@ -136,7 +134,6 @@ default = false
 [apidoc-sourcedir]
 label = "Module directory"
 value_type = "TypeDirPath"
-required = true
 require_input = true
 link="path"
 

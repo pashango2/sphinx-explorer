@@ -17,14 +17,15 @@ class ApidocWizard(BaseWizard):
 
 
 class ApiDocSecondPropertyPage(PropertyPage):
-    def initializePage(self):
-        super(ApiDocSecondPropertyPage, self).initializePage()
-
-        root_path = self.wizard().value("path")
-        item = self.property_widget.item("apidoc-sourcedir")
-        item.set_link_value(root_path)
-
-        self.property_widget.update_default()
+    # def initializePage(self):
+    #     super(ApiDocSecondPropertyPage, self).initializePage()
+    #
+    #     root_path = self.wizard().value("path")
+    #     item = self.property_widget.item("apidoc-sourcedir")
+    #     item.set_link_value(root_path)
+    #
+    #     self.property_widget.update_default()
+    pass
 
 
 class ApiDocExecCommandPage(ExecCommandPage):

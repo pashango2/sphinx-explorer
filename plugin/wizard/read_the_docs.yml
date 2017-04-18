@@ -14,7 +14,7 @@ description: |
 
 
 wizard:
-    - Required params
+    - "#*Required params"
     -
         - project
         - path

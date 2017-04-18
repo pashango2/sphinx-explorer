@@ -11,7 +11,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from sphinx_explorer.plugin import editor
-from .property_widget import TypeChoice, PropertyModel2
+from .property_widget import TypeChoice, PropertyModel
 from .plugin import extension
 from .settings_ui import Ui_Form
 import logging
@@ -63,10 +63,10 @@ class SystemSettings(OrderedDict):
         return toml.dump(self, open(self._setting_path, "w"))
 
     def default_editor(self):
-        return self.get("editor", "atom")
+        return self.get("Editor", {}).get("editor", "atom")
 
     def set_default_editor(self, editor_name):
-        self["editor"] = editor_name
+        self.setdefault("Editor", {})["editor"] = editor_name
 
     def editor(self):
         # type: () -> editor.Editor
@@ -87,7 +87,7 @@ class CategoryFilterModel(QSortFilterProxyModel):
         source_index = self.sourceModel().index(source_row, 0, source_parent)
         item = self.sourceModel().itemFromIndex(source_index)
 
-        return item and item.key.startswith("#*")
+        return item and item.is_category
 
     def itemFromIndex(self, index):
         source_index = self.mapToSource(index)
@@ -95,7 +95,7 @@ class CategoryFilterModel(QSortFilterProxyModel):
 
     def columnCount(self, _):
         return 1
-    
+
     def data(self, index, role=Qt.DisplayRole):
         if role == Qt.BackgroundColorRole:
             return None
@@ -146,7 +146,7 @@ class SystemSettingsDialog(QDialog):
         self.settings = None
         self.params_dict = {}
 
-        self.property_model = PropertyModel2(self)
+        self.property_model = PropertyModel(self)
         self.category_model = CategoryFilterModel(self)
         self.category_model.setSourceModel(self.property_model)
         self.ui.property_widget.setModel(self.property_model)
@@ -204,9 +204,8 @@ class SystemSettingsDialog(QDialog):
 
         d = yaml.load(SYSTEM_SETTINGS)
         self.property_model.load_settings(d, params_dict)
-        self.ui.property_widget.setup()
 
-        editor_item = self.property_model.get("#*Editor")
+        editor_item = self.property_model.get("Editor")
         if not editor_item:
             logger.warning("editor item don't find.")
             return
@@ -222,14 +221,21 @@ class SystemSettingsDialog(QDialog):
         editor_choice = TypeChoice(items)
         editor_item.add_property(
             "editor",
-            {
+            settings.default_editor(),
+            params = {
                 "name": "Editor",
-                "value": settings.default_editor(),
                 "value_type": editor_choice
-            }
+            },
         )
 
+        # setup defaut values
+        item = self.property_model.get("Default Values")
+        item.set_values(settings.get("default_values"))
+
+        # setup extension
         self.setup_extensions()
+
+        self.ui.property_widget.setup()
 
         self.ui.tree_view_category.expandAll()
 
@@ -239,7 +245,7 @@ class SystemSettingsDialog(QDialog):
 
     def setup_extensions(self):
         # type: () -> None
-        parent_item = self.property_model.get("#*Extensions")
+        parent_item = self.property_model.get("Extensions")
 
         for ext_name, ext in extension.extensions():
             if ext.has_setting_params():
@@ -248,19 +254,20 @@ class SystemSettingsDialog(QDialog):
                 for param_name, params in ext.setting_params:
                     category.add_property(
                         param_name,
-                        params
+                        params=params
                     )
 
-        # d = settings.default_values.copy()
-        # d.update(settings)
-        # widget.load(d)
-        # widget.resizeColumnToContents(0)
+                    # d = settings.default_values.copy()
+                    # d.update(settings)
+                    # widget.load(d)
+                    # widget.resizeColumnToContents(0)
 
     def setup_Settings(self):
         # type: () -> None
         widget = self.ui.property_widget
         settings = self.settings
 
+        # setup editor
         items = []
         for name, ed in editor.editors():
             items.append({
@@ -279,9 +286,11 @@ class SystemSettingsDialog(QDialog):
             }
         )
 
+        # setup defaut values
+        item = widget.get("Default Values")
+        item.set_values(settings.default_values())
+
         self.setup_extensions()
-
-
 
     def setup_Default_Values(self):
         # type: () -> None
@@ -293,8 +302,6 @@ class SystemSettingsDialog(QDialog):
             if key in self.DEFAULT_SETTING_KEYS:
                 widget.add_property(key, params)
 
-
-
     def update_settings(self, settings):
         # type: (SystemSettings) -> None
         param = self.ui.property_widget.dump()
@@ -303,8 +310,7 @@ class SystemSettingsDialog(QDialog):
             key: value
             for key, value in param.items()
             if key in self.DEFAULT_SETTING_KEYS
-        }
+            }
         settings.default_values.update(default_param)
-        settings.set_default_editor(param["editor"])
-
-
+        print(param)
+        settings.set_default_editor(param["Editor"]["editor"])

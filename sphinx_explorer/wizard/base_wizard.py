@@ -85,7 +85,7 @@ class ExecCommandPage(QWizardPage):
         # type: () -> dict
         wizard = self.wizard()  # type: BaseWizard
         d = wizard.default_values.copy()
-        d.update(self.property_widget.dump())
+        d.update(self.property_widget.dump(flat=True))
         return d
 
     def finished(self, return_code):
@@ -106,12 +106,14 @@ class ExecCommandPage(QWizardPage):
 
 
 class PropertyPage(QWizardPage):
-    def __init__(self, title, filter_model, default_dict, parent=None):
+    def __init__(self, title, model, root_index, parent=None):
         super(PropertyPage, self).__init__(parent)
-        self.filter_model = filter_model
+        self.model = model
 
-        self.property_widget = property_widget.PropertyWidget(self, self.filter_model)
-        self.property_widget.set_default_dict(default_dict or {})
+        self.property_widget = property_widget.PropertyWidget(self, self.model)
+        self.property_widget.setRootIndex(root_index)
+        self.property_widget.setup()
+
         self.text_browser = DescriptionWidget(self)
         self.splitter = QSplitter(self)
 

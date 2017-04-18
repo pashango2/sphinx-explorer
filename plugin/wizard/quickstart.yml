@@ -22,19 +22,19 @@ description: |
 
 
 wizard:
-    - Required params
+    - "#*Required params"
     -
-        - project
+        - "*project"
         - path
         - author
         - version
         - release
-    - Document params
+    - "#*Document params"
     -
         - language
         - html_theme
         - epub
-    - Options
+    - "#*Options"
     -
         [
             "sep",
@@ -56,7 +56,7 @@ wizard:
             "ext-viewcode",
             "ext-githubpage",
         ]
-    - More Extensions
+    - "#*More Extensions"
     -
         [
             "ext-commonmark",

@@ -50,6 +50,10 @@ class TemplateItem(QStandardItem):
     def description(self):
         return self.template.get("description")
 
+    @property
+    def wizard_settings(self):
+        return self.template.get("wizard", [])
+
     def wizard_iter(self):
         odd = 0
         category = None

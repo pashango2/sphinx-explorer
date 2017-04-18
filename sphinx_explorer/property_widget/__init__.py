@@ -10,7 +10,7 @@ from six import string_types
 # noinspection PyUnresolvedReferences
 from PySide.QtCore import *
 from PySide.QtGui import *
-from .property_model import PropertyItem, CategoryItem, PropertyModel, PropertyModel2
+from .property_model import PropertyItem, CategoryItem, PropertyModel
 from .property_model import PropertyItemType
 from .description_widget import DescriptionWidget
 from .default_value_dict import DefaultValues
@@ -49,7 +49,7 @@ class PropertyWidget(QTableView):
     def __init__(self, parent=None, model=None):
         # type: (QWidget, QAbstractItemModel) -> None
         super(PropertyWidget, self).__init__(parent)
-        self._model = model or PropertyModel2(self)
+        self._model = model or PropertyModel(self)
         self.setModel(self._model)
         self.selection_model = self.selectionModel()
         self._first_property_index = QModelIndex()
@@ -109,14 +109,17 @@ class PropertyWidget(QTableView):
         self.setSpan(item.row(), 0, 1, 2)
         return item
 
-    def add_property(self, item_key, params, label_name=None):
+    def add_property(self, parent_item, item_key, params, label_name=None):
         # type: (str, dict, str or None) -> PropertyItem
-        item = self._model.add_property(None, item_key, params, label_name)
+        item = self._model.add_property(parent_item, item_key, params, label_name)
 
         if not self._first_property_index.isValid():
             self._first_property_index = self.index(item.row(), 1)
 
         return item
+
+    def get(self, keys):
+        return self._model.get(keys)
 
     def first_property_index(self):
         # type: () -> QModelIndex
@@ -129,13 +132,9 @@ class PropertyWidget(QTableView):
         else:
             self.setEditTriggers(QAbstractItemView.AllEditTriggers)
 
-    def dump(self):
+    def dump(self, flat=False):
         # type: () -> dict
-        result = {}
-        for item in self.properties():
-            if item.value is not None:
-                result[item.key] = item.value
-        return result
+        return self._model.dump(flat=flat)
 
     def dumps(self):
         # type: () -> str
@@ -176,7 +175,7 @@ class PropertyWidget(QTableView):
         if not index.isValid():
             return None
 
-        item = self._model.item(index.row())
+        item = self._model.itemFromIndex(index)
         if item.type() == PropertyItemType:
             return item.description
         return None
@@ -186,8 +185,8 @@ class PropertyWidget(QTableView):
         if not index.isValid():
             return None
 
-        item = self._model.item(index.row())
-        return item.text()
+        item = self._model.itemFromIndex(index)
+        return item.text() if item else ""
 
     def closeEditor(self, editor, _):
         super(PropertyWidget, self).closeEditor(editor, QAbstractItemDelegate.EditNextItem)
@@ -216,10 +215,7 @@ class PropertyWidget(QTableView):
         self.update_default()
 
     def set_values(self, values_dict):
-        prop_map = self.property_map()
-        for key, value in values_dict.items():
-            if key in prop_map:
-                prop_map[key].set_value(value, force_update=True)
+        self._model.set_values(values_dict)
 
     def default_value(self, key):
         return self._model.default_value(key)
@@ -227,10 +223,6 @@ class PropertyWidget(QTableView):
     def update_default(self):
         for prop in self.properties():
             prop.update_link()
-
-    def set_default_dict(self, default_dict):
-        self._model.set_default_dict(default_dict)
-        self.update_default()
 
 
 class PropertyItemDelegate(QStyledItemDelegate):

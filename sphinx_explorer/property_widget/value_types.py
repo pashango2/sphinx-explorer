@@ -175,6 +175,10 @@ class TypeDirPath(TypeBase):
         return control.text()
 
     @classmethod
+    def filter(cls, value):
+        return os.path.normpath(value)
+
+    @classmethod
     def link_value(cls, default_value, link_value):
         if default_value is None and link_value is None:
             return ""
