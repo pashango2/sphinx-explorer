@@ -5,6 +5,7 @@ import os
 from six import string_types
 from PySide.QtCore import *
 from PySide.QtGui import *
+from . import define
 
 
 class TypeBase(object):
@@ -43,6 +44,14 @@ class TypeBase(object):
     @classmethod
     def link_value(cls, default_value, link_value):
         return link_value or default_value
+
+    @classmethod
+    def sizeHint(cls):
+        return QSize(-1, -1)
+
+    @classmethod
+    def setup(cls, item):
+        pass
 
     is_persistent_editor = False
 
@@ -268,11 +277,72 @@ class TypeChoice(TypeBase):
         except KeyError:
             return None
 
+
+class TypeFontList(TypeBase):
+    @classmethod
+    def control(cls, _, parent):
+        return FontListWidget(parent)
+
+    @classmethod
+    def value(cls, control):
+        return "FONT\nFONT2\nFONT3"
+
+    @classmethod
+    def set_value(cls, control, value):
+        # type: (FontListWidget, string_types) -> None
+        print(value)
+        value = value or ""
+        control.addItems(value.splitlines())
+
+    @classmethod
+    def sizeHint(cls):
+        return QSize(-1, 200)
+
+    @classmethod
+    def setup(cls, item):
+        item.setData(Qt.AlignTop | Qt.AlignLeft, Qt.TextAlignmentRole)
+
+
+class FontListWidget(QListWidget):
+    def __init__(self, parent=None):
+        super(FontListWidget, self).__init__(parent)
+        self.frame = QFrame(self)
+        self.tool_layout = QVBoxLayout(self.frame)
+        self.tool_layout.setContentsMargins(0, 0, 0, 0)
+        self.tool_layout.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
+
+        self.add_button = QToolButton(self)
+        self.add_button.setIcon(define.ADD_ICON)
+        self.add_button.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        self.tool_layout.addWidget(self.add_button)
+        self.frame.setLayout(self.tool_layout)
+
+        self._connect()
+
+    def _connect(self):
+        self.add_button.clicked.connect(self._on_add)
+
+    def _on_add(self):
+        font = QFontDialog.getFont()
+
+    def resizeEvent(self, evt):
+        width = self.size().width()
+        height = self.size().height()
+
+        self.frame.setGeometry(
+            width - 32, 0,
+            32, height
+        )
+        print(self.rect())
+        return super(FontListWidget, self).resizeEvent(evt)
+
+
 AllTypes = [
     TypeBool,
     TypeDirPath,
     TypeRelDirPath,
     TypeChoice,
+    TypeFontList,
 ]
 
 

@@ -143,6 +143,9 @@ class SystemSettingsDialog(QDialog):
         self.ui = Ui_Form()
         self.ui.setupUi(self.widget)
 
+        self.ui.splitter.setStretchFactor(1, 1)
+        self.ui.splitter.setSizes([310, 643])
+
         self.settings = None
         self.params_dict = {}
 
@@ -173,30 +176,13 @@ class SystemSettingsDialog(QDialog):
         self.ui.tree_view_category.setModel(self.category_model)
         self.category_selection_model = self.ui.tree_view_category.selectionModel()
 
-    def _on_category_changed(self, current, prev):
+    def _on_category_changed(self, current, _):
         item = self.category_model.itemFromIndex(current)
         if item:
             root_item = self.property_model.get(item.tree_key())
-            # model = self.property_model.create_table_model(root_item.index())
-            # self.ui.property_widget.setModel(model)
             self.ui.property_widget.setRootIndex(root_item.index())
             self.ui.property_widget.setup()
-
-
-            # setting_func = getattr(self, "setup_" + cat_name)
-            # if setting_func:
-            #     setting_func()
-
-    # def _setup_category(self):
-    #     categories = [
-    #         "Settings",
-    #         "Default Values",
-    #         "Extensions",
-    #     ]
-    #
-    #     for category in categories:
-    #         item = QStandardItem(category)
-    #         self.category_model.appendRow(item)
+            self.ui.property_widget.resizeColumnToContents(0)
 
     def setup(self, settings, params_dict):
         self.settings = settings
@@ -222,13 +208,13 @@ class SystemSettingsDialog(QDialog):
         editor_item.add_property(
             "editor",
             settings.default_editor(),
-            params = {
+            params={
                 "name": "Editor",
                 "value_type": editor_choice
             },
         )
 
-        # setup defaut values
+        # setup default values
         item = self.property_model.get("Default Values")
         item.set_values(settings.get("default_values"))
 
@@ -256,11 +242,6 @@ class SystemSettingsDialog(QDialog):
                         param_name,
                         params=params
                     )
-
-                    # d = settings.default_values.copy()
-                    # d.update(settings)
-                    # widget.load(d)
-                    # widget.resizeColumnToContents(0)
 
     def setup_Settings(self):
         # type: () -> None
@@ -310,7 +291,7 @@ class SystemSettingsDialog(QDialog):
             key: value
             for key, value in param.items()
             if key in self.DEFAULT_SETTING_KEYS
-            }
+        }
         settings.default_values.update(default_param)
         print(param)
         settings.set_default_editor(param["Editor"]["editor"])

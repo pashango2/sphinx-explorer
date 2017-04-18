@@ -4,7 +4,6 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 
 import json
 
-from collections import OrderedDict
 # noinspection PyUnresolvedReferences
 from six import string_types
 # noinspection PyUnresolvedReferences
@@ -14,6 +13,7 @@ from .property_model import PropertyItem, CategoryItem, PropertyModel
 from .property_model import PropertyItemType
 from .description_widget import DescriptionWidget
 from .default_value_dict import DefaultValues
+from .define import set_icon
 
 if False:
     from typing import Dict, Iterator
@@ -25,10 +25,12 @@ __all__ = [
     "TypeBool",
     "TypeDirPath",
     "TypeChoice",
+    "TypeFontList"
     "register_value_type",
     "find_value_type",
     "DescriptionWidget",
     "DefaultValues",
+    "set_icon"
 ]
 
 __version__ = "1.0"
@@ -89,6 +91,7 @@ class PropertyWidget(QTableView):
                 self._first_property_index = self.index(row, 1, self.rootIndex())
 
         self.setCurrentIndex(self._first_property_index)
+        self.resizeRowsToContents()
 
     def clear(self):
         self._model.removeRows(0, self._model.rowCount())
@@ -262,6 +265,9 @@ class PropertyItemDelegate(QStyledItemDelegate):
         else:
             value = item.value_type.value(editor)
             model.setData(index, value, Qt.EditRole)
+
+    def updateEditorGeometry(self, editor, option, index):
+        editor.setGeometry(option.rect)
 
 
 from .value_types import *  # NOQA

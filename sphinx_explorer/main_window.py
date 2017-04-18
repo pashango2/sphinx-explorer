@@ -23,7 +23,7 @@ from . import plugin
 from .project_tools import ProjectTools
 from .util.exec_sphinx import command
 from .util.exec_sphinx import launch, console, show_directory, open_terminal, make_command
-
+from . import property_widget
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -156,6 +156,10 @@ class MainWindow(QMainWindow):
         ProjectTools.set_file_icons(
             folder_icon=icon.load("folder"),
             file_icon=icon.load("file_text")
+        )
+
+        property_widget.set_icon(
+            add_icon=icon.load("plus")
         )
 
         # setup end

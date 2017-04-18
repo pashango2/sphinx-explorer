@@ -11,7 +11,7 @@ import markdown
 from PySide.QtGui import *
 
 if False:
-    from typing import Iterator, Dict
+    from typing import Iterator, Dict, List
 
 
 __all__ = [
@@ -80,6 +80,9 @@ class FlatTableModel(QAbstractProxyModel):
 
     def dump(self, *args, **kwargs):
         return self.sourceModel().dump(*args, **kwargs)
+
+    def flags(self, index):
+        return self.flags(self.mapToSource(index))
 
 
 class PropertyModel(QStandardItemModel):
@@ -202,6 +205,8 @@ class PropertyModel(QStandardItemModel):
     def add_property(self, parent_item, key, value=None, default=None, params=None, label_name=None):
         parent_item = parent_item or self.invisibleRootItem()
         params = params or {}
+        value = value or params.get("value")
+        default = default or params.get("default")
 
         # value type
         value_type = params.get("value_type")
@@ -416,7 +421,7 @@ class PropertyItem(BaseItem):
 
     LinkParserRe = re.compile("{(.*?)}")
 
-    def __init__(self, key, label, value_item, value_type, params, default_value=None):
+    def __init__(self, key, label, value_item, value_type, params):
         # type: (string_types, dict) -> None
         super(PropertyItem, self).__init__(key, label)
         self.value_item = value_item
@@ -432,7 +437,7 @@ class PropertyItem(BaseItem):
         # item flags
         self.setFlags(Qt.NoItemFlags)
         self.setEnabled(True)
-        self.setEditable(True)
+        self.setEditable(False)
 
         # link param
         self.link = None
@@ -449,7 +454,7 @@ class PropertyItem(BaseItem):
 
     @staticmethod
     def parse_link(link):
-        # type: (string_types) -> [string_types]
+        # type: (string_types) -> List[string_types]
         return PropertyItem.LinkParserRe.findall(link)
 
     @staticmethod
@@ -511,7 +516,10 @@ class PropertyItem(BaseItem):
             for item in self._links:
                 d[item.key] = item.value if item.value else ""
 
-            cache = self.link.format(**d)
+            try:
+                cache = self.link.format(**d)
+            except KeyError:
+                cache = default_value
         else:
             cache = default_value
 
@@ -577,6 +585,9 @@ class ValueItem(QStandardItem):
         self.value_type = value_type
 
         self.set_value(value)
+        if self.value_type:
+            self.setSizeHint(self.value_type.sizeHint())
+            self.value_type.setup(self)
 
     @property
     def input_value(self):
@@ -622,4 +633,3 @@ class ValueItem(QStandardItem):
             property_item = self.model().itemFromIndex(property_index)
             if property_item:
                 property_item.set_value(self.value, not_set_value=True)
-
