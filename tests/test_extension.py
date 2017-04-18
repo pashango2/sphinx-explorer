@@ -41,7 +41,7 @@ description: |
 
 """
     obj = yaml.load(plugin_text)
-    ext = Extension(obj)
+    ext = Extension("test_plugin", obj)
 
     assert ext.packages == ["commonmark", "recommonmark"]
     assert ext.extra_code

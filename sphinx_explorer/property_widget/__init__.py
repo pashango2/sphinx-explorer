@@ -35,8 +35,7 @@ __version__ = "1.0"
 __release__ = __version__ + "b"
 
 
-# class PropertyWidget(QTableView):
-class PropertyWidget(QTreeView):
+class PropertyWidget(QTableView):
     """
     Widget to edit properties collectively.
 
@@ -50,7 +49,7 @@ class PropertyWidget(QTreeView):
     def __init__(self, parent=None, model=None):
         # type: (QWidget, QAbstractItemModel) -> None
         super(PropertyWidget, self).__init__(parent)
-        self._model = model or PropertyModel(self)
+        self._model = model or PropertyModel2(self)
         self.setModel(self._model)
         self.selection_model = self.selectionModel()
         self._first_property_index = QModelIndex()
@@ -58,16 +57,13 @@ class PropertyWidget(QTreeView):
         self._delegate = PropertyItemDelegate(self)
         self.setItemDelegate(self._delegate)
 
-        # self.verticalHeader().hide()
-        # self.horizontalHeader().setStretchLastSection(True)
+        self.verticalHeader().hide()
+        self.horizontalHeader().setStretchLastSection(True)
         self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.setTabKeyNavigation(False)
 
         self.setup()
         self._connect()
-
-    def resizeColumnsToContents(self):
-        pass
 
     def setModel(self, model):
         self._model = model
@@ -79,7 +75,7 @@ class PropertyWidget(QTreeView):
         self.setup()
 
     def setup(self):
-        # self.clearSpans()
+        self.clearSpans()
         self._first_property_index = QModelIndex()
 
         for row in range(self._model.rowCount(self.rootIndex())):
@@ -87,12 +83,10 @@ class PropertyWidget(QTreeView):
             item = self._model.itemFromIndex(index)
 
             if item.is_category:
-                # self.setSpan(row, 0, 1, 2)
-                self.setFirstColumnSpanned(row, index, True)
-            else:
-                self.setFirstColumnSpanned(row, index, False)
-                if not self._first_property_index.isValid():
-                    self._first_property_index = self.index(row, 1, self.rootIndex())
+                self.setSpan(row, 0, 1, 2)
+
+            if not self._first_property_index.isValid():
+                self._first_property_index = self.index(row, 1, self.rootIndex())
 
         self.setCurrentIndex(self._first_property_index)
 
@@ -117,8 +111,7 @@ class PropertyWidget(QTreeView):
 
     def add_property(self, item_key, params, label_name=None):
         # type: (str, dict, str or None) -> PropertyItem
-        item = self._model.create_property(item_key, params, label_name)
-        self._model.add_property_item(item)
+        item = self._model.add_property(None, item_key, params, label_name)
 
         if not self._first_property_index.isValid():
             self._first_property_index = self.index(item.row(), 1)
@@ -259,8 +252,8 @@ class PropertyItemDelegate(QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         # type: (QWidget, QModelIndex) -> None
-        model = index.model()  # :type: PropertyModel
-        item = model.rowItem(index)  # :type: PropertyItem
+        model = index.model()  # :type: ProtpertyModel
+        item = model.itemFromIndex(index)  # :type: PropertyItem
 
         if item.value_type:
             item.value_type.set_value(editor, item.value)
@@ -269,7 +262,6 @@ class PropertyItemDelegate(QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         # type: (QWidget, PropertyModel, QModelIndex) -> None
-        model = index.model()  # :type: PropertyModel
         item = model.rowItem(index)  # :type: PropertyItem
 
         if item.value_type is None:

@@ -134,7 +134,7 @@ class Extension(object):
 
         # setting params
         for param_name, param_setting in self.setting_params:
-            value = settings.get(param_name, param_setting.get("default"))
+            value = params.get(param_name) or settings.get(param_name) or param_setting.get("default")
             if value:
                 parser.append("{} = {}".format(param_name, repr(value)))
 

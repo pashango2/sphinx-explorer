@@ -177,6 +177,8 @@ class SystemSettingsDialog(QDialog):
         item = self.category_model.itemFromIndex(current)
         if item:
             root_item = self.property_model.get(item.tree_key())
+            # model = self.property_model.create_table_model(root_item.index())
+            # self.ui.property_widget.setModel(model)
             self.ui.property_widget.setRootIndex(root_item.index())
             self.ui.property_widget.setup()
 
@@ -227,9 +229,32 @@ class SystemSettingsDialog(QDialog):
             }
         )
 
+        self.setup_extensions()
+
+        self.ui.tree_view_category.expandAll()
+
         first_index = self.category_model.index(0, 0)
         self.category_selection_model.select(first_index, QItemSelectionModel.Select)
         self.category_selection_model.currentChanged.connect(self._on_category_changed)
+
+    def setup_extensions(self):
+        # type: () -> None
+        parent_item = self.property_model.get("#*Extensions")
+
+        for ext_name, ext in extension.extensions():
+            if ext.has_setting_params():
+                category = parent_item.add_category("#*" + ext_name, ext_name)
+
+                for param_name, params in ext.setting_params:
+                    category.add_property(
+                        param_name,
+                        params
+                    )
+
+        # d = settings.default_values.copy()
+        # d.update(settings)
+        # widget.load(d)
+        # widget.resizeColumnToContents(0)
 
     def setup_Settings(self):
         # type: () -> None
@@ -254,6 +279,10 @@ class SystemSettingsDialog(QDialog):
             }
         )
 
+        self.setup_extensions()
+
+
+
     def setup_Default_Values(self):
         # type: () -> None
         widget = self.ui.property_widget
@@ -264,26 +293,7 @@ class SystemSettingsDialog(QDialog):
             if key in self.DEFAULT_SETTING_KEYS:
                 widget.add_property(key, params)
 
-    def setup_Extensions(self):
-        # type: () -> None
-        widget = self.ui.property_widget
-        settings = self.settings
 
-        widget.add_category("Extensions")
-        for ext_name, ext in extension.extensions():
-            if ext.has_setting_params():
-                widget.add_category(ext_name)
-
-                for param_name, params in ext.setting_params:
-                    widget.add_property(
-                        param_name,
-                        params
-                    )
-
-        d = settings.default_values.copy()
-        d.update(settings)
-        widget.load(d)
-        widget.resizeColumnToContents(0)
 
     def update_settings(self, settings):
         # type: (SystemSettings) -> None

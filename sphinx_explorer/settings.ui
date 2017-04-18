@@ -21,7 +21,7 @@
      </property>
      <widget class="QTreeView" name="tree_view_category">
       <property name="rootIsDecorated">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <attribute name="headerVisible">
        <bool>false</bool>

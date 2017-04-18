@@ -16,6 +16,29 @@ except RuntimeError:
     pass
 
 
+def test_table_model():
+    model = PropertyModel2()
+    settings = """
+- "# categoryA"
+-
+    - a
+    - b
+    - c
+- "# categoryB"
+-
+    - d
+    - e
+    - f
+    """.strip()
+
+    model.load_settings(yaml.load(settings))
+    root_item = model.get("# categoryA")
+
+    assert 3 == model.rowCount(root_item.index())
+    assert 2 == model.columnCount(root_item.index())
+
+
+
 def test_load_settings2():
     model = PropertyModel2()
     settings = """
@@ -114,16 +137,16 @@ def test_load_settings():
     settings = [
         "#category",
         {
-            "a": {
+            "a": [{
                 "label": "Document",
-            },
+            }],
         },
         {
-            "b": {
+            "b": [{
                 "label": "Check",
                 "value_type": "TypeBool",
                 "default": False
-            }
+            }]
         },
     ]
     widget.load_settings(settings)
@@ -139,17 +162,20 @@ def test_link():
     settings = [
         "#category",
         {
-            "a": {
-                "label": "Document",
-                "default": "test",
-            },
+            "a": [
+                {
+                    "label": "Document",
+                    "default": "test",
+                },
+            ]
         },
         {
-            "b": {
-                "label": "Document",
-                "link": "a",
-            }
-
+            "b": [
+                {
+                    "label": "Document",
+                    "link": "a",
+                }
+            ]
         },
     ]
     widget.load_settings(settings)
@@ -175,16 +201,16 @@ def test_link_and_default():
     settings = [
         "#category",
         {
-            "a": {
+            "a": [{
                 "label": "Document",
                 "default": "test",
-            }
+            }]
         },
         {
-            "b": {
+            "b": [{
                 "label": "Document",
                 "link": "a",
-            }
+            }]
         },
     ]
     widget.set_default_dict(default_values)
@@ -204,10 +230,10 @@ def test_required():
     settings = [
         "#category",
         {
-            "a": {
+            "a": [{
                 "label": "Document",
                 "required": True,
-            }
+            }]
         },
     ]
     widget.load_settings(settings)
@@ -220,11 +246,11 @@ def test_required():
     settings = [
         "#category",
         {
-            "a": {
+            "a": [{
                 "label": "Document",
                 "required": True,
                 "default": "test"
-            }
+            }]
         },
     ]
     widget.load_settings(settings)
@@ -237,10 +263,10 @@ def test_required():
     settings = [
         "#category",
         {
-            "a": {
+            "a": [{
                 "label": "Document",
                 "required": True,
-            }
+            }]
         },
     ]
     widget.set_default_dict(default_values)
@@ -254,18 +280,18 @@ def test_link_format():
     settings = [
         "#category",
         {
-            "a": {
+            "a": [{
                 "label": "Document",
                 "default": "test_a",
-            }
+            }]
         },
         {
-            "b": {
+            "b": [{
                 "label": "Document",
                 "link": "a",
                 "default": "test_b",
                 "link_format": "{_link_value}/{_default_value}"
-            }
+            }]
         },
     ]
     widget.load_settings(settings)
@@ -283,27 +309,27 @@ def test_link_format():
     assert item_b.value == "sphinx/test_b"
 
 
-def test_property_filter():
-    model = PropertyModel()
-
-    settings = [
-        "#category",
-        "a",
-        "b",
-        "#category2",
-        "c",
-    ]
-
-    model.load_settings(settings)
-    assert model.rowCount() == 5
-
-    filter_model = model.create_filter_model(
-        [
-            "a", "b"
-        ]
-    )
-
-    assert filter_model.rowCount() == 2
+# def test_property_filter():
+#     model = PropertyModel2()
+#
+#     settings = [
+#         "#category",
+#         "a",
+#         "b",
+#         "#category2",
+#         "c",
+#     ]
+#
+#     model.load_settings(settings)
+#     assert model.rowCount() == 5
+#
+#     filter_model = model.create_filter_model(
+#         [
+#             "a", "b"
+#         ]
+#     )
+#
+#     assert filter_model.rowCount() == 2
 
 
 def test_add_item():
