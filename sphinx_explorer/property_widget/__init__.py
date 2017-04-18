@@ -166,9 +166,9 @@ class PropertyWidget(QTableView):
         # type: (string_types) -> PropertyItem
         return self.property_map().get(name)
 
-    def properties(self):
-        # type: () -> Iterator[PropertyItem]
-        return self._model.properties()
+    def properties(self, root_index=None):
+        # type: (QModelIndex) -> Iterator[PropertyItem]
+        return self._model.properties(root_index)
 
     def description(self, index):
         # type: (QModelIndex) -> str or None
@@ -201,7 +201,8 @@ class PropertyWidget(QTableView):
 
     def is_complete(self):
         # type: () -> bool
-        for property_item in self.properties():
+        root_index = self.rootIndex()
+        for property_item in self.properties(root_index):
             if not property_item.is_complete():
                 return False
         return True

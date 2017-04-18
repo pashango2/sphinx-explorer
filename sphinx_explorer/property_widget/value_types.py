@@ -176,7 +176,8 @@ class TypeDirPath(TypeBase):
 
     @classmethod
     def filter(cls, value):
-        return os.path.normpath(value)
+        return os.path.normpath(value) if value else value
+
 
     @classmethod
     def link_value(cls, default_value, link_value):

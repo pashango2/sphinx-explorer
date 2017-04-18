@@ -282,10 +282,10 @@ class PropertyModel(QStandardItemModel):
 
         return super(PropertyModel, self).setData(index, value, role)
 
-    def properties(self, root=None):
+    def properties(self, root_index=None):
         # type: () -> Iterator[PropertyItem]
-        root = root or QModelIndex()
-        for index in self.model_iter(root, False):
+        root_index = root_index or QModelIndex()
+        for index in self.model_iter(root_index, False):
             item = self.itemFromIndex(index)
             if item and item.type() == PropertyItemType:
                 yield item

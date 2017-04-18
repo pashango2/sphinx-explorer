@@ -19,6 +19,7 @@ class ExecCommandPage(QWizardPage):
         # type: (string_types, QWidget) -> None
         super(ExecCommandPage, self).__init__(parent)
         self.console_widget = QConsoleWidget(self)
+        self.property_model = property_model
         self.property_widget = property_widget.PropertyWidget(self, property_model)
         self.gen_button = QPushButton(self)
         self.gen_button.setMinimumHeight(self.BUTTON_HEIGHT)
