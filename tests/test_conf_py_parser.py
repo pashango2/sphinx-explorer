@@ -27,8 +27,8 @@ def test_insert_sys_path():
     ])
     assert parser.lines[18].strip() == "import os"
     assert parser.lines[19].strip() == "import sys"
-    assert parser.lines[21].strip() == "sys.path.insert(0, os.path.abspath(u'../'))"
-    assert parser.lines[22].strip() == "sys.path.insert(0, os.path.abspath(u'c:\\test'))"
+    assert parser.lines[21].strip() == "sys.path.insert(0, os.path.abspath('../'))"
+    assert parser.lines[22].strip() == "sys.path.insert(0, os.path.abspath('c:\\\\test'))"
 
 
 if __name__ == "__main__":

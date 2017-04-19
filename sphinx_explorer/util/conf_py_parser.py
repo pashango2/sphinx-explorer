@@ -73,8 +73,8 @@ class Parser(object):
                 insert_sys_flag = True
                 new_lines.append(line)
                 for path in path_list:
-                    path = "u'" + path + "'"
-                    new_lines.append("sys.path.insert(0, os.path.abspath({}))\n".format(path))
+                    path = path.replace("\\", "\\\\")
+                    new_lines.append("sys.path.insert(0, os.path.abspath('{}'))\n".format(path))
             else:
                 new_lines.append(line)
         self._source = new_lines

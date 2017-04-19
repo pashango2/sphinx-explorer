@@ -598,7 +598,7 @@ class ValueItem(QStandardItem):
     @property
     def value(self):
         if self._input_value is None:
-            return self._default_value
+            return self._default_display
         return self._input_value
 
     @property
