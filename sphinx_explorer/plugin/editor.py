@@ -7,14 +7,15 @@ from PySide.QtGui import *
 from sphinx_explorer.util.exec_sphinx import launch
 from typing import Iterator
 from six import string_types
+from collections import OrderedDict
 
-Editors = {}
+Editors = OrderedDict()
 
 
 def init():
     # type: () -> None
     global Editors
-    Editors = {}
+    Editors = OrderedDict()
 
 
 def load_plugin(file_name):
@@ -29,7 +30,11 @@ def load_plugin(file_name):
 
 def get(editor_name=None):
     # type: (string_types) -> Editor
-    return Editors.get(editor_name or "vscode")
+    return Editors.get(editor_name or "vscode", Editors.get("vscode"))
+
+
+def default_editor(editor_name):
+    return editor_name if editor_name in Editors else "vscode"
 
 
 def editors():

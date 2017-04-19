@@ -20,7 +20,8 @@ from .main_window_ui import Ui_MainWindow
 from .project_list_model import ProjectListModel, ProjectItem
 from .system_settings import SystemSettingsDialog, SystemSettings
 from . import plugin
-from .project_tools import ProjectTools
+# TODO: This is Future Support.
+# from .project_tools import ProjectTools
 from .util.exec_sphinx import command
 from .util.exec_sphinx import launch, console, show_directory, open_terminal, make_command
 from . import property_widget
@@ -50,8 +51,9 @@ class MainWindow(QMainWindow):
         sphinx_value_types.init()
 
         # load plugin
-        plugin.load_plugin(sys_dir, self)
-        # self._load_plugin(sys_dir)
+        plugin.init(self)
+        plugin.load_plugin(sys_dir)
+        plugin.load_plugin(home_dir)
 
         # setup params dict
         toml_path = os.path.join(self.wizard_path, "params.toml")
@@ -75,6 +77,7 @@ class MainWindow(QMainWindow):
         self.open_html_act = QAction(icon.load("chrome"), self.tr("Open browser"), self, triggered=self._open_browser)
         self.close_act = QAction(self.tr("Exit"), self, triggered=self.close)
         self.make_html_act = QAction("HTML", self, triggered=self._on_make_html)
+        self.copy_path_act = QAction(icon.load("clippy"), self.tr("Copy Path"), self, triggered=self._on_copy_path)
 
         # setup ui
         self.ui = Ui_MainWindow()
@@ -86,6 +89,8 @@ class MainWindow(QMainWindow):
         # setup file menu
         self.ui.menuFile_F.addSeparator()
         self.ui.menuFile_F.addAction(self.close_act)
+
+        # setup project tree
 
         # setup icon
         self.ui.action_add_document.setIcon(icon.load("plus"))
@@ -105,6 +110,8 @@ class MainWindow(QMainWindow):
         self.ui.action_delete_document.setShortcutContext(Qt.WidgetShortcut)
         self.ui.action_move_up.setShortcutContext(Qt.WidgetShortcut)
         self.ui.action_move_down.setShortcutContext(Qt.WidgetShortcut)
+        self.copy_path_act.setShortcut(QKeySequence.Copy)
+        self.copy_path_act.setShortcutContext(Qt.WidgetShortcut)
 
         # connect
         self.ui.action_reload.triggered.connect(self.reload)
@@ -119,6 +126,7 @@ class MainWindow(QMainWindow):
         self.ui.tree_view_projects.addAction(self.ui.action_move_down)
         self.ui.tree_view_projects.addAction(self.ui.action_delete_document)
         self.ui.tree_view_projects.addAction(self.ui.action_reload)
+        self.ui.tree_view_projects.addAction(self.copy_path_act)
 
         self.ui.tree_view_projects.setIndentation(0)
         self.ui.tree_view_projects.setModel(self.project_list_model)
@@ -153,10 +161,11 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(icon.load("sphinx"))
 
         # set icon
-        ProjectTools.set_file_icons(
-            folder_icon=icon.load("folder"),
-            file_icon=icon.load("file_text")
-        )
+        # TODO: This is Feature Suport.
+        # ProjectTools.set_file_icons(
+        #     folder_icon=icon.load("folder"),
+        #     file_icon=icon.load("file_text")
+        # )
 
         property_widget.set_icon(
             add_icon=icon.load("plus"),
@@ -210,7 +219,6 @@ class MainWindow(QMainWindow):
         # open_act.triggered.connect(lambda: self.editor.open_dir(doc_path))
         # show_act.triggered.connect(self._show_directory)
         # terminal_act.triggered.connect(lambda: self._open_terminal(doc_path))
-
         menu.addAction(self.open_act)
         menu.addAction(self.show_act)
         menu.addAction(self.terminal_act)
@@ -229,6 +237,8 @@ class MainWindow(QMainWindow):
 
         menu.addAction(self.open_html_act)
         menu.addAction(self.auto_build_act)
+        menu.addSeparator()
+        menu.addAction(self.copy_path_act)
         menu.addSeparator()
         menu.addAction(self.ui.action_delete_document)
 
@@ -287,23 +297,25 @@ class MainWindow(QMainWindow):
 
     def _on_project_changed(self, current, _):
         # type: (QModelIndex, QModelIndex) -> None
-
-        item = self.project_list_model.itemFromIndex(current)
-        if item:
-            tools = ProjectTools(item.path(), self)
-            self.ui.treeView.setModel(tools.file_model)
-            if item.source_dir_path():
-                self.ui.treeView.setRootIndex(tools.file_model.index(item.source_dir_path()))
-            self.ui.treeView.header().hide()
-            self.ui.treeView.hideColumn(1)
-            self.ui.treeView.hideColumn(2)
-            self.ui.treeView.hideColumn(3)
-            item.set_tools(tools)
+        # TODO: This is Feature Support
+        # item = self.project_list_model.itemFromIndex(current)
+        # if item:
+        #     tools = ProjectTools(item.path(), self)
+        #     self.ui.treeView.setModel(tools.file_model)
+        #     if item.source_dir_path():
+        #         self.ui.treeView.setRootIndex(tools.file_model.index(item.source_dir_path()))
+        #     self.ui.treeView.header().hide()
+        #     self.ui.treeView.hideColumn(1)
+        #     self.ui.treeView.hideColumn(2)
+        #     self.ui.treeView.hideColumn(3)
+        #     item.set_tools(tools)
+        pass
 
     def _make(self, make_cmd, cwd, callback=None):
         cmd = make_command(make_cmd, cwd)
+        venv_cmd = self.ui.plain_output.virtual_env(cwd, r"J:\R-System4\py3")
         self.ui.plain_output.exec_command(
-            command(cmd),
+            command(" & ".join([venv_cmd, cmd])),
             cwd,
             clear=True,
             callback=callback
@@ -337,6 +349,14 @@ class MainWindow(QMainWindow):
                 if os.path.isfile(html_path):
                     webbrowser.open(html_path)
 
+    def _on_copy_path(self):
+        index = self.ui.tree_view_projects.currentIndex()
+        path = self.project_list_model.path(index)
+        if path:
+            # noinspection PyArgumentList
+            clipboard = QApplication.clipboard()
+            clipboard.setText(path)
+
     def _apidoc(self):
         # type: () -> None
         index = self.sender().data()
@@ -356,7 +376,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def on_action_settings_triggered(self):
         dlg = SystemSettingsDialog(self)
-        dlg.setup(self.settings, self.params_dict)
+        dlg.setup(self.setting_dir, self.settings, self.params_dict)
         if dlg.exec_() == QDialog.Accepted:
             dlg.update_settings(self.settings)
 

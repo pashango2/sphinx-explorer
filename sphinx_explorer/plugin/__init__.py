@@ -14,12 +14,16 @@ from . import extension
 template_model = None
 
 
-def load_plugin(sys_dir, parent=None):
-    # type: (string_types, QWidget) -> None
+def init(parent=None):
+    # type: (QWidget) -> None
     global template_model
-
     template_model = TemplateModel(parent)
     editor.init()
+
+
+def load_plugin(sys_dir):
+    # type: (string_types) -> None
+    global template_model
 
     # load plugin
     extension.init(os.path.join(sys_dir, "plugin", "extension"))

@@ -93,6 +93,7 @@ class PropertyModel(QStandardItemModel):
         self.setHorizontalHeaderLabels(["Property", "Value"])
         self._default_dict = DefaultValues()
         self._use_default = False
+        self.required_flag = True
 
     def create_table_model(self, root_index, parent):
         return FlatTableModel(self, root_index, parent)
@@ -562,7 +563,7 @@ class PropertyItem(BaseItem):
 
     def is_complete(self):
         # type: () -> bool
-        if self.required:
+        if self.required and self.model() and self.model().required_flag:
             if not self.value:
                 return False
 
@@ -596,7 +597,9 @@ class ValueItem(QStandardItem):
 
     @property
     def value(self):
-        return self._input_value or self._default_display
+        if self._input_value is None:
+            return self._default_value
+        return self._input_value
 
     @property
     def default(self):
@@ -612,12 +615,11 @@ class ValueItem(QStandardItem):
             self.set_value(self._input_value)
 
     def set_value(self, value):
-        _value = value or self._default_display
+        _value = value if value is not None else self._default_display
         _value = self.value_type.filter(_value) if self.value_type else _value
         _display_value = self.value_type.data(_value) if self.value_type else _value
 
-        if _display_value:
-            self.setText(_display_value)
+        self.setText(_display_value or "")
         self._input_value = value
 
         icon = self.value_type.icon(_value) if self.value_type else None

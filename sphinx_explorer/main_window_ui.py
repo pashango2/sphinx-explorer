@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/main_window.ui'
+# Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Mon Apr 17 09:23:45 2017
+# Created: Wed Apr 19 18:08:09 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -56,7 +56,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 25))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 24))
         self.menubar.setObjectName("menubar")
         self.menuFile_F = QtGui.QMenu(self.menubar)
         self.menuFile_F.setObjectName("menuFile_F")
@@ -78,18 +78,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.plain_output)
         self.dock_outputs.setWidget(self.dockWidgetContents)
         MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(8), self.dock_outputs)
-        self.dockWidget_2 = QtGui.QDockWidget(MainWindow)
-        self.dockWidget_2.setFeatures(QtGui.QDockWidget.DockWidgetFloatable|QtGui.QDockWidget.DockWidgetMovable)
-        self.dockWidget_2.setObjectName("dockWidget_2")
-        self.dockWidgetContents_3 = QtGui.QWidget()
-        self.dockWidgetContents_3.setObjectName("dockWidgetContents_3")
-        self.verticalLayout_4 = QtGui.QVBoxLayout(self.dockWidgetContents_3)
-        self.verticalLayout_4.setObjectName("verticalLayout_4")
-        self.treeView = QtGui.QTreeView(self.dockWidgetContents_3)
-        self.treeView.setObjectName("treeView")
-        self.verticalLayout_4.addWidget(self.treeView)
-        self.dockWidget_2.setWidget(self.dockWidgetContents_3)
-        MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(2), self.dockWidget_2)
         self.toolBar = QtGui.QToolBar(MainWindow)
         self.toolBar.setObjectName("toolBar")
         MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
@@ -130,7 +118,6 @@ class Ui_MainWindow(object):
         self.menuFile_F.setTitle(QtGui.QApplication.translate("MainWindow", "File(&F)", None, QtGui.QApplication.UnicodeUTF8))
         self.menuCreate_C.setTitle(QtGui.QApplication.translate("MainWindow", "Create(&C)", None, QtGui.QApplication.UnicodeUTF8))
         self.dock_outputs.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Outputs", None, QtGui.QApplication.UnicodeUTF8))
-        self.dockWidget_2.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Project", None, QtGui.QApplication.UnicodeUTF8))
         self.toolBar.setWindowTitle(QtGui.QApplication.translate("MainWindow", "toolBar", None, QtGui.QApplication.UnicodeUTF8))
         self.action_add_document.setText(QtGui.QApplication.translate("MainWindow", "Add Document", None, QtGui.QApplication.UnicodeUTF8))
         self.action_add_document.setToolTip(QtGui.QApplication.translate("MainWindow", "Add Document", None, QtGui.QApplication.UnicodeUTF8))

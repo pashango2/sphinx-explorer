@@ -302,7 +302,7 @@ class TypeFontList(TypeBase):
 
     @classmethod
     def sizeHint(cls):
-        return QSize(-1, 200)
+        return QSize(-1, 180)
 
     @classmethod
     def setup(cls, item):

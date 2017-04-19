@@ -3,6 +3,8 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 import sys
 import six
+import os
+import platform
 from PySide.QtCore import *
 from PySide.QtGui import *
 
@@ -32,6 +34,36 @@ class QConsoleWidget(QTextEdit):
         self._process.finished[int].connect(self._on_finished)
         self._process.readyReadStandardOutput.connect(self._print_output)
         self._process.readyReadStandardError.connect(self._print_output)
+
+    @staticmethod
+    def virtual_env(cwd, venv_path=None, anaconda_name=None):
+        if venv_path:
+            # Note: QProcess on Windows. Full path only. and add file extension.
+            if platform.system() == "Windows":
+                if not os.path.abspath(venv_path):
+                    venv_path = os.path.join(cwd, venv_path)
+
+            if os.path.isdir(venv_path):
+                if platform.system() == "Windows":
+                    venv_path = os.path.join(venv_path, "Scripts", "activate.bat")
+                else:
+                    venv_path = os.path.join(venv_path, "bin", "activate")
+            elif os.path.isfile(venv_path):
+                if platform.system() == "Windows":
+                    if os.path.basename() == "activate":
+                        venv_path += ".bat"
+
+            return venv_path
+
+        if anaconda_name:
+            if platform.system() == "Linux":
+                cmd = "source activate {}".format(anaconda_name)
+            else:
+                cmd = "activate {}".format(anaconda_name)
+
+            return cmd
+
+        return ""
 
     def process(self):
         # type: () -> QProcess

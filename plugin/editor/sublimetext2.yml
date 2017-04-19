@@ -1,0 +1,5 @@
+path: sublimetext2
+name: SubLimeText2
+
+open_dir:
+    param: "{path} ."

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'settings.ui'
 #
-# Created: Wed Apr 19 12:25:24 2017
+# Created: Wed Apr 19 18:51:29 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -14,8 +14,23 @@ class Ui_Form(object):
         Form.setObjectName("Form")
         Form.resize(795, 385)
         self.verticalLayout_2 = QtGui.QVBoxLayout(Form)
+        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.horizontalLayout = QtGui.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.button_open_home_dir = QtGui.QToolButton(Form)
+        self.button_open_home_dir.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.button_open_home_dir.setObjectName("button_open_home_dir")
+        self.horizontalLayout.addWidget(self.button_open_home_dir)
+        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem)
+        self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.splitter = QtGui.QSplitter(Form)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.splitter.sizePolicy().hasHeightForWidth())
+        self.splitter.setSizePolicy(sizePolicy)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
         self.splitter.setObjectName("splitter")
         self.tree_view_category = QtGui.QTreeView(self.splitter)
@@ -41,9 +56,13 @@ class Ui_Form(object):
         self.verticalLayout_2.addWidget(self.splitter)
 
         self.retranslateUi(Form)
+        self.stacked_widget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
+        Form.setTabOrder(self.tree_view_category, self.property_widget)
+        Form.setTabOrder(self.property_widget, self.button_open_home_dir)
 
     def retranslateUi(self, Form):
         Form.setWindowTitle(QtGui.QApplication.translate("Form", "Form", None, QtGui.QApplication.UnicodeUTF8))
+        self.button_open_home_dir.setText(QtGui.QApplication.translate("Form", "Open Setting Directory", None, QtGui.QApplication.UnicodeUTF8))
 
 from .property_widget import PropertyWidget

@@ -64,7 +64,7 @@ class ExecCommandPage(QWizardPage):
         # settings, params_dict = self.wizard().all_props()
         # self.property_widget.load_settings(settings, params_dict)
         self.property_widget.setup()
-        self.property_widget.set_values(self.wizard().dump())
+        # self.property_widget.set_values(self.wizard().dump())
 
         self.property_widget.resizeColumnsToContents()
         self.gen_button.setFocus()

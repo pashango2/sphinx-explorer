@@ -14,6 +14,8 @@ from sphinx_explorer.plugin import editor
 from .property_widget import TypeChoice, PropertyModel
 from .plugin import extension
 from .settings_ui import Ui_Form
+from . import icon
+from .util.exec_sphinx import show_directory
 import logging
 
 logger = logging.getLogger(__name__)
@@ -63,7 +65,8 @@ class SystemSettings(OrderedDict):
         return toml.dump(self, open(self._setting_path, "w"))
 
     def default_editor(self):
-        return self.get("Editor", {}).get("editor", "atom")
+        editor_name = self.get("Editor", {}).get("editor")
+        return editor.default_editor(editor_name)
 
     def set_default_editor(self, editor_name):
         self.setdefault("Editor", {})["editor"] = editor_name
@@ -147,6 +150,7 @@ class SystemSettingsDialog(QDialog):
         self.ui.splitter.setSizes([310, 643])
 
         self.settings = None
+        self.home_dir = None
         self.params_dict = {}
 
         self.property_model = PropertyModel(self)
@@ -176,6 +180,15 @@ class SystemSettingsDialog(QDialog):
         self.ui.tree_view_category.setModel(self.category_model)
         self.category_selection_model = self.ui.tree_view_category.selectionModel()
 
+        # setup buttons
+        self.ui.button_open_home_dir.setIcon(icon.load("open_folder"))
+        self.ui.button_open_home_dir.clicked.connect(self.on_button_open_home_dir_clicked)
+
+    @Slot()
+    def on_button_open_home_dir_clicked(self):
+        if self.home_dir:
+            show_directory(self.home_dir)
+
     def _on_category_changed(self, current, _):
         item = self.category_model.itemFromIndex(current)
         if item:
@@ -188,11 +201,13 @@ class SystemSettingsDialog(QDialog):
                 self.ui.property_widget.setup()
                 self.ui.property_widget.resizeColumnToContents(0)
 
-    def setup(self, settings, params_dict):
+    def setup(self, home_dir, settings, params_dict):
         self.settings = settings
+        self.home_dir = home_dir
         self.params_dict = params_dict
 
         d = yaml.load(SYSTEM_SETTINGS)
+        self.property_model.required_flag = False
         self.property_model.load_settings(d, params_dict)
 
         editor_item = self.property_model.get("Editor")

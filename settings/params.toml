@@ -3,11 +3,13 @@ label = "Project name"
 description = """
 The project name will occur in several places in the built documentation.
 """
+required = true
 
 [path]
 label = "Root path"
 value_type = "TypeDirPath"
 link="{_default}/{project}"
+required = true
 
 description = """
 Root path for documentation.
