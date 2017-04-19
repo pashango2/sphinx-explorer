@@ -82,7 +82,7 @@ class FlatTableModel(QAbstractProxyModel):
         return self.sourceModel().dump(*args, **kwargs)
 
     def flags(self, index):
-        return self.flags(self.mapToSource(index))
+        return super(FlatTableModel, self).flags(self.mapToSource(index))
 
 
 class PropertyModel(QStandardItemModel):
@@ -352,7 +352,8 @@ class PropertyModel(QStandardItemModel):
 
             if flat:
                 if not item.is_category:
-                    obj_map[item.key] = item.value
+                    if store_none or item.value:
+                        obj_map[item.key] = item.value
             else:
                 parent_key = item.tree_key()[:-1]
                 if not item.is_category:

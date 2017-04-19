@@ -292,7 +292,8 @@ class MainWindow(QMainWindow):
         if item:
             tools = ProjectTools(item.path(), self)
             self.ui.treeView.setModel(tools.file_model)
-            self.ui.treeView.setRootIndex(tools.file_model.index(item.source_dir_path()))
+            if item.source_dir_path():
+                self.ui.treeView.setRootIndex(tools.file_model.index(item.source_dir_path()))
             self.ui.treeView.header().hide()
             self.ui.treeView.hideColumn(1)
             self.ui.treeView.hideColumn(2)

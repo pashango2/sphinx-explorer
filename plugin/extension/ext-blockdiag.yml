@@ -37,3 +37,9 @@ setting_params:
 #        default: "SVG"
     - blockdiag_fontpath:
         value_type: TypeFontList
+        default: [
+            'C:\WINDOWS\Fonts\MEIRYO.TTC',
+            '/Users/mas/Library/Fonts/meiryo.ttc',
+            '/etc/alternatives/fonts-japanese-gothic.ttf',
+        ]
+

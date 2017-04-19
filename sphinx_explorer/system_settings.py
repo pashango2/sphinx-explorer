@@ -179,10 +179,14 @@ class SystemSettingsDialog(QDialog):
     def _on_category_changed(self, current, _):
         item = self.category_model.itemFromIndex(current)
         if item:
-            root_item = self.property_model.get(item.tree_key())
-            self.ui.property_widget.setRootIndex(root_item.index())
-            self.ui.property_widget.setup()
-            self.ui.property_widget.resizeColumnToContents(0)
+            if item.key == "Extensions":
+                self.ui.stacked_widget.setCurrentIndex(1)
+            else:
+                self.ui.stacked_widget.setCurrentIndex(0)
+                root_item = self.property_model.get(item.tree_key())
+                self.ui.property_widget.setRootIndex(root_item.index())
+                self.ui.property_widget.setup()
+                self.ui.property_widget.resizeColumnToContents(0)
 
     def setup(self, settings, params_dict):
         self.settings = settings
@@ -272,16 +276,6 @@ class SystemSettingsDialog(QDialog):
         item.set_values(settings.default_values())
 
         self.setup_extensions()
-
-    def setup_Default_Values(self):
-        # type: () -> None
-        widget = self.ui.property_widget
-        params_dict = self.params_dict
-
-        widget.add_category("Default values")
-        for key, params in params_dict.items():
-            if key in self.DEFAULT_SETTING_KEYS:
-                widget.add_property(key, params)
 
     def update_settings(self, settings):
         # type: (SystemSettings) -> None

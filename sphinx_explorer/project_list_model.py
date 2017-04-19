@@ -146,7 +146,7 @@ class ProjectItem(QStandardItem):
         # type: () -> string_types
         try:
             return os.path.join(self._path, self.settings.source_dir)
-        except ValueError:
+        except (ValueError, TypeError):
             return self._path
 
     def html_path(self):
@@ -349,7 +349,8 @@ class LoadSettingObject(QObject, QRunnable):
     def run(self):
         settings = ProjectSettings(self.doc_path)
 
-        parser = Parser(settings.conf_py_path)
-        settings.project = parser.params().get("project", "")
+        if settings.conf_py_path:
+            parser = Parser(settings.conf_py_path)
+            settings.project = parser.params().get("project", "")
 
         self.finished.emit(settings, self.project_path)

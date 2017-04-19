@@ -80,10 +80,11 @@ class QuickstartExecCommandPage(ExecCommandPage):
         self.property_widget.setModel(model)
 
     def finished(self, return_code):
-        super(QuickstartExecCommandPage, self).finished(return_code)
         if return_code == 0:
             params = self.dump()
             quickstart.fix(params, self.wizard().default_values, self.cmd)
+
+        super(QuickstartExecCommandPage, self).finished(return_code)
 
     def nextId(self):
         return -1

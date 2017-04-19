@@ -101,7 +101,7 @@ class ExecCommandPage(QWizardPage):
         else:
             self.gen_button.setEnabled(False)
 
-            path = self.wizard().path()
+            path = self.dump().get("path")
             if path:
                 self.wizard().addDocumentRequested.emit(path)
 
