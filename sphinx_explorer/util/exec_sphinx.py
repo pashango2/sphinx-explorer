@@ -7,6 +7,7 @@ import os
 import platform
 import subprocess
 import sys
+import re
 from six import string_types, PY2
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
@@ -178,3 +179,23 @@ def open_terminal(path):
         subprocess.Popen("open", cwd=cwd)
     else:
         subprocess.Popen("gnome-terminal", cwd=cwd)
+
+
+def anaconda_envs():
+    cmd = [
+        "conda", "info", "-e"
+    ]
+
+    ret, val = check_output(" ".join(cmd))
+    if ret == 0:
+        result = []
+        for line in val.splitlines():
+            if line and line[0] == "#":
+                continue
+
+            g = re.match(r"([^\s]*)[\s*]*(.*?)$", line)
+            if g:
+                result.append(g.groups())
+
+        return result
+    return []
