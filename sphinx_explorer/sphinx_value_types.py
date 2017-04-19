@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from .property_widget import TypeBase, register_value_type
 from .theme_dialog import HtmlThemeWidget
 from PySide.QtGui import *
-from PySide.QtCore import *
+# from PySide.QtCore import *
 
 
 # noinspection PyMethodOverriding

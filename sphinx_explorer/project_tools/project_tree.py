@@ -1,16 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from PySide.QtGui import *
+
 from PySide.QtCore import *
-import ast
-import codecs
-import os
-
-from six import string_types
-
-from sphinx_explorer.plugin import extension
-from sphinx_explorer.plugin.extension import Extension
+from PySide.QtGui import *
 
 
 class CustomFileIconProvider(QFileIconProvider):
@@ -25,12 +18,7 @@ class CustomFileIconProvider(QFileIconProvider):
 
     def icon(self, file_info):
         # type: (QFileInfo) -> QIcon
-        if file_info.isDir():
-            return self.folder_icon
-        else:
-            return self.file_icon
-
-        # return super(CustomFileIconProvider, self).icon(file_info)
+        return self.folder_icon if file_info.isDir() else self.file_icon
 
 
 class ProjectTreeModel(QFileSystemModel):

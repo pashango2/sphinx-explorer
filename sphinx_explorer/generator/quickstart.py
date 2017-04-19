@@ -3,8 +3,6 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 import os
-import toml
-
 from six import string_types
 
 from sphinx_explorer.util.conf_py_parser import extend_conf_py
@@ -81,7 +79,7 @@ def get_source_and_build(d, api_doc=False):
     return source_dir, build_dir
 
 
-def fix(d, settings, cmd):
+def fix(d, settings, _):
     source_dir, build_dir = get_source_and_build(d)
     project = d.get("project")
     conf_py_path = os.path.abspath(os.path.join(d["path"], source_dir, "conf.py"))

@@ -53,5 +53,6 @@ def _walk_files(dir_path, ext):
         if ext_name in yaml_dict:
             yield yaml_dict[ext_name]
             del yaml_dict[ext_name]
+
     for x in yaml_dict.values():
         yield x

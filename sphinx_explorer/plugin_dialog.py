@@ -6,8 +6,6 @@ from PySide.QtCore import *
 import os
 from collections import OrderedDict
 import toml
-import markdown
-# import CommonMark
 import fnmatch
 import six
 from .theme_dialog_ui import Ui_Dialog

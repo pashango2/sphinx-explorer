@@ -187,7 +187,6 @@ class TypeDirPath(TypeBase):
     def filter(cls, value):
         return os.path.normpath(value) if value else value
 
-
     @classmethod
     def link_value(cls, default_value, link_value):
         if default_value is None and link_value is None:
@@ -323,7 +322,7 @@ class BaseListWidget(QListWidget):
 
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
-        self.setEditTriggers(QAbstractItemView.DoubleClicked|QAbstractItemView.EditKeyPressed)
+        self.setEditTriggers(QAbstractItemView.DoubleClicked | QAbstractItemView.EditKeyPressed)
 
         self.add_act = QAction(define.ADD_ICON, "Add", self, triggered=self._on_add)
         self.up_act = QAction(define.UP_ICON, "Move Up", self, triggered=self.move_up)
@@ -361,7 +360,7 @@ class BaseListWidget(QListWidget):
     def move_down(self):
         self._move(False)
 
-    def _move(self,  up_flag):
+    def _move(self, up_flag):
         # type: (bool) -> None
         indexes = self.selectedIndexes()
         if indexes:
@@ -416,7 +415,7 @@ class BaseListWidget(QListWidget):
         return [
             self.item(row).text()
             for row in range(self.count())
-        ]
+            ]
 
 
 class FontListWidget(BaseListWidget):

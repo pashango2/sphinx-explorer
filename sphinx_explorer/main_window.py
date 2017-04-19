@@ -285,7 +285,7 @@ class MainWindow(QMainWindow):
             item = self.project_list_model.itemFromIndex(index)
             self._make("html", item.path())
 
-    def _on_project_changed(self, current, prev):
+    def _on_project_changed(self, current, _):
         # type: (QModelIndex, QModelIndex) -> None
 
         item = self.project_list_model.itemFromIndex(current)
@@ -421,7 +421,7 @@ class MainWindow(QMainWindow):
                 QMessageBox.Yes | QMessageBox.No,
             )
             if result == QMessageBox.Yes:
-                for index in sorted(indexes, key=lambda x: x.row(), reverse=True):
+                for index in sorted(indexes, key=lambda idx: idx.row(), reverse=True):
                     self.project_list_model.takeRow(index.row())
 
     def _move(self, up_flag):

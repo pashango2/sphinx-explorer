@@ -7,7 +7,6 @@ import os
 import platform
 import subprocess
 import sys
-import tempfile
 from six import string_types, PY2
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)

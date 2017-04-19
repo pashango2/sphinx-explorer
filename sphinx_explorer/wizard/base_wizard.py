@@ -91,6 +91,7 @@ class ExecCommandPage(QWizardPage):
 
     def finished(self, return_code):
         self.succeeded = return_code == 0
+        # noinspection PyUnresolvedReferences
         self.completeChanged.emit()
         self.validatePage()
 
@@ -224,4 +225,3 @@ class BaseWizard(QWizard):
                 props += page.keys()
 
         return props, self.params_dict
-
