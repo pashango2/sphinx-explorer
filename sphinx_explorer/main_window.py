@@ -159,7 +159,10 @@ class MainWindow(QMainWindow):
         )
 
         property_widget.set_icon(
-            add_icon=icon.load("plus")
+            add_icon=icon.load("plus"),
+            up_icon=icon.load("arrow_up"),
+            down_icon=icon.load("arrow_down"),
+            delete_icon=icon.load("remove"),
         )
 
         # setup end

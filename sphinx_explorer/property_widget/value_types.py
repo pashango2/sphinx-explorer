@@ -304,6 +304,8 @@ class TypeFontList(TypeBase):
 
 
 class FontListWidget(QListWidget):
+    TOOL_WIDTH = 42
+
     def __init__(self, parent=None):
         super(FontListWidget, self).__init__(parent)
         self.frame = QFrame(self)
@@ -311,16 +313,18 @@ class FontListWidget(QListWidget):
         self.tool_layout.setContentsMargins(0, 0, 0, 0)
         self.tool_layout.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
 
-        self.add_button = QToolButton(self)
-        self.add_button.setIcon(define.ADD_ICON)
-        self.add_button.setToolButtonStyle(Qt.ToolButtonIconOnly)
-        self.tool_layout.addWidget(self.add_button)
+        self.add_act = QAction(define.ADD_ICON, "Add", self)
+        self.up_act = QAction(define.UP_ICON, "Add", self)
+        self.down_act = QAction(define.DOWN_ICON, "Add", self)
+        self.del_act = QAction(define.DELETE_ICON, "Add", self)
+        self.actions = [self.add_act, self.up_act, self.down_act, self.del_act]
+
+        for act in self.actions:
+            button = QToolButton(self)
+            button.setDefaultAction(act)
+            self.tool_layout.addWidget(button)
+
         self.frame.setLayout(self.tool_layout)
-
-        self._connect()
-
-    def _connect(self):
-        self.add_button.clicked.connect(self._on_add)
 
     def _on_add(self):
         font = QFontDialog.getFont()
@@ -330,8 +334,8 @@ class FontListWidget(QListWidget):
         height = self.size().height()
 
         self.frame.setGeometry(
-            width - 32, 0,
-            32, height
+            width - self.TOOL_WIDTH, 0,
+            self.TOOL_WIDTH, height
         )
         print(self.rect())
         return super(FontListWidget, self).resizeEvent(evt)
