@@ -293,7 +293,22 @@ class MainWindow(QMainWindow):
         index = self.sender().data()
         if index and index.isValid():
             item = self.project_list_model.itemFromIndex(index)
-            self._make("html", item.path())
+            venv_info = item.venv_info() or self.settings.venv_info()
+            self._make("html", item.path(), venv_info)
+
+    def _make(self, make_cmd, cwd, venv_path=None, callback=None):
+        cmd = [
+            make_command(make_cmd, cwd),
+            self.ui.plain_output.virtual_env(cwd, venv_path)
+        ]
+        cmd = [x for x in cmd if x]
+
+        self.ui.plain_output.exec_command(
+            command(" & ".join(cmd)),
+            cwd,
+            clear=True,
+            callback=callback
+        )
 
     def _on_project_changed(self, current, _):
         # type: (QModelIndex, QModelIndex) -> None
@@ -310,16 +325,6 @@ class MainWindow(QMainWindow):
         #     self.ui.treeView.hideColumn(3)
         #     item.set_tools(tools)
         pass
-
-    def _make(self, make_cmd, cwd, callback=None):
-        cmd = make_command(make_cmd, cwd)
-        venv_cmd = self.ui.plain_output.virtual_env(cwd, r"J:\R-System4\py3")
-        self.ui.plain_output.exec_command(
-            command(" & ".join([venv_cmd, cmd])),
-            cwd,
-            clear=True,
-            callback=callback
-        )
 
     def _auto_build(self):
         # type: () -> None

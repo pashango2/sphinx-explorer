@@ -79,6 +79,9 @@ class SystemSettings(OrderedDict):
         # type: () -> QIcon
         return self.editor().icon if self.editor() else QIcon()
 
+    def venv_info(self):
+        return None
+
 
 class CategoryModel(QStandardItemModel):
     def __init__(self, parent=None):

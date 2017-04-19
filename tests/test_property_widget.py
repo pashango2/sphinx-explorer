@@ -10,6 +10,7 @@ import sys
 import yaml
 import toml
 from PySide.QtGui import *
+import platform
 
 try:
     app = QApplication(sys.argv)
@@ -314,13 +315,22 @@ def test_wizard():
     assert item and item.value is True
 
     item = model.get("Required params.path")
-    assert item and item.value == r"c:\test\test"
+    if platform.system() == "Windows":
+        assert item and item.value == r"c:\test\test"
+    else:
+        assert item and item.value == r"c:\test/test"
 
     item.update_link()
-    assert item and item.value == r'c:\test\test'
+    if platform.system() == "Windows":
+        assert item and item.value == r'c:\test\test'
+    else:
+        assert item and item.value == r'c:\test/test'
 
     model.get("Required params.project").set_value("test2")
-    assert item and item.value == r"c:\test\test2"
+    if platform.system() == "Windows":
+        assert item and item.value == r"c:\test\test2"
+    else:
+        assert item and item.value == r"c:\test/test2"
 
 
 # def test_link_format():

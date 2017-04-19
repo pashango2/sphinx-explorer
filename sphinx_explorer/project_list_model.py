@@ -221,6 +221,9 @@ class ProjectItem(QStandardItem):
         # type: () -> bool
         return self.settings.can_apidoc()
 
+    def venv_info(self):
+        return self.settings.venv_info()
+
 
 class ProjectSettings(object):
     SETTING_NAME = "setting.toml"
@@ -333,6 +336,9 @@ class ProjectSettings(object):
             return bool(self.settings["apidoc"].get("module_dir"))
         except KeyError:
             return False
+
+    def venv_info(self):
+        return None
 
 
 class LoadSettingObject(QObject, QRunnable):
