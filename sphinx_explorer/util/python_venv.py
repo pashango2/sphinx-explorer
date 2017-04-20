@@ -3,11 +3,10 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 import os
 import re
+import json
 import platform
-from collections import namedtuple
+from six import string_types
 from . import exec_sphinx
-
-Env = namedtuple("Env", "type name path")
 
 ICON_DICT = {
     "sys": None,
@@ -16,8 +15,50 @@ ICON_DICT = {
 }
 
 
+class Env(object):
+    def __init__(self, env_type=None, name=None, path=None):
+        self.type = env_type
+        self.name = name
+        self.path = path
+
+    def __str__(self):
+        # type: () -> string_types
+        if self.type is None or self.name is None or self.path is None:
+            return "Default System Python"
+        return "{}({})".format(self.name, self.path)
+
+    def command(self, cwd=None):
+        if self.type is None or self.type == "sys":
+            return []
+
+        if self.type == "anaconda":
+            return ["activate", self.name]
+        elif self.type == "venv":
+            if os.path.isabs(self.path):
+                path = self.path
+            else:
+                path = os.path.join(cwd or "", self.path)
+
+            return [os.path.join(path, _env_path())]
+
+        raise ValueError(self.type)
+
+    def to_str(self):
+        return json.dumps([self.type, self.name, self.path])
+
+    @staticmethod
+    def from_str(s):
+        if s == "System":
+            return Env()
+
+        try:
+            return Env(*json.loads(s))
+        except (json.JSONDecoder, ValueError):
+            return None
+
+
 class PythonVEnv(object):
-    def __init__(self, conda_env=None):
+    def __init__(self, conda_env=None, venv_list=None):
         self._envs = {
             "System": Env("sys", "System Default", None)
         }
@@ -35,6 +76,11 @@ class PythonVEnv(object):
                 if default:
                     self._default_env = key
 
+        if venv_list:
+            for env in venv_list:
+                key = env.to_str()
+                self._envs[key] = env
+
     def default_env(self):
         return self._envs[self._default_env]
 
@@ -47,10 +93,8 @@ class PythonVEnv(object):
         result = []
 
         if venv_list:
-            for name, path in venv_list:
-                key = "{}.{}".format("venv", path)
-                env = Env("venv", name, path)
-                result.append((key, env))
+            for env in venv_list:
+                result.append((env.to_str(), env))
 
         for key, env in self._envs.items():
             result.append((key, env))
@@ -97,7 +141,7 @@ def _env_path():
         return os.path.join("bin", "activate")
 
 
-def python_venvs(cwd):
+def python_venv(cwd, fullpath=False):
     # find venv
     result = []
 
@@ -106,17 +150,15 @@ def python_venvs(cwd):
         if os.path.isdir(os.path.join(cwd, x)):
             activate_path = os.path.join(cwd, x, env)
             if os.path.exists(activate_path):
-                result.append((x, os.path.join(cwd, x)))
+                path = os.path.join(cwd, x) if fullpath else x
+                result.append(Env("venv", x, path))
 
     return result
 
 
-def get_path(venv_info):
+def get_path(venv_info, cwd=None):
     if venv_info is None:
-        return None
+        return []
 
-    env_type, path = venv_info.split(".")
-    if env_type.strip() == "venv":
-        return path.strip()
+    return venv_info.command(cwd)
 
-    return None

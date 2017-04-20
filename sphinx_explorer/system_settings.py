@@ -83,7 +83,14 @@ class SystemSettings(OrderedDict):
         return self.editor().icon if self.editor() else QIcon()
 
     def venv_info(self):
-        return None
+        try:
+            env = self["Python Interpreter"].get("python")
+            return python_venv.Env.from_str(env)
+        except KeyError:
+            return python_venv.Env()
+
+    def search_venv_path_list(self):
+        return self["Python Interpreter"].get("venv_search_path", [])
 
 
 class CategoryFilterModel(QSortFilterProxyModel):
@@ -130,6 +137,9 @@ SYSTEM_SETTINGS = """
 - "#*Python Interpreter"
 -
     - python
+    - venv_search_path:
+        - label: Venv Search Path
+          value_type: TypeDirList
 - "#*Extensions":
     - label: Extensions
 """
@@ -244,7 +254,7 @@ class SystemSettingsDialog(QDialog):
         env_list, default_value = python_venv.sys_env.env_list()
         for key, env in env_list:
             choices.append({
-                "text": "{}({})".format(key, env.type),
+                "text": str(env),
                 "value": key,
                 "icon": python_venv.ICON_DICT[env.type],
             })

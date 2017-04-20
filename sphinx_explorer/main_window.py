@@ -184,11 +184,11 @@ class MainWindow(QMainWindow):
         )
 
         python_venv.ICON_DICT["sys"] = icon.load("python")
-        python_venv.ICON_DICT["anaconda"] = icon.load("python")
+        python_venv.ICON_DICT["anaconda"] = icon.load("anaconda")
         python_venv.ICON_DICT["venv"] = icon.load("python")
 
         # system init task
-        task = SystemInitTask(self)
+        task = SystemInitTask(self.settings, self)
         task.messaged.connect(self._on_task_message)
         task.finished.connect(self._on_system_init_finished)
 
@@ -267,8 +267,8 @@ class MainWindow(QMainWindow):
         menu.addAction(self.auto_build_act)
         menu.addSeparator()
         menu.addAction(self.copy_path_act)
-        menu.addSeparator()
         menu.addAction(self.ui.action_delete_document)
+        menu.addSeparator()
         menu.addAction(self.project_setting_act)
 
         return menu
@@ -327,15 +327,12 @@ class MainWindow(QMainWindow):
     def _make(self, make_cmd, project_item, callback=None):
         cwd = project_item.path()
         venv_info = project_item.venv_info() or self.settings.venv_info()
-        venv_path = python_venv.get_path(venv_info)
-        cmd = [
-            self.ui.plain_output.virtual_env(cwd, venv_path),
-            make_command(make_cmd, cwd),
-        ]
-        cmd = [x for x in cmd if x]
+        venv_cmd = python_venv.get_path(venv_info, cwd)
+        venv_cmd += [make_command(make_cmd, cwd)]
+        venv_cmd = [x for x in venv_cmd if x]
 
         self.ui.plain_output.exec_command(
-            command(" & ".join(cmd)),
+            command(" & ".join(venv_cmd)),
             cwd,
             clear=True,
             callback=callback

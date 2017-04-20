@@ -347,7 +347,8 @@ class ProjectSettings(object):
 
     def venv_info(self):
         try:
-            return self.settings["Python Interpreter"].get("python")
+            env = self.settings["Python Interpreter"].get("python")
+            return python_venv.Env.from_str(env)
         except KeyError:
             return None
 
@@ -410,14 +411,14 @@ class ProjectSettingDialog(QDialog):
         settings = yaml.load(ProjectDialogSettings)
         self.property_widget.load_settings(settings)
 
-        project_venv = python_venv.python_venvs(project_item.path())
+        project_venv = python_venv.python_venv(project_item.path())
         item = self.property_widget.get("Python Interpreter.python")
         if item:
             choices = []
             env_list, _ = python_venv.sys_env.env_list(project_venv)
             for key, env in env_list:
                 choices.append({
-                    "text": "{}({}:{})".format(env.name, env.type, env.path or env.type),
+                    "text": str(env),
                     "value": key,
                     "icon": python_venv.ICON_DICT[env.type],
                 })
@@ -428,8 +429,10 @@ class ProjectSettingDialog(QDialog):
                 "icon": python_venv.ICON_DICT["sys"],
             })
             item.value_type.setup_choices(choices)
-            if project_item.settings.venv_info():
-                item.set_value(project_item.settings.venv_info())
+
+            project_env = project_item.settings.venv_info()
+            if project_env:
+                item.set_value(project_env.to_str())
             else:
                 item.set_value(None, force_update=True)
 
