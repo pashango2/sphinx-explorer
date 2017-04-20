@@ -139,6 +139,9 @@ value_type = "TypeDirPath"
 require_input = true
 link="path"
 
+[python]
+label = "Python Interpreter"
+value_type = "TypePython"
 
 [ext-autodoc]
 value_type = "TypeBool"

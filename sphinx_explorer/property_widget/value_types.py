@@ -233,10 +233,15 @@ class TypeChoice(TypeBase):
     def create(cls, params):
         return cls(params.get("choices", []))
 
-    def __init__(self, selects):
+    def __init__(self, choices):
+        self.selects = []
+        self._data_dict = {}
+        self.setup_choices(choices)
+
+    def setup_choices(self, choices):
         self.selects = []
 
-        for item in selects:
+        for item in choices:
             if isinstance(item, string_types):
                 item = {
                     "text": item,
@@ -254,8 +259,7 @@ class TypeChoice(TypeBase):
 
         return combo
 
-    @classmethod
-    def set_value(cls, combo, value):
+    def set_value(self, combo, value):
         # type: (QComboBox, str) -> None
         index = combo.findData(value)
         combo.setCurrentIndex(index)

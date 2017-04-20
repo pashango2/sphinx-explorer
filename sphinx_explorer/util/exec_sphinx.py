@@ -193,9 +193,47 @@ def anaconda_envs():
             if line and line[0] == "#":
                 continue
 
-            g = re.match(r"([^\s]*)[\s*]*(.*?)$", line)
+            g = re.match(r"([^\s]*)([\s*]*)(.*?)$", line)
             if g:
-                result.append(g.groups())
+                name, default, path = g.groups()
+                if name:
+                    result.append((name, "*" in default, path))
 
         return result
     return []
+
+
+def _env_path():
+    if platform.system() == "Windows":
+        return os.path.join("Scripts", "activate.bat")
+    else:
+        return os.path.join("bin", "activate")
+
+
+def python_envs(cwd):
+    # find venv
+    result = []
+
+    env = _env_path()
+    for x in os.listdir(cwd):
+        if os.path.isdir(x):
+            activate_path = os.path.join(cwd, x, env)
+            if os.path.exists(activate_path):
+                result.append(("venv", x))
+
+    # find anaconda
+    default_anaconda = []
+    other_anaconda = []
+    for ana, default, _ in anaconda_envs():
+        if default:
+            default_anaconda.append(("anaconda", ana))
+        else:
+            other_anaconda.append(("anaconda", ana))
+
+    result += default_anaconda
+    result += other_anaconda
+
+    # find system
+    result.append(("sys", "Sytem Python"))
+
+    return result

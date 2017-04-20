@@ -1,10 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from .property_widget import TypeBase, register_value_type
+from .property_widget import TypeBase, register_value_type, TypeChoice
 from .theme_dialog import HtmlThemeWidget
 from PySide.QtGui import *
+from .util.exec_sphinx import python_envs
 # from PySide.QtCore import *
+
+
+class TypePython(TypeChoice):
+    def __init__(self, value):
+        super(TypePython, self).__init__(value)
 
 
 # noinspection PyMethodOverriding
@@ -94,3 +100,4 @@ class TypeHtmlTheme(TypeBase):
 def init():
     register_value_type(TypeLanguage)
     register_value_type(TypeHtmlTheme)
+    register_value_type(TypePython)

@@ -4,14 +4,16 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 
 import os
 import toml
+import yaml
 from PySide.QtCore import *
 from PySide.QtGui import *
 from six import string_types
 
 from . import icon
 from .util.QConsoleWidget import QConsoleWidget
-from .util.exec_sphinx import quote, create_cmd
+from .util.exec_sphinx import quote, create_cmd, python_envs
 from .util.conf_py_parser import Parser
+from .property_widget import PropertyWidget
 
 
 class ProjectListModel(QStandardItemModel):
@@ -360,3 +362,43 @@ class LoadSettingObject(QObject, QRunnable):
             settings.project = parser.params().get("project", "")
 
         self.finished.emit(settings, self.project_path)
+
+
+ProjectDialogSettings = """
+- "#Python Interpreter"
+- python:
+    - value_type: TypePython
+      label: Python Interpreter
+- "#Auto Build"
+- 
+"""
+
+
+class ProjectSettingDialog(QDialog):
+    def __init__(self, project_item, parent=None):
+        super(ProjectSettingDialog, self).__init__(parent)
+        self.project_item = project_item
+
+        self.layout = QVBoxLayout(self)
+        self.property_widget = PropertyWidget(self)
+        self.button_box = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+            parent=self
+        )
+
+        self.layout.addWidget(self.property_widget)
+        self.layout.addWidget(self.button_box)
+
+        self.setLayout(self.layout)
+
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+
+        settings = yaml.load(ProjectDialogSettings)
+
+        self.pythons = python_envs(project_item.path())
+        settings[0]["python"][0]["choices"] = [x[1] for x in self.pythons]
+
+        self.property_widget.load_settings(settings)
+
+        print(self.pythons)

@@ -17,7 +17,7 @@ from .wizard import quickstart_wizard, apidoc_wizard
 from . import icon
 from . import sphinx_value_types
 from .main_window_ui import Ui_MainWindow
-from .project_list_model import ProjectListModel, ProjectItem
+from .project_list_model import ProjectListModel, ProjectItem, ProjectSettingDialog
 from .system_settings import SystemSettingsDialog, SystemSettings
 from . import plugin
 # TODO: This is Future Support.
@@ -25,6 +25,7 @@ from . import plugin
 from .util.exec_sphinx import command
 from .util.exec_sphinx import launch, console, show_directory, open_terminal, make_command
 from . import property_widget
+from .task import SystemInitTask
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -78,6 +79,13 @@ class MainWindow(QMainWindow):
         self.close_act = QAction(self.tr("Exit"), self, triggered=self.close)
         self.make_html_act = QAction("HTML", self, triggered=self._on_make_html)
         self.copy_path_act = QAction(icon.load("clippy"), self.tr("Copy Path"), self, triggered=self._on_copy_path)
+
+        self.project_setting_act = QAction(
+            icon.load("setting"),
+            self.tr("Project Setting"),
+            self,
+            triggered=self._project_setting
+        )
 
         # setup ui
         self.ui = Ui_MainWindow()
@@ -161,7 +169,7 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(icon.load("sphinx"))
 
         # set icon
-        # TODO: This is Feature Suport.
+        # TODO: This is Feature Support.
         # ProjectTools.set_file_icons(
         #     folder_icon=icon.load("folder"),
         #     file_icon=icon.load("file_text")
@@ -174,6 +182,10 @@ class MainWindow(QMainWindow):
             delete_icon=icon.load("remove"),
         )
 
+        # system init task
+        task = SystemInitTask(self)
+        task.run()
+        
         # setup end
         self.setAcceptDrops(True)
         self._setup()
@@ -241,6 +253,7 @@ class MainWindow(QMainWindow):
         menu.addAction(self.copy_path_act)
         menu.addSeparator()
         menu.addAction(self.ui.action_delete_document)
+        menu.addAction(self.project_setting_act)
 
         return menu
 
@@ -309,6 +322,15 @@ class MainWindow(QMainWindow):
             clear=True,
             callback=callback
         )
+
+    def _project_setting(self):
+        current = self.ui.tree_view_projects.currentIndex()
+        item = self.project_list_model.itemFromIndex(current)
+        if item:
+            dlg = ProjectSettingDialog(item, self)
+            dlg.exec_()
+            pass
+        pass
 
     def _on_project_changed(self, current, _):
         # type: (QModelIndex, QModelIndex) -> None

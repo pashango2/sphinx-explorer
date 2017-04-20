@@ -33,18 +33,18 @@ class SystemSettings(OrderedDict):
             self.setup_default()
 
     def setup_default(self):
-        self["default_values"] = {
+        self["Default Values"] = {
             "language": SystemSettings.default_locale(),
         }
         self["projects"] = {"projects": []}
-        self["editor"] = "atom"
+        self["Editor"]["editor"] = "atom"
 
     def default_root_path(self, default_path):
-        return self["default_values"].get("path") or default_path
+        return self["Default Values"].get("path") or default_path
 
     @property
     def default_values(self):
-        return self["default_values"]
+        return self["Default Values"]
 
     @property
     def projects(self):
@@ -81,11 +81,6 @@ class SystemSettings(OrderedDict):
 
     def venv_info(self):
         return None
-
-
-class CategoryModel(QStandardItemModel):
-    def __init__(self, parent=None):
-        super(CategoryModel, self).__init__(parent)
 
 
 class CategoryFilterModel(QSortFilterProxyModel):
@@ -129,6 +124,9 @@ SYSTEM_SETTINGS = """
     - html_theme
     - sep
 
+- "#*Python Interpreter"
+-
+    - python
 - "#*Extensions":
     - label: Extensions
 """
@@ -236,13 +234,20 @@ class SystemSettingsDialog(QDialog):
             },
         )
 
-        # setup default values
-        item = self.property_model.get("Default Values")
-        item.set_values(settings.get("default_values"))
+        # setup python
+        item = self.property_model.get("Python Interpreter.python")
+        item.value_type.setup_choices([
+            {
+                "text": "root",
+                "value": "anaconda,root"
+            }
+        ])
+        item.set_value("anaconda,root")
 
         # setup extension
         self.setup_extensions()
 
+        self.ui.property_widget.set_values(settings)
         self.ui.property_widget.setup()
 
         self.ui.tree_view_category.expandAll()
@@ -268,7 +273,6 @@ class SystemSettingsDialog(QDialog):
     def setup_Settings(self):
         # type: () -> None
         widget = self.ui.property_widget
-        settings = self.settings
 
         # setup editor
         items = []
@@ -284,26 +288,13 @@ class SystemSettingsDialog(QDialog):
             "editor",
             {
                 "name": "Editor",
-                "value": settings.default_editor(),
                 "value_type": editor_choice
             }
         )
-
-        # setup defaut values
-        item = widget.get("Default Values")
-        item.set_values(settings.default_values())
 
         self.setup_extensions()
 
     def update_settings(self, settings):
         # type: (SystemSettings) -> None
         param = self.ui.property_widget.dump()
-
-        default_param = {
-            key: value
-            for key, value in param.items()
-            if key in self.DEFAULT_SETTING_KEYS
-        }
-        settings.default_values.update(default_param)
-        print(param)
-        settings.set_default_editor(param["Editor"]["editor"])
+        settings.update(param)
