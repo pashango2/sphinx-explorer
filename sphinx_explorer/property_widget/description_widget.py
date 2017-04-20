@@ -5,7 +5,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import os
 from PySide.QtCore import *
 from PySide.QtGui import *
-from PySide.QtWebKit import QWebView
+# from PySide.QtWebKit import QWebView
 import markdown
 
 CssStyle = """
@@ -36,7 +36,7 @@ class DescriptionWidget(QTextBrowser):
         font.setPointSize(self.FONT_POINT_SIZE)
         self.setFont(font)
 
-        self.setOpenExternalLinks(True)
+        # self.setOpenExternalLinks(True)
 
     def clear(self):
         pass
@@ -59,7 +59,7 @@ class DescriptionWidget(QTextBrowser):
         mdo = markdown.Markdown(extensions=["gfm"])
         html = CssStyle + mdo.convert("\n".join(md))
         self.setHtml(html)
-
+        #
         # if search_path:
         #     base_url = QUrl.fromLocalFile(os.path.join(search_path, "index.html"))
         #     self.setHtml(html, base_url)

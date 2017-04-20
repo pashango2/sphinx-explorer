@@ -344,8 +344,6 @@ class MainWindow(QMainWindow):
         if item:
             dlg = ProjectSettingDialog(item, self)
             dlg.exec_()
-            pass
-        pass
 
     def _on_project_changed(self, current, _):
         # type: (QModelIndex, QModelIndex) -> None

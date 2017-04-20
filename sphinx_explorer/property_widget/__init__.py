@@ -51,7 +51,7 @@ class PropertyWidget(QTableView):
     def __init__(self, parent=None, model=None):
         # type: (QWidget, QAbstractItemModel) -> None
         super(PropertyWidget, self).__init__(parent)
-        self._model = model or PropertyModel(self)
+        self._model = model
         self.selection_model = None
         self._first_property_index = QModelIndex()
 
@@ -65,15 +65,14 @@ class PropertyWidget(QTableView):
 
         self.setModel(self._model)
 
-        self.setup()
-
     def setModel(self, model):
         self._model = model
 
-        super(PropertyWidget, self).setModel(model)
-        self._connect()
-        self.selection_model = self.selectionModel()
-        self.setup()
+        if model:
+            super(PropertyWidget, self).setModel(model)
+            self._connect()
+            self.selection_model = self.selectionModel()
+            self.setup()
 
     def setRootIndex(self, index):
         super(PropertyWidget, self).setRootIndex(index)
