@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from .property_widget import TypeBase, register_value_type, TypeChoice
 from .theme_dialog import HtmlThemeWidget
 from PySide.QtGui import *
-from .util.exec_sphinx import python_envs
+from .util.python_venv import python_venvs
 # from PySide.QtCore import *
 
 

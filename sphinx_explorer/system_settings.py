@@ -16,6 +16,7 @@ from .plugin import extension
 from .settings_ui import Ui_Form
 from . import icon
 from .util.exec_sphinx import show_directory
+from .util import python_venv
 import logging
 
 logger = logging.getLogger(__name__)
@@ -44,6 +45,8 @@ class SystemSettings(OrderedDict):
 
     @property
     def default_values(self):
+        if self["Default Values"].get("language") is None:
+            self["Default Values"]["language"] = SystemSettings.default_locale()
         return self["Default Values"]
 
     @property
@@ -236,13 +239,17 @@ class SystemSettingsDialog(QDialog):
 
         # setup python
         item = self.property_model.get("Python Interpreter.python")
-        item.value_type.setup_choices([
-            {
-                "text": "root",
-                "value": "anaconda,root"
-            }
-        ])
-        item.set_value("anaconda,root")
+
+        choices = []
+        env_list, default_value = python_venv.sys_env.env_list()
+        for key, env in env_list:
+            choices.append({
+                "text": "{}({})".format(key, env.type),
+                "value": key,
+                "icon": python_venv.ICON_DICT[env.type],
+            })
+        item.value_type.setup_choices(choices)
+        item.set_value(default_value)
 
         # setup extension
         self.setup_extensions()
@@ -296,5 +303,5 @@ class SystemSettingsDialog(QDialog):
 
     def update_settings(self, settings):
         # type: (SystemSettings) -> None
-        param = self.ui.property_widget.dump()
+        param = self.ui.property_widget.dump(exclude_default=True)
         settings.update(param)

@@ -7,7 +7,6 @@ import os
 import platform
 import subprocess
 import sys
-import re
 from six import string_types, PY2
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
@@ -57,7 +56,7 @@ def create_cmd(cmds):
     return command(str_cmd)
 
 
-def check_output(cmd):
+def check_output(cmd, stderr=subprocess.PIPE):
     # type: (string_types) -> (int, string_types)
     cmd = command(cmd)
     if PY2:
@@ -66,6 +65,7 @@ def check_output(cmd):
     try:
         output = subprocess.check_output(
             cmd,
+            stderr=stderr,
             shell=True,
         )
     except subprocess.CalledProcessError as exc:
@@ -181,59 +181,3 @@ def open_terminal(path):
         subprocess.Popen("gnome-terminal", cwd=cwd)
 
 
-def anaconda_envs():
-    cmd = [
-        "conda", "info", "-e"
-    ]
-
-    ret, val = check_output(" ".join(cmd))
-    if ret == 0:
-        result = []
-        for line in val.splitlines():
-            if line and line[0] == "#":
-                continue
-
-            g = re.match(r"([^\s]*)([\s*]*)(.*?)$", line)
-            if g:
-                name, default, path = g.groups()
-                if name:
-                    result.append((name, "*" in default, path))
-
-        return result
-    return []
-
-
-def _env_path():
-    if platform.system() == "Windows":
-        return os.path.join("Scripts", "activate.bat")
-    else:
-        return os.path.join("bin", "activate")
-
-
-def python_envs(cwd):
-    # find venv
-    result = []
-
-    env = _env_path()
-    for x in os.listdir(cwd):
-        if os.path.isdir(x):
-            activate_path = os.path.join(cwd, x, env)
-            if os.path.exists(activate_path):
-                result.append(("venv", x))
-
-    # find anaconda
-    default_anaconda = []
-    other_anaconda = []
-    for ana, default, _ in anaconda_envs():
-        if default:
-            default_anaconda.append(("anaconda", ana))
-        else:
-            other_anaconda.append(("anaconda", ana))
-
-    result += default_anaconda
-    result += other_anaconda
-
-    # find system
-    result.append(("sys", "Sytem Python"))
-
-    return result

@@ -26,6 +26,7 @@ from .util.exec_sphinx import command
 from .util.exec_sphinx import launch, console, show_directory, open_terminal, make_command
 from . import property_widget
 from .task import SystemInitTask
+from .util import python_venv
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -182,14 +183,29 @@ class MainWindow(QMainWindow):
             delete_icon=icon.load("remove"),
         )
 
+        python_venv.ICON_DICT["sys"] = icon.load("python")
+        python_venv.ICON_DICT["anaconda"] = icon.load("python")
+        python_venv.ICON_DICT["venv"] = icon.load("python")
+
         # system init task
         task = SystemInitTask(self)
-        task.run()
-        
+        task.messaged.connect(self._on_task_message)
+        task.finished.connect(self._on_system_init_finished)
+
+        thread_pool = QThreadPool.globalInstance()
+        thread_pool.start(task)
+
         # setup end
         self.setAcceptDrops(True)
         self._setup()
         self.ui.tree_view_projects.setFocus()
+
+    def _on_task_message(self, msg, timeout=3000):
+        self.ui.statusbar.showMessage(msg, timeout)
+
+    @staticmethod
+    def _on_system_init_finished(env):
+        python_venv.setup(env)
 
     def _setup(self):
         self.project_list_model.load(self.settings.projects)
@@ -306,13 +322,15 @@ class MainWindow(QMainWindow):
         index = self.sender().data()
         if index and index.isValid():
             item = self.project_list_model.itemFromIndex(index)
-            venv_info = item.venv_info() or self.settings.venv_info()
-            self._make("html", item.path(), venv_info)
+            self._make("html", item)
 
-    def _make(self, make_cmd, cwd, venv_path=None, callback=None):
+    def _make(self, make_cmd, project_item, callback=None):
+        cwd = project_item.path()
+        venv_info = project_item.venv_info() or self.settings.venv_info()
+        venv_path = python_venv.get_path(venv_info)
         cmd = [
+            self.ui.plain_output.virtual_env(cwd, venv_path),
             make_command(make_cmd, cwd),
-            self.ui.plain_output.virtual_env(cwd, venv_path)
         ]
         cmd = [x for x in cmd if x]
 
@@ -368,9 +386,8 @@ class MainWindow(QMainWindow):
         if item:
             if not item.has_html():
                 html_path = item.html_path()
-                print(html_path)
                 if html_path:
-                    self._make("html", item.path(), lambda: webbrowser.open(html_path))
+                    self._make("html", item, lambda: webbrowser.open(html_path))
             else:
                 html_path = item.html_path()
                 if os.path.isfile(html_path):

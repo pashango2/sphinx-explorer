@@ -44,12 +44,12 @@ class FlatTableModel(QAbstractProxyModel):
 
         self.setSourceModel(source_model)
 
-    def rowCount(self, index):
+    def rowCount(self, index=QModelIndex()):
         if index.isValid():
             return 0
         return self.row_count
 
-    def columnCount(self, index):
+    def columnCount(self, index=QModelIndex()):
         return 2
 
     def index(self, row, column, parent=QModelIndex()):
@@ -134,11 +134,11 @@ class PropertyModel(QStandardItemModel):
                 _params_dict.update(setting_param)
 
                 value = setting_param.get("value")
-                default = (
-                    setting_param.get("default") or
-                    self._get_default_value(parent_item, key, default_values) or
-                    params_dict.get(key, {}).get("default")
-                )
+                default = setting_param.get("default")
+                if default is None:
+                    default = self._get_default_value(parent_item, key, default_values)
+                    if default is None:
+                        default = params_dict.get(key, {}).get("default")
 
                 if header_flag:
                     _params_dict["required"] = True
@@ -206,8 +206,8 @@ class PropertyModel(QStandardItemModel):
     def add_property(self, parent_item, key, value=None, default=None, params=None, label_name=None):
         parent_item = parent_item or self.invisibleRootItem()
         params = params or {}
-        value = value or params.get("value")
-        default = default or params.get("default")
+        value = value if value is not None else params.get("value")
+        default = default if default is not None else params.get("default")
 
         # value type
         value_type = params.get("value_type")
@@ -344,7 +344,7 @@ class PropertyModel(QStandardItemModel):
             if not index.isValid():
                 break
 
-    def dump(self, store_none=False, flat=False):
+    def dump(self, store_none=False, flat=False, exclude_default=False):
         obj_map = {}
         cat_map = {(): obj_map}
 
@@ -353,13 +353,15 @@ class PropertyModel(QStandardItemModel):
 
             if flat:
                 if not item.is_category:
-                    if store_none or item.value:
-                        obj_map[item.key] = item.value
+                    if store_none or item.value is not None:
+                        if exclude_default is False or not item.was_default():
+                            obj_map[item.key] = item.value
             else:
                 parent_key = item.tree_key()[:-1]
                 if not item.is_category:
-                    if store_none or item.value:
-                        cat_map[parent_key][item.key] = item.value
+                    if store_none or item.value is not None:
+                        if exclude_default is False or not item.was_default():
+                            cat_map[parent_key][item.key] = item.value
                 else:
                     if self.rowCount(index) > 0:
                         cat_map[item.tree_key()] = cat_map[parent_key][item.key] = {}
@@ -536,7 +538,7 @@ class PropertyItem(BaseItem):
 
     def was_default(self):
         # type: () -> bool
-        return self._default_flag
+        return self.value_item.was_default()
 
     def setup_link(self, prop_map):
         # type: (dict, string_types) -> None
@@ -601,6 +603,9 @@ class ValueItem(QStandardItem):
             return self._default_display
         return self._input_value
 
+    def was_default(self):
+        return self._input_value is None
+
     @property
     def default(self):
         return self._default_value
@@ -626,7 +631,7 @@ class ValueItem(QStandardItem):
         if icon:
             self.setIcon(icon)
 
-        if value:
+        if value is not None:
             self.setData(None, Qt.ForegroundRole)
         else:
             self.setForeground(self.DEFAULT_VALUE_FOREGROUND_COLOR)

@@ -11,7 +11,8 @@ from six import string_types
 
 from . import icon
 from .util.QConsoleWidget import QConsoleWidget
-from .util.exec_sphinx import quote, create_cmd, python_envs
+from .util.exec_sphinx import quote, create_cmd
+from .util import python_venv
 from .util.conf_py_parser import Parser
 from .property_widget import PropertyWidget
 
@@ -271,6 +272,11 @@ class ProjectSettings(object):
             }
         return d
 
+    def store(self):
+        save_path = os.path.join(self.path, self.SETTING_NAME)
+        with open(save_path, "w") as fd:
+            toml.dump(self.settings, fd)
+
     def _analyze(self):
         # search conf.py
         self.conf_py_path = self._find_conf_py(self.path)
@@ -340,7 +346,13 @@ class ProjectSettings(object):
             return False
 
     def venv_info(self):
-        return None
+        try:
+            return self.settings["Python Interpreter"].get("python")
+        except KeyError:
+            return None
+
+    def set_python(self, env):
+        self.settings.setdefault("Python Interpreter", {})["python"] = env
 
 
 class LoadSettingObject(QObject, QRunnable):
@@ -366,11 +378,10 @@ class LoadSettingObject(QObject, QRunnable):
 
 ProjectDialogSettings = """
 - "#Python Interpreter"
-- python:
-    - value_type: TypePython
-      label: Python Interpreter
-- "#Auto Build"
-- 
+-
+    - python:
+        - value_type: TypePython
+          label: Python Interpreter
 """
 
 
@@ -390,15 +401,46 @@ class ProjectSettingDialog(QDialog):
         self.layout.addWidget(self.button_box)
 
         self.setLayout(self.layout)
+        self.setWindowTitle(self.tr(str("Project Settings")))
+        self.resize(1000, 600)
 
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
 
         settings = yaml.load(ProjectDialogSettings)
-
-        self.pythons = python_envs(project_item.path())
-        settings[0]["python"][0]["choices"] = [x[1] for x in self.pythons]
-
         self.property_widget.load_settings(settings)
 
-        print(self.pythons)
+        project_venv = python_venv.python_venvs(project_item.path())
+        item = self.property_widget.get("Python Interpreter.python")
+        if item:
+            choices = []
+            env_list, _ = python_venv.sys_env.env_list(project_venv)
+            for key, env in env_list:
+                choices.append({
+                    "text": "{}({}:{})".format(env.name, env.type, env.path or env.type),
+                    "value": key,
+                    "icon": python_venv.ICON_DICT[env.type],
+                })
+
+            choices.append({
+                "text": "Use Sphinx Explorer Default",
+                "value": None,
+                "icon": python_venv.ICON_DICT["sys"],
+            })
+            item.value_type.setup_choices(choices)
+            if project_item.settings.venv_info():
+                item.set_value(project_item.settings.venv_info())
+            else:
+                item.set_value(None, force_update=True)
+
+        model = self.property_widget.model().create_table_model(QModelIndex(), self)
+        self.property_widget.setModel(model)
+        self.property_widget.setup()
+        self.property_widget.resizeColumnsToContents()
+
+    def accept(self):
+        dump = self.property_widget.dump(flat=True)
+        self.project_item.settings.set_python(dump.get("python"))
+        self.project_item.settings.store()
+        super(ProjectSettingDialog, self).accept()
+

@@ -52,8 +52,7 @@ class PropertyWidget(QTableView):
         # type: (QWidget, QAbstractItemModel) -> None
         super(PropertyWidget, self).__init__(parent)
         self._model = model or PropertyModel(self)
-        self.setModel(self._model)
-        self.selection_model = self.selectionModel()
+        self.selection_model = None
         self._first_property_index = QModelIndex()
 
         self._delegate = PropertyItemDelegate(self)
@@ -64,12 +63,16 @@ class PropertyWidget(QTableView):
         self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.setTabKeyNavigation(False)
 
-        self.setup()
+        self.setModel(self._model)
         self._connect()
+
+        self.setup()
 
     def setModel(self, model):
         self._model = model
+
         super(PropertyWidget, self).setModel(model)
+        self.selection_model = self.selectionModel()
         self.setup()
 
     def setRootIndex(self, index):
@@ -135,9 +138,9 @@ class PropertyWidget(QTableView):
         else:
             self.setEditTriggers(QAbstractItemView.AllEditTriggers)
 
-    def dump(self, flat=False):
+    def dump(self, flat=False, exclude_default=False):
         # type: () -> dict
-        return self._model.dump(flat=flat)
+        return self._model.dump(flat=flat, exclude_default=exclude_default)
 
     def dumps(self):
         # type: () -> str
