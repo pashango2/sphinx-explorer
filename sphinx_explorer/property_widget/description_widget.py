@@ -37,6 +37,7 @@ class DescriptionWidget(QTextBrowser):
         self.setFont(font)
 
         self.setOpenExternalLinks(True)
+        # QWebPage::setLinkDelegationPolicy(QWebPage::DelegateAllLinks)
 
     def clear(self):
         pass
