@@ -64,7 +64,6 @@ class PropertyWidget(QTableView):
         self.setTabKeyNavigation(False)
 
         self.setModel(self._model)
-        self._connect()
 
         self.setup()
 
@@ -72,6 +71,7 @@ class PropertyWidget(QTableView):
         self._model = model
 
         super(PropertyWidget, self).setModel(model)
+        self._connect()
         self.selection_model = self.selectionModel()
         self.setup()
 
@@ -101,8 +101,8 @@ class PropertyWidget(QTableView):
 
     # noinspection PyUnresolvedReferences
     def _connect(self):
-        self.selection_model.currentChanged.connect(self.currentChanged.emit)
-        self._model.itemChanged.connect(self.itemChanged.emit)
+        if self.selection_model:
+            self.selection_model.currentChanged.connect(self.currentChanged.emit)
 
     def index(self, row, column, parent=QModelIndex()):
         # type: (int, int) -> QModelIndex
@@ -181,6 +181,7 @@ class PropertyWidget(QTableView):
         if not index.isValid():
             return None
 
+        index = index.sibling(index.row(), 0)
         item = self._model.itemFromIndex(index)
         if item.type() == PropertyItemType:
             return item.description
@@ -191,6 +192,7 @@ class PropertyWidget(QTableView):
         if not index.isValid():
             return None
 
+        index = index.sibling(index.row(), 0)
         item = self._model.itemFromIndex(index)
         return item.text() if item else ""
 

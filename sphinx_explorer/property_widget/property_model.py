@@ -82,7 +82,8 @@ class FlatTableModel(QAbstractProxyModel):
         return self.sourceModel().dump(*args, **kwargs)
 
     def flags(self, index):
-        return super(FlatTableModel, self).flags(self.mapToSource(index))
+        flags = super(FlatTableModel, self).flags(self.mapToSource(index))
+        return flags
 
 
 class PropertyModel(QStandardItemModel):
@@ -587,6 +588,7 @@ class ValueItem(QStandardItem):
         self._default_value = default
         self._default_display = default
         self.value_type = value_type
+        self.setFlags(self.flags() | Qt.ItemIsEditable | Qt.ItemIsSelectable)
 
         self.set_value(value)
         if self.value_type:

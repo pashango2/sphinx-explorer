@@ -1,7 +1,7 @@
 title: Read The Docs Template
 
 description: |
-    This is 'Read The Docs'(https://readthedocs.org/) mode.
+    This is **Read The Docs** (https://readthedocs.org/) template.
 
     - Use recommonmark
     - MathJax
@@ -9,7 +9,7 @@ description: |
     - Font Awesome
     - BlockDiag
     
-    <img src="../theme/sphinx_rtd_theme.png" width="10px" />
+    <img src="../theme/sphinx_rtd_theme.png" width="400" align="center" style="align:center;" />
 
 
 

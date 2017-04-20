@@ -131,11 +131,12 @@ class PropertyPage(QWizardPage):
         layout.addWidget(self.splitter)
         self.setLayout(layout)
 
-        self.property_widget.currentChanged.connect(self._onCurrentChanged)
+        self.selection_model = self.property_widget.selectionModel()
+        self.selection_model.currentChanged.connect(self._onCurrentChanged)
         self.property_widget.setCurrentIndex(self.property_widget.index(0, 1))
 
         self.property_widget.resizeColumnsToContents()
-        self.property_widget.itemChanged.connect(self._onItemChanged)
+        self.property_widget.model().itemChanged.connect(self._onItemChanged)
 
         self.setTitle(title)
 

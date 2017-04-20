@@ -1,6 +1,6 @@
 order:
-    - quickstart
     - read_the_docs
+    - quickstart
     - apidoc_and_docs
     - ebooks
 

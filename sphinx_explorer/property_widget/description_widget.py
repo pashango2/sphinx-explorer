@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 # from six import string_types
-# from PySide.QtCore import *
+import os
+from PySide.QtCore import *
 from PySide.QtGui import *
+from PySide.QtWebKit import QWebView
 import markdown
 
 CssStyle = """
@@ -24,6 +26,7 @@ a.anchor {
 """
 
 
+# class DescriptionWidget(QWebView):
 class DescriptionWidget(QTextBrowser):
     FONT_POINT_SIZE = 12
 
@@ -34,6 +37,9 @@ class DescriptionWidget(QTextBrowser):
         self.setFont(font)
 
         self.setOpenExternalLinks(True)
+
+    def clear(self):
+        pass
 
     def setMarkdown(self, description, title=None, title_prefix="#", thumbnail=None, search_path=None):
         if search_path:
@@ -53,3 +59,10 @@ class DescriptionWidget(QTextBrowser):
         mdo = markdown.Markdown(extensions=["gfm"])
         html = CssStyle + mdo.convert("\n".join(md))
         self.setHtml(html)
+
+        # if search_path:
+        #     base_url = QUrl.fromLocalFile(os.path.join(search_path, "index.html"))
+        #     self.setHtml(html, base_url)
+        # else:
+        #     self.setHtml(html)
+
