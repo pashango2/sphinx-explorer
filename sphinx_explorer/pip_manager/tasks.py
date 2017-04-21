@@ -33,7 +33,8 @@ class PipListTask(QObject):
                 yield package, version
 
     def run(self):
-        output = subprocess.check_output(self.commander("pip list --format=legacy"))
+        # output = subprocess.check_output(self.commander("pip list --format=legacy"))
+        output = ""
         if not output:
             logger.warning("pip failed.")
 

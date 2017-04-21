@@ -3,7 +3,7 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 from qtpy.QtCore import *
 # noinspection PyUnresolvedReferences
-from qtpy.QtGui import QKeySequence
+from qtpy.QtGui import *
 from qtpy.QtWidgets import *
 
 import ctypes
@@ -84,7 +84,7 @@ class MainWindow(QMainWindow):
         self.apidoc_act = self._act("update", self.tr("Update sphinx-apidoc"), self._apidoc)
         self.open_html_act = self._act("chrome", self.tr("Open browser"), self._open_browser)
         self.copy_path_act = self._act("clippy", self.tr("Copy Path"), self._on_copy_path)
-        self.copy_path_act = self._act("setting", self.tr("Project Setting"), self._project_setting)
+        self.project_setting_act = self._act("setting", self.tr("Project Setting"), self._project_setting)
         self.package_mgr_act = self._act("package", self.tr("Package Manager"), self._package_manager)
 
         self.close_act = self._act(None, self.tr("Exit"), self.close)
@@ -427,7 +427,7 @@ class MainWindow(QMainWindow):
             self.ui.plain_output.clear()
             item.apidoc_update(self.ui.plain_output)
 
-    @Slot(str, ProjectItem)
+    @Slot(str, QStandardItem)
     def onAutoBuildRequested(self, cmd, _):
         # self.ui.plain_output.exec_command(cmd)
         launch(cmd)

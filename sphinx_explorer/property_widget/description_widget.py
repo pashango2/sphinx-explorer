@@ -75,7 +75,7 @@ class DescriptionWidget(QWebEngineView):
             md.append("![thumbnail]({})".format(thumbnail))
 
         mdo = markdown.Markdown(extensions=["gfm"])
-        html = CssStyle + mdo.convert("\n".join(md)) + "</body>"
+        html = self.CssStyle + mdo.convert("\n".join(md)) + "</body>"
 
         if search_path:
             base_url = QUrl.fromLocalFile(os.path.join(search_path, "index.html"))

@@ -32,7 +32,8 @@ class QConsoleWidget(QTextEdit):
         self._process = QProcess(self)
         self._process.setProcessChannelMode(QProcess.MergedChannels)
         self._process.started.connect(self.started.emit)
-        self._process.finished[int].connect(self._on_finished)
+        # self._process.finished[int].connect(self._on_finished)
+        self._process.finished.connect(self._on_finished)
         self._process.readyReadStandardOutput.connect(self._print_output)
         self._process.readyReadStandardError.connect(self._print_output)
 

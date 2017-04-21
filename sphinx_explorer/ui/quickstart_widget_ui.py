@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/quickstart_widget.ui'
+# Form implementation generated from reading ui file '/home/toshiyuki/sphinx-explorer/sphinx_explorer/ui/quickstart_widget.ui'
 #
-# Created: Tue Apr  4 08:02:17 2017
+# Created: Fri Apr 21 20:45:05 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -46,5 +46,5 @@ class Ui_Form(object):
         Form.setWindowTitle(QtGui.QApplication.translate("Form", "Form", None, QtGui.QApplication.UnicodeUTF8))
         self.button_create_project.setText(QtGui.QApplication.translate("Form", "Create Project", None, QtGui.QApplication.UnicodeUTF8))
 
-from sphinx_explorer.property_widget import PropertyWidget
-from sphinx_explorer.util.QConsoleWidget import QConsoleWidget
+from .util.QConsoleWidget import QConsoleWidget
+from .property_widget import PropertyWidget
