@@ -1,33 +1,33 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+from qtpy.QtCore import *
+# noinspection PyUnresolvedReferences
+from qtpy.QtGui import QKeySequence
+from qtpy.QtWidgets import *
 
 import ctypes
 import os
 import platform
 import webbrowser
 from collections import OrderedDict
-
 import toml
-from qtpy.QtCore import *
-from qtpy.QtGui import *
-from qtpy.QtWidgets import *
 from six import PY2
 
-from .wizard import quickstart_wizard, apidoc_wizard
+from sphinx_explorer.ui.main_window_ui import Ui_MainWindow
 from . import icon
+from . import plugin
+from . import property_widget
 from . import sphinx_value_types
-from .main_window_ui import Ui_MainWindow
+from .pip_manager import PackageModel, PipListTask
 from .project_list_model import ProjectListModel, ProjectItem, ProjectSettingDialog
 from .system_settings import SystemSettingsDialog, SystemSettings
-from . import plugin
-# TODO: This is Future Support.
-# from .project_tools import ProjectTools
-from .util.exec_sphinx import command
-from .util.exec_sphinx import launch, console, show_directory, open_terminal, make_command
-from . import property_widget
 from .task import SystemInitTask, push_task
 from .util import python_venv
+from .util.exec_sphinx import command
+from .util.exec_sphinx import launch, console, show_directory, open_terminal, make_command
+from .wizard import quickstart_wizard, apidoc_wizard
+from .package_mgr_dlg import PackageManagerDlg
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -39,6 +39,12 @@ class MainWindow(QMainWindow):
     if PY2:
         def tr(self, text):
             return super(MainWindow, self).tr(str(text))
+
+    def _act(self, icon_name, name, triggered=None):
+        if icon_name:
+            return QAction(icon.load(icon_name), name, self, triggered=triggered)
+        else:
+            return QAction(name, self, triggered=triggered)
 
     def __init__(self, sys_dir, home_dir, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -71,24 +77,18 @@ class MainWindow(QMainWindow):
             }
 
         # create actions
-        self.open_act = QAction(icon.load("editor"), self.tr("Open Editor"), self, triggered=self._open_dir)
-        self.show_act = QAction(icon.load("open_folder"), self.tr("Open Directory"), self,
-                                triggered=self._show_directory)
-        self.terminal_act = QAction(icon.load("terminal"), self.tr("Open Terminal"), self,
-                                    triggered=self._open_terminal)
-        self.auto_build_act = QAction(icon.load("reload"), self.tr("Auto Build"), self, triggered=self._auto_build)
-        self.apidoc_act = QAction(icon.load("update"), self.tr("Update sphinx-apidoc"), self, triggered=self._apidoc)
-        self.open_html_act = QAction(icon.load("chrome"), self.tr("Open browser"), self, triggered=self._open_browser)
-        self.close_act = QAction(self.tr("Exit"), self, triggered=self.close)
-        self.make_html_act = QAction("HTML", self, triggered=self._on_make_html)
-        self.copy_path_act = QAction(icon.load("clippy"), self.tr("Copy Path"), self, triggered=self._on_copy_path)
+        self.open_act = self._act("editor", self.tr("Open Editor"), self._open_dir)
+        self.show_act = self._act("open_folder", self.tr("Open Directory"), self._show_directory)
+        self.terminal_act = self._act("terminal", self.tr("Open Terminal"), self._open_terminal)
+        self.auto_build_act = self._act("reload", self.tr("Auto Build"), self._auto_build)
+        self.apidoc_act = self._act("update", self.tr("Update sphinx-apidoc"), self._apidoc)
+        self.open_html_act = self._act("chrome", self.tr("Open browser"), self._open_browser)
+        self.copy_path_act = self._act("clippy", self.tr("Copy Path"), self._on_copy_path)
+        self.copy_path_act = self._act("setting", self.tr("Project Setting"), self._project_setting)
+        self.package_mgr_act = self._act("package", self.tr("Package Manager"), self._package_manager)
 
-        self.project_setting_act = QAction(
-            icon.load("setting"),
-            self.tr("Project Setting"),
-            self,
-            triggered=self._project_setting
-        )
+        self.close_act = self._act(None, self.tr("Exit"), self.close)
+        self.make_html_act = self._act(None, self.tr("HTML"), self._on_make_html)
 
         # setup ui
         self.ui = Ui_MainWindow()
@@ -97,11 +97,20 @@ class MainWindow(QMainWindow):
         self.project_list_model = ProjectListModel(parent=self)
         self.project_list_model.autoBuildRequested.connect(self.onAutoBuildRequested)
 
+        # package model
+        self.package_model = PackageModel(self)
+
+        task = PipListTask(parent=self)
+        self.package_mgr_act.setEnabled(False)
+        task.finished.connect(self._on_pip_list_loaded)
+        push_task(task)
+
         # setup file menu
         self.ui.menuFile_F.addSeparator()
         self.ui.menuFile_F.addAction(self.close_act)
 
-        # setup project tree
+        # setup tool bar
+        self.ui.toolBar.addAction(self.package_mgr_act)
 
         # setup icon
         self.ui.action_add_document.setIcon(icon.load("plus"))
@@ -193,9 +202,6 @@ class MainWindow(QMainWindow):
         task = SystemInitTask(self.settings, self)
         task.messaged.connect(self._on_task_message)
         task.finished.connect(self._on_system_init_finished)
-
-        # thread_pool = QThreadPool.globalInstance()
-        # thread_pool.start(task)
         push_task(task)
 
         # setup end
@@ -205,6 +211,13 @@ class MainWindow(QMainWindow):
 
     def _on_task_message(self, msg, timeout=3000):
         self.ui.statusbar.showMessage(msg, timeout)
+
+    @Slot()
+    def _on_pip_list_loaded(self):
+        sender = self.sender()
+        if isinstance(sender, PipListTask):
+            self.package_mgr_act.setEnabled(True)
+            self.package_model.load(sender.packages)
 
     @staticmethod
     def _on_system_init_finished(env):
@@ -347,6 +360,10 @@ class MainWindow(QMainWindow):
         if item:
             dlg = ProjectSettingDialog(item, self)
             dlg.exec_()
+
+    def _package_manager(self):
+        dlg = PackageManagerDlg(self.package_model, self)
+        dlg.exec_()
 
     def _on_project_changed(self, current, _):
         # type: (QModelIndex, QModelIndex) -> None

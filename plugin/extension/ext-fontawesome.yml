@@ -1,1 +1,2 @@
-packages: ["sphinx_fontawesome"]
+packages: ["sphinx-fontawesome"]
+add_extensions: ["sphinx_fontawesome"]

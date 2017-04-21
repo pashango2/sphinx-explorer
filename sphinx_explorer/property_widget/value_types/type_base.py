@@ -256,6 +256,8 @@ class TypeChoice(TypeBase):
         for i, item in enumerate(self.selects):
             combo.addItem(item["text"])
             combo.setItemData(i, item["value"])
+            if "icon" in item:
+                combo.setItemIcon(i, item["icon"])
 
         return combo
 

@@ -11,42 +11,51 @@ from qtpy.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 # from PySide.QtWebKit import QWebView
 import markdown
 
-here = os.path.dirname(sys.argv[0])
-css_path = os.path.join(here, "css", "github-markdown.css")
-
-CssStyle = """
-<style>
-{}
-.markdown-body {{
-    background: #232629;
-    color: #FFFFFF;
-}}
-
-.markdown-body .highlight pre,
-.markdown-body pre {{
-  background-color: #474a4d;
-}}
-
-.markdown-body a {{
-  color: #a0d8ef;
-  text-decoration: none;
-}}
-
-.markdown-body img {{
-  background-color: #dcdddd;
-}}
-
-</style>
-<body class="markdown-body">
-""".format(open(css_path).read())
-
 
 class DescriptionWidget(QWebEngineView):
     FONT_POINT_SIZE = 12
+    SetupFlag = False
+    CssStyle = ""
 
-    QWebEngineSettings.globalSettings().setAttribute(QWebEngineSettings.PluginsEnabled, True)
+    @staticmethod
+    def setup():
+        QWebEngineSettings.globalSettings().setAttribute(QWebEngineSettings.PluginsEnabled, True)
+
+        here = os.path.dirname(sys.argv[0])
+        css_path = os.path.join(here, "css", "github-markdown.css")
+
+        DescriptionWidget.CssStyle = """
+        <style>
+        {}
+        .markdown-body {{
+            background: #232629;
+            color: #FFFFFF;
+        }}
+
+        .markdown-body .highlight pre,
+        .markdown-body pre {{
+          background-color: #474a4d;
+        }}
+
+        .markdown-body a {{
+          color: #a0d8ef;
+          text-decoration: none;
+        }}
+
+        .markdown-body img {{
+          background-color: #dcdddd;
+        }}
+
+        </style>
+        <body class="markdown-body">
+        """.format(open(css_path).read())
+
+        DescriptionWidget.SetupFlag = True
 
     def __init__(self, parent=None):
+        if not DescriptionWidget.SetupFlag:
+            self.setup()
+
         super(DescriptionWidget, self).__init__(parent)
         font = QFont()
         font.setPointSize(self.FONT_POINT_SIZE)

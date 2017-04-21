@@ -142,4 +142,4 @@ class Ui_MainWindow(object):
         self.action_delete_document.setToolTip(QtGui.QApplication.translate("MainWindow", "Delete document", None, QtGui.QApplication.UnicodeUTF8))
         self.action_delete_document.setShortcut(QtGui.QApplication.translate("MainWindow", "Del", None, QtGui.QApplication.UnicodeUTF8))
 
-from .util.QConsoleWidget import QConsoleWidget
+from sphinx_explorer.util.QConsoleWidget import QConsoleWidget

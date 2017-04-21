@@ -66,4 +66,4 @@ class Ui_Form(object):
         Form.setWindowTitle(QtGui.QApplication.translate("Form", "Form", None, QtGui.QApplication.UnicodeUTF8))
         self.button_open_home_dir.setText(QtGui.QApplication.translate("Form", "Open Setting Directory", None, QtGui.QApplication.UnicodeUTF8))
 
-from .property_widget import PropertyWidget
+from sphinx_explorer.property_widget import PropertyWidget

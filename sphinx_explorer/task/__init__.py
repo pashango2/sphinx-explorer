@@ -49,7 +49,6 @@ class Worker(QRunnable):
     def run(self):
         self.obj.run()
 
-
 def push_task(task):
     thread_pool = QThreadPool.globalInstance()
     worker = Worker(task)

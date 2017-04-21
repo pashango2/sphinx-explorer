@@ -10,11 +10,13 @@ from __future__ import division, print_function, absolute_import, unicode_litera
     * toml
     * qdarkstyle
 """
+import os
+import sys
+# os.environ.setdefault("QT_API", 'pyside')
 from qtpy.QtGui import *
 from qtpy.QtCore import *
 from qtpy.QtWidgets import *
-import sys
-import os
+
 import qdarkstyle
 from .main_window import MainWindow
 import logging

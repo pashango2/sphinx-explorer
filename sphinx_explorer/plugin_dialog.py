@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from qtpy.QtCore import *
-from qtpy.QtGui import *
-from qtpy.QtWidgets import *
+
+import fnmatch
 import os
 from collections import OrderedDict
-import toml
-import fnmatch
+
 import six
-from .theme_dialog_ui import Ui_Dialog
+import toml
 import typing
+from qtpy.QtCore import *
+from qtpy.QtWidgets import *
+from qtpy.QtGui import *
+
+from sphinx_explorer.ui.theme_dialog_ui import Ui_Dialog
 
 try:
     # noinspection PyUnresolvedReferences

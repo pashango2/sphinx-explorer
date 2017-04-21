@@ -37,6 +37,12 @@ def list_iter():
         yield ext_name, ext
 
 
+def dependent_packages():
+    for ext_name, ext in Extensions.items():
+        for package in ext.packages:
+            yield package
+
+
 class Extension(object):
     # TODO: ast check
     def __init__(self, name, ext_setting, ext_path):
@@ -83,7 +89,7 @@ class Extension(object):
 
     @property
     def add_extensions(self):
-        d = self.conf_py.get("add_extension")
+        d = self.conf_py.get("add_extensions")
         if d is None:
             d = self.packages
         elif d is False:

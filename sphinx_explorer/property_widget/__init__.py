@@ -93,9 +93,9 @@ class PropertyWidget(QTableView):
             if not self._first_property_index.isValid():
                 self._first_property_index = self.index(row, 1, self.rootIndex())
 
-        self.setCurrentIndex(self._first_property_index)
+        # self.setCurrentIndex(self._first_property_index)
         self.resizeRowsToContents()
-        self.resizeColumnsToContents()
+        self.resizeColumnToContents(0)
 
     def clear(self):
         self._model.removeRows(0, self._model.rowCount())

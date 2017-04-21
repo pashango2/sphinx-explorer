@@ -3,22 +3,21 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 import locale
+import logging
 from collections import OrderedDict
 
 import toml
 import yaml
 from qtpy.QtCore import *
-from qtpy.QtGui import *
 from qtpy.QtWidgets import *
 
 from sphinx_explorer.plugin import editor
-from .property_widget import TypeChoice, PropertyModel
-from .plugin import extension
-from .settings_ui import Ui_Form
+from sphinx_explorer.ui.settings_ui import Ui_Form
 from . import icon
-from .util.exec_sphinx import show_directory
+from .plugin import extension
+from .property_widget import TypeChoice, PropertyModel
 from .util import python_venv
-import logging
+from .util.exec_sphinx import show_directory
 
 logger = logging.getLogger(__name__)
 

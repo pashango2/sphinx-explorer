@@ -46,5 +46,5 @@ class Ui_Form(object):
         Form.setWindowTitle(QtGui.QApplication.translate("Form", "Form", None, QtGui.QApplication.UnicodeUTF8))
         self.button_create_project.setText(QtGui.QApplication.translate("Form", "Create Project", None, QtGui.QApplication.UnicodeUTF8))
 
-from .property_widget import PropertyWidget
-from .util.QConsoleWidget import QConsoleWidget
+from sphinx_explorer.property_widget import PropertyWidget
+from sphinx_explorer.util.QConsoleWidget import QConsoleWidget
