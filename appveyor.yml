@@ -13,7 +13,8 @@ install:
   - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PYTHON%\\Lib\\site-packages;%PATH%
   - set QTDIR=C:\Qt\5.6\msvc2015
   - set PATH=%QTDIR%\bin;%PATH%
-  - "pip install pyside"
+  - "pip install pyqt5"
+  - "pip install qtpy"
   - "pip install pyinstaller"
   - "pip install toml"
   - "pip install pyYaml"
