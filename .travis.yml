@@ -10,8 +10,14 @@ matrix:
   #allow_failures:
   #  - os: osx
 
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - libstdc++-4.9-dev
+      
 install:
-  - sudo apt-get install libstdc++6
   - "pip install pyqt5"
   - "pip install qtpy"
   - "pip install pyinstaller"
