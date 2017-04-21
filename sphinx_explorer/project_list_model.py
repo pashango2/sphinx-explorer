@@ -5,8 +5,9 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import os
 import toml
 import yaml
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from six import string_types
 
 from . import icon

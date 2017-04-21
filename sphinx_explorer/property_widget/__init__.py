@@ -7,8 +7,9 @@ import json
 # noinspection PyUnresolvedReferences
 from six import string_types
 # noinspection PyUnresolvedReferences
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from .property_model import PropertyItem, CategoryItem, PropertyModel
 from .property_model import PropertyItemType
 from .description_widget import DescriptionWidget

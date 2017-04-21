@@ -1,5 +1,5 @@
 #! coding:utf-8
-from PySide.QtGui import *
+from qtpy.QtGui import *
 import os
 import six
 

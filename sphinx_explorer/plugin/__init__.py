@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import os
 import fnmatch
 import yaml
-from PySide.QtGui import *
+from qtpy.QtGui import *
 from typing import Iterator
 from six import string_types
 from .template_model import TemplateModel

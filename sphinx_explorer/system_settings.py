@@ -7,8 +7,9 @@ from collections import OrderedDict
 
 import toml
 import yaml
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 
 from sphinx_explorer.plugin import editor
 from .property_widget import TypeChoice, PropertyModel

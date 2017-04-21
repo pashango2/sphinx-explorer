@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 
 from sphinx_explorer.generator import quickstart
 from .base_wizard import PropertyPage, BaseWizard, ExecCommandPage

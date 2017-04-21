@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 import os
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 # from PySide.QtCore import *
 from .plugin_dialog import PluginDialog
 from .property_widget import RefButtonWidget

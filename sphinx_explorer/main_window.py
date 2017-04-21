@@ -9,8 +9,9 @@ import webbrowser
 from collections import OrderedDict
 
 import toml
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from six import PY2
 
 from .wizard import quickstart_wizard, apidoc_wizard

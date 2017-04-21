@@ -5,13 +5,14 @@ import sys
 import six
 import os
 import platform
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
 
 # noinspection PyArgumentList
-QTextCodec.setCodecForCStrings(QTextCodec.codecForLocale())
+# QTextCodec.setCodecForCStrings(QTextCodec.codecForLocale())
 
 
 class QConsoleWidget(QTextEdit):

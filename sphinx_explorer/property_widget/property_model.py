@@ -4,11 +4,12 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from .value_types import find_value_type, TypeBase
 from six import string_types
 import re
-from PySide.QtCore import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from .default_value_dict import DefaultValues
 from collections import OrderedDict
 import markdown
-from PySide.QtGui import *
 
 if False:
     from typing import Iterator, Dict, List

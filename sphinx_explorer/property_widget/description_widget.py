@@ -3,8 +3,9 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 # from six import string_types
 import os
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 # from PySide.QtWebKit import QWebView
 import markdown
 
