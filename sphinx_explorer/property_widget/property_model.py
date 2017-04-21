@@ -316,6 +316,13 @@ class PropertyModel(QStandardItemModel):
             prop_map[item.key] = item
         return prop_map
 
+    def is_complete(self, root_index=QModelIndex()):
+        # type: () -> bool
+        for property_item in self.properties(root_index):
+            if not property_item.is_complete():
+                return False
+        return True
+
     @staticmethod
     def _html(dec, title, title_prefix="#"):
         md = """

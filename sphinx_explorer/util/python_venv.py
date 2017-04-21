@@ -8,6 +8,7 @@ import platform
 from collections import OrderedDict
 from six import string_types
 from . import exec_sphinx
+from .commander import commander
 
 ICON_DICT = {
     "sys": None,
@@ -119,8 +120,8 @@ def anaconda_env():
         "conda", "info", "-e"
     ]
 
-    ret, val = exec_sphinx.check_output(" ".join(cmd), stderr=None)
-    if ret == 0:
+    val = commander.check_output(" ".join(cmd), shell=True)
+    if val:
         result = []
         for line in val.splitlines():
             if line and line[0] == "#":

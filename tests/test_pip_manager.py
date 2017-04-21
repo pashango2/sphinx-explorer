@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 import sys
+from sphinx_explorer.util.commander import commander
 # import os
 # os.environ.setdefault("QT_API", 'pyside')
 
@@ -18,14 +19,14 @@ except:
 
 
 def test_extension():
-    task = pip_manager.PipListTask()
+    task = pip_manager.PipListTask(commander=commander)
     task.run()
     assert task.packages
 
     model = pip_manager.PackageModel()
     model.load(task.packages)
 
-    out_task = pip_manager.PipListOutDateTask()
+    out_task = pip_manager.PipListOutDateTask(commander=commander)
     out_task.run()
     assert task.packages
 

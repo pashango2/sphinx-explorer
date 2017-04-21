@@ -155,10 +155,11 @@ class BaseTypeList(TypeBase):
     @classmethod
     def set_value(cls, control, value):
         # type: (FontListWidget, list) -> None
-        control.addItems(value)
-        for row in range(control.count()):
-            item = control.item(row)
-            item.setFlags(item.flags() | Qt.ItemIsEditable)
+        if value:
+            control.addItems(value)
+            for row in range(control.count()):
+                item = control.item(row)
+                item.setFlags(item.flags() | Qt.ItemIsEditable)
 
     @classmethod
     def sizeHint(cls):

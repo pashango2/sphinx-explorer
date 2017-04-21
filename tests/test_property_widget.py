@@ -9,7 +9,9 @@ import os
 import sys
 import yaml
 import toml
-from PySide.QtGui import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
+
 import platform
 
 try:
@@ -131,7 +133,7 @@ def test_get_property():
 
 
 def test_load_settings():
-    widget = PropertyWidget()
+    model = PropertyModel()
 
     # category and basic param
     settings = [
@@ -141,9 +143,9 @@ def test_load_settings():
         "c",
     ]
 
-    widget.load_settings(settings)
-    assert [u'a', u'b', u'c'] == [x.text() for x in widget.properties()]
-    widget.clear()
+    model.load_settings(settings)
+    assert [u'a', u'b', u'c'] == [x.text() for x in model.properties()]
+    model.clear()
 
     # Detailed parameters
     settings = [
@@ -161,16 +163,16 @@ def test_load_settings():
             }]
         },
     ]
-    widget.load_settings(settings)
+    model.load_settings(settings)
 
-    assert ['Document', 'Check'] == [x.text() for x in widget.properties()]
-    check_item = widget.property_map()["b"]  # type: PropertyItem
+    assert ['Document', 'Check'] == [x.text() for x in model.properties()]
+    check_item = model.property_map()["b"]  # type: PropertyItem
     assert TypeBool is check_item.value_type
     assert not check_item.value
 
 
 def test_link():
-    widget = PropertyWidget()
+    model = PropertyModel()
     settings = [
         "#category",
         {
@@ -190,9 +192,9 @@ def test_link():
             ]
         },
     ]
-    widget.load_settings(settings)
+    model.load_settings(settings)
 
-    prop_map = widget.property_map()
+    prop_map = model.property_map()
     item_a = prop_map["a"]
     item_b = prop_map["b"]
     assert item_b.value == "test"
@@ -235,7 +237,7 @@ def test_link():
 
 
 def test_required():
-    widget = PropertyWidget()
+    model = PropertyModel()
 
     settings = [
         "#category",
@@ -246,11 +248,11 @@ def test_required():
             }]
         },
     ]
-    widget.load_settings(settings)
-    assert False is widget.is_complete()
+    model.load_settings(settings)
+    assert False is model.is_complete()
 
-    widget.property_map()["a"].set_value("test")
-    assert True is widget.is_complete()
+    model.property_map()["a"].set_value("test")
+    assert True is model.is_complete()
 
     # widget.clear()
     # settings = [

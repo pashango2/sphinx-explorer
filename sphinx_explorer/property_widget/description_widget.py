@@ -61,6 +61,9 @@ class DescriptionWidget(QWebEngineView):
         font.setPointSize(self.FONT_POINT_SIZE)
         self.setFont(font)
 
+        page = self.page()
+        page.setBackgroundColor(Qt.transparent)
+
     def clear(self):
         pass
 

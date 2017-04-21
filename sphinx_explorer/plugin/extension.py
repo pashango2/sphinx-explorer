@@ -45,7 +45,7 @@ def dependent_packages():
 
 class Extension(object):
     # TODO: ast check
-    def __init__(self, name, ext_setting, ext_path):
+    def __init__(self, name, ext_setting, ext_path=None):
         self.name = name
         self.ext_setting = ext_setting
         self.ext_path = ext_path

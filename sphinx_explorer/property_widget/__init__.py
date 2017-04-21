@@ -210,11 +210,7 @@ class PropertyWidget(QTableView):
 
     def is_complete(self):
         # type: () -> bool
-        root_index = self.rootIndex()
-        for property_item in self.properties(root_index):
-            if not property_item.is_complete():
-                return False
-        return True
+        return self._model.is_complete(self.rootIndex())
 
     def update_link(self):
         for property_item in self.properties():

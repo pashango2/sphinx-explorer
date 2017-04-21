@@ -15,6 +15,10 @@ class PackageModel(QStandardItemModel):
         super(PackageModel, self).__init__(parent)
         self._package_dict = {}
         self._is_loaded = False
+        self.setHorizontalHeaderLabels([
+            self.tr("Package"),
+            self.tr("Version"),
+        ])
 
     def clear(self):
         self._package_dict = {}
@@ -22,10 +26,9 @@ class PackageModel(QStandardItemModel):
         super(PackageModel, self).clear()
 
     def load(self, packages):
-        self.clear()
+        self.removeRows(0, self.rowCount())
         for package, version in packages:
             self.add_package(package, version)
-
         self._is_loaded = True
 
     @staticmethod
@@ -57,11 +60,6 @@ class PackageModel(QStandardItemModel):
                 self.add_package(package, None, 0)
 
         return PackageFilterModel(self, filter_packages, parent)
-
-    def columnCount(self, parent=QModelIndex()):
-        if parent.isValid():
-            return 0
-        return 2
 
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid():

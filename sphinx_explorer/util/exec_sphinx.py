@@ -167,17 +167,3 @@ def show_directory(path):
     launch(" ".join(cmd), path)
 
 
-def open_terminal(path):
-    # type: (string_types) -> None
-    cwd = os.path.normpath(path)
-    if PY2:
-        cwd = cwd.encode(sys.getfilesystemencoding())
-
-    if platform.system() == "Windows":
-        subprocess.Popen("cmd", cwd=cwd)
-    elif platform.system() == "Darwin":
-        subprocess.Popen("open", cwd=cwd)
-    else:
-        subprocess.Popen("gnome-terminal", cwd=cwd)
-
-

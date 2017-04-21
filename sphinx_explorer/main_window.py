@@ -25,9 +25,10 @@ from .system_settings import SystemSettingsDialog, SystemSettings
 from .task import SystemInitTask, push_task
 from .util import python_venv
 from .util.exec_sphinx import command
-from .util.exec_sphinx import launch, console, show_directory, open_terminal, make_command
+from .util.exec_sphinx import launch, make_command
 from .wizard import quickstart_wizard, apidoc_wizard
 from .package_mgr_dlg import PackageManagerDlg
+from .util.commander import commander
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -100,7 +101,7 @@ class MainWindow(QMainWindow):
         # package model
         self.package_model = PackageModel(self)
 
-        task = PipListTask(parent=self)
+        task = PipListTask(commander=commander, parent=self)
         self.package_mgr_act.setEnabled(False)
         task.finished.connect(self._on_pip_list_loaded)
         push_task(task)
@@ -316,26 +317,28 @@ class MainWindow(QMainWindow):
 
     def _open_dir(self):
         # type: () -> None
-        path = self.sender().data()
-        if not path:
-            return
-        self.settings.editor().open_dir(path)
+        index = self.ui.tree_view_projects.currentIndex()
+        item = self.project_list_model.itemFromIndex(index)
+        if item:
+            self.settings.editor().open_dir(item.path())
 
     def _show_directory(self):
         # type: () -> None
-        path = self.sender().data()
-        if path:
-            show_directory(path)
+        index = self.ui.tree_view_projects.currentIndex()
+        item = self.project_list_model.itemFromIndex(index)
+        if item:
+            commander.show_directory(item.path())
 
     def _open_terminal(self):
         # type: () -> None
-        path = self.sender().data()
-        if path:
-            open_terminal(path)
+        index = self.ui.tree_view_projects.currentIndex()
+        item = self.project_list_model.itemFromIndex(index)
+        if item:
+            commander.open_terminal(item.path())
 
     def _on_make_html(self):
         # type: () -> None
-        index = self.sender().data()
+        index = self.ui.tree_view_projects.currentIndex()
         if index and index.isValid():
             item = self.project_list_model.itemFromIndex(index)
             self._make("html", item)
@@ -383,17 +386,20 @@ class MainWindow(QMainWindow):
 
     def _auto_build(self):
         # type: () -> None
-        index = self.sender().data()
+        index = self.ui.tree_view_projects.currentIndex()
         if not index.isValid():
             return
 
         item = self.project_list_model.itemFromIndex(index)  # type: ProjectItem
         if item:
-            console(item.auto_build_command(), os.path.normpath(item.path()))
+            commander.console(
+                item.auto_build_command(),
+                os.path.normpath(item.path())
+            )
 
     def _open_browser(self):
         # type: () -> None
-        index = self.sender().data()
+        index = self.ui.tree_view_projects.currentIndex()
         if not index.isValid():
             return
 
@@ -556,7 +562,7 @@ class MainWindow(QMainWindow):
         if index.isValid():
             path = self.project_list_model.path(index)
             if path:
-                show_directory(path)
+                commander.show_directory(path)
 
     @Slot(QPoint)
     def on_tree_view_projects_customContextMenuRequested(self, pos):
