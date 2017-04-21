@@ -12,8 +12,7 @@ matrix:
 
 install:
   - if [ "$TRAVIS_OS_NAME" == "osx"   ] ; then   mac-build/install.sh ; fi
-  - sudo apt-get update
-  - sudo apt-get -y install python3-pyqt5
+  - "pip install pyqt5"
   - "pip install qtpy"
   - "pip install pyinstaller"
   - "pip install toml"
