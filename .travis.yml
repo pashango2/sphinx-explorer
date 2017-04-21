@@ -12,6 +12,7 @@ matrix:
 
 install:
   - if [ "$TRAVIS_OS_NAME" == "osx"   ] ; then   mac-build/install.sh ; fi
+  - sudo apt-get install libstdc++6
   - "pip install pyqt5"
   - "pip install qtpy"
   - "pip install pyinstaller"
