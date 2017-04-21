@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from PySide.QtCore import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from ..util.python_venv import anaconda_env, python_venv, PythonVEnv
 
 
-class BaseTask(QObject, QRunnable):
+class BaseTask(QObject):
     messaged = Signal(str)
 
     def __init__(self, parent=None):
         # type: () -> None
-        QObject.__init__(self, parent)
-        QRunnable.__init__(self)
+        super(BaseTask, self).__init__(parent)
 
     def message(self, msg):
         self.messaged.emit(msg)
@@ -38,3 +39,18 @@ class SystemInitTask(BaseTask):
 
         env = PythonVEnv(conda_env, venv_list)
         self.finished.emit(env)
+
+
+class Worker(QRunnable):
+    def __init__(self, obj):
+        super(Worker, self).__init__()
+        self.obj = obj
+
+    def run(self):
+        self.obj.run()
+
+
+def push_task(task):
+    thread_pool = QThreadPool.globalInstance()
+    worker = Worker(task)
+    thread_pool.start(worker)

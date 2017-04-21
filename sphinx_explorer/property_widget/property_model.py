@@ -4,11 +4,12 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from .value_types import find_value_type, TypeBase
 from six import string_types
 import re
-from PySide.QtCore import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from .default_value_dict import DefaultValues
 from collections import OrderedDict
 import markdown
-from PySide.QtGui import *
 
 if False:
     from typing import Iterator, Dict, List
@@ -81,13 +82,13 @@ class FlatTableModel(QAbstractProxyModel):
     def dump(self, *args, **kwargs):
         return self.sourceModel().dump(*args, **kwargs)
 
-    def flags(self, index):
-        flags = super(FlatTableModel, self).flags(self.mapToSource(index))
-        return flags
+    # def flags(self, index):
+    #     flags = super(FlatTableModel, self).flags(self.mapToSource(index))
+    #     return flags
 
 
 class PropertyModel(QStandardItemModel):
-    PrefixRe = re.compile(r"(^[#*]*)\s*(.*)")
+    PrefixRe = re.compile(r"(^[#*-]*)\s*(.*)")
 
     def __init__(self, parent=None):
         super(PropertyModel, self).__init__(parent)
@@ -121,15 +122,18 @@ class PropertyModel(QStandardItemModel):
             g = self.PrefixRe.match(key)
             category_flag = False
             header_flag = False
+            vbox_flag = False
             if g:
                 prefix, key = g.group(1), g.group(2)
                 category_flag = "#" in prefix
                 header_flag = "*" in prefix
+                vbox_flag = "-" in prefix
 
             if category_flag:
                 label = setting_param.get("label", key)
                 last_item = self.add_category(parent_item, key, label)
                 last_item.header_flag = header_flag
+                last_item.vbox_flag = vbox_flag
             else:
                 _params_dict = params_dict.get(key, {}).copy()
                 _params_dict.update(setting_param)
@@ -376,6 +380,7 @@ class BaseItem(QStandardItem):
         super(BaseItem, self).__init__(name)
         self.key = key
         self.header_flag = False
+        self.vbox_flag = False
 
     def tree_key(self):
         keys = []
@@ -431,6 +436,7 @@ class PropertyItem(BaseItem):
         super(PropertyItem, self).__init__(key, label)
         self.value_item = value_item
         self.description = params.get("description")
+        self.description_path = params.get("description_path", ".")
         self.required = params.get("required", False)
         self.require_input = params.get("require_input", False)
         self.link_format = params.get("link_format")

@@ -7,8 +7,9 @@ import json
 # noinspection PyUnresolvedReferences
 from six import string_types
 # noinspection PyUnresolvedReferences
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from .property_model import PropertyItem, CategoryItem, PropertyModel
 from .property_model import PropertyItemType
 from .description_widget import DescriptionWidget
@@ -45,13 +46,13 @@ class PropertyWidget(QTableView):
     * Hierarchical setting of default values
 
     """
-    currentChanged = Signal(QModelIndex, QModelIndex)
+    # currentChanged = Signal(QModelIndex, QModelIndex)
     itemChanged = Signal(QStandardItem)
 
     def __init__(self, parent=None, model=None):
-        # type: (QWidget, QAbstractItemModel) -> None
+        # type: (QWidget, QStandardItemModel) -> None
         super(PropertyWidget, self).__init__(parent)
-        self._model = model or PropertyModel(self)
+        self._model = model
         self.selection_model = None
         self._first_property_index = QModelIndex()
 
@@ -65,15 +66,14 @@ class PropertyWidget(QTableView):
 
         self.setModel(self._model)
 
-        self.setup()
-
     def setModel(self, model):
         self._model = model
 
-        super(PropertyWidget, self).setModel(model)
-        self._connect()
-        self.selection_model = self.selectionModel()
-        self.setup()
+        if model:
+            super(PropertyWidget, self).setModel(model)
+            # self._connect()
+            self.selection_model = self.selectionModel()
+            self.setup()
 
     def setRootIndex(self, index):
         super(PropertyWidget, self).setRootIndex(index)
@@ -95,14 +95,15 @@ class PropertyWidget(QTableView):
 
         self.setCurrentIndex(self._first_property_index)
         self.resizeRowsToContents()
+        self.resizeColumnsToContents()
 
     def clear(self):
         self._model.removeRows(0, self._model.rowCount())
 
     # noinspection PyUnresolvedReferences
-    def _connect(self):
-        if self.selection_model:
-            self.selection_model.currentChanged.connect(self.currentChanged.emit)
+    # def _connect(self):
+    #     if self.selection_model:
+    #         self.selection_model.currentChanged.connect(self.currentChanged.emit)
 
     def index(self, row, column, parent=QModelIndex()):
         # type: (int, int) -> QModelIndex
@@ -184,8 +185,8 @@ class PropertyWidget(QTableView):
         index = index.sibling(index.row(), 0)
         item = self._model.itemFromIndex(index)
         if item.type() == PropertyItemType:
-            return item.description
-        return None
+            return item.description, item.description_path
+        return None, None
 
     def title(self, index):
         # type: (QModelIndex) -> str or None
@@ -196,8 +197,8 @@ class PropertyWidget(QTableView):
         item = self._model.itemFromIndex(index)
         return item.text() if item else ""
 
-    def closeEditor(self, editor, _):
-        super(PropertyWidget, self).closeEditor(editor, QAbstractItemDelegate.EditNextItem)
+    # def closeEditor(self, editor, _):
+    #     super(PropertyWidget, self).closeEditor(editor, QAbstractItemDelegate.EditNextItem)
 
     def moveCursor(self, action, modifiers):
         if action == QAbstractItemView.MoveNext:

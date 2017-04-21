@@ -9,8 +9,9 @@ import webbrowser
 from collections import OrderedDict
 
 import toml
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from six import PY2
 
 from .wizard import quickstart_wizard, apidoc_wizard
@@ -25,7 +26,7 @@ from . import plugin
 from .util.exec_sphinx import command
 from .util.exec_sphinx import launch, console, show_directory, open_terminal, make_command
 from . import property_widget
-from .task import SystemInitTask
+from .task import SystemInitTask, push_task
 from .util import python_venv
 
 SETTING_DIR = ".sphinx-explorer"
@@ -65,7 +66,8 @@ class MainWindow(QMainWindow):
             self.params_dict[ext_name] = {
                 "value_type": "TypeBool",
                 "default": True,
-                "description": ext.description
+                "description": ext.description,
+                "description_path": ext.ext_path,
             }
 
         # create actions
@@ -192,8 +194,9 @@ class MainWindow(QMainWindow):
         task.messaged.connect(self._on_task_message)
         task.finished.connect(self._on_system_init_finished)
 
-        thread_pool = QThreadPool.globalInstance()
-        thread_pool.start(task)
+        # thread_pool = QThreadPool.globalInstance()
+        # thread_pool.start(task)
+        push_task(task)
 
         # setup end
         self.setAcceptDrops(True)
@@ -344,8 +347,6 @@ class MainWindow(QMainWindow):
         if item:
             dlg = ProjectSettingDialog(item, self)
             dlg.exec_()
-            pass
-        pass
 
     def _on_project_changed(self, current, _):
         # type: (QModelIndex, QModelIndex) -> None

@@ -3,8 +3,9 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 import os
 from six import string_types
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 
 
 class TypeBase(object):

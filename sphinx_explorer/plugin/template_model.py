@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from PySide.QtGui import *
-from PySide.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtCore import *
 import os
 import yaml
 from six import string_types

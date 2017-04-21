@@ -19,7 +19,8 @@ def init(plugin_dir):
             ext_name = file_name[:-len(".yml")]
             Extensions[ext_name] = Extension(
                 ext_name,
-                yaml.load(open(os.path.join(root, file_name)))
+                yaml.load(open(os.path.join(root, file_name))),
+                root,
             )
 
 
@@ -38,9 +39,10 @@ def list_iter():
 
 class Extension(object):
     # TODO: ast check
-    def __init__(self, name, ext_setting):
+    def __init__(self, name, ext_setting, ext_path):
         self.name = name
         self.ext_setting = ext_setting
+        self.ext_path = ext_path
 
     @property
     def description(self):

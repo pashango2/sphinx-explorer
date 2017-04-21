@@ -10,8 +10,9 @@ from __future__ import division, print_function, absolute_import, unicode_litera
     * toml
     * qdarkstyle
 """
-from PySide.QtGui import *
-from PySide.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtWidgets import *
 import sys
 import os
 import qdarkstyle

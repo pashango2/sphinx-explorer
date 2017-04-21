@@ -5,8 +5,9 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import os
 import toml
 import yaml
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from six import string_types
 
 from . import icon
@@ -14,7 +15,8 @@ from .util.QConsoleWidget import QConsoleWidget
 from .util.exec_sphinx import quote, create_cmd
 from .util import python_venv
 from .util.conf_py_parser import Parser
-from .property_widget import PropertyWidget
+from .property_widget import PropertyWidget, PropertyModel
+from .task import push_task
 
 
 class ProjectListModel(QStandardItemModel):
@@ -87,8 +89,7 @@ class ProjectListModel(QStandardItemModel):
         ana.finished.connect(self.onAnalyzeFinished)
 
         # noinspection PyArgumentList
-        thread_pool = QThreadPool.globalInstance()
-        thread_pool.start(ana)
+        push_task(ana)
 
     @Slot(object, str)
     def onAnalyzeFinished(self, settings, project_path):
@@ -356,13 +357,12 @@ class ProjectSettings(object):
         self.settings.setdefault("Python Interpreter", {})["python"] = env
 
 
-class LoadSettingObject(QObject, QRunnable):
+class LoadSettingObject(QObject):
     finished = Signal(ProjectSettings, str)
 
-    def __init__(self, doc_path, project_path):
+    def __init__(self, doc_path, project_path, parent=None):
         # type: (str, str) -> None
-        QObject.__init__(self)
-        QRunnable.__init__(self)
+        super(LoadSettingObject, self).__init__(parent)
 
         self.doc_path = doc_path
         self.project_path = project_path
@@ -379,10 +379,9 @@ class LoadSettingObject(QObject, QRunnable):
 
 ProjectDialogSettings = """
 - "#Python Interpreter"
--
-    - python:
-        - value_type: TypePython
-          label: Python Interpreter
+- python:
+    - value_type: TypePython
+      label: Python Interpreter
 """
 
 
@@ -392,7 +391,10 @@ class ProjectSettingDialog(QDialog):
         self.project_item = project_item
 
         self.layout = QVBoxLayout(self)
+        # self.property_widget = PropertyWidget(parent=self)
         self.property_widget = PropertyWidget(self)
+        self.model = PropertyModel(self)
+
         self.button_box = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
             parent=self
@@ -409,10 +411,10 @@ class ProjectSettingDialog(QDialog):
         self.button_box.rejected.connect(self.reject)
 
         settings = yaml.load(ProjectDialogSettings)
-        self.property_widget.load_settings(settings)
+        self.model.load_settings(settings)
 
         project_venv = python_venv.python_venv(project_item.path())
-        item = self.property_widget.get("Python Interpreter.python")
+        item = self.model.get("python")
         if item:
             choices = []
             env_list, _ = python_venv.sys_env.env_list(project_venv)
@@ -436,13 +438,11 @@ class ProjectSettingDialog(QDialog):
             else:
                 item.set_value(None, force_update=True)
 
-        model = self.property_widget.model().create_table_model(QModelIndex(), self)
-        self.property_widget.setModel(model)
-        self.property_widget.setup()
+        self.property_widget.setModel(self.model)
         self.property_widget.resizeColumnsToContents()
 
     def accept(self):
-        dump = self.property_widget.dump(flat=True)
+        dump = self.model.dump(flat=True)
         self.project_item.settings.set_python(dump.get("python"))
         self.project_item.settings.store()
         super(ProjectSettingDialog, self).accept()

@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from six import string_types
 from sphinx_explorer.util.QConsoleWidget import QConsoleWidget
 from .. import icon
@@ -108,7 +109,7 @@ class ExecCommandPage(QWizardPage):
 
 
 class PropertyPage(QWizardPage):
-    def __init__(self, title, model, root_index, parent=None):
+    def __init__(self, title, model, root_index, vbox_flag=False, parent=None):
         super(PropertyPage, self).__init__(parent)
         self.model = model
 
@@ -116,19 +117,25 @@ class PropertyPage(QWizardPage):
         self.property_widget.setRootIndex(root_index)
         self.property_widget.setup()
 
-        self.text_browser = DescriptionWidget(self)
-        self.splitter = QSplitter(self)
-
-        self.splitter.addWidget(self.property_widget)
-        self.splitter.addWidget(self.text_browser)
-        self.splitter.setSizePolicy(
-            QSizePolicy.Expanding, QSizePolicy.Expanding
-        )
-        self.splitter.setStretchFactor(1, 1)
-        self.splitter.setSizes([310, 643])
-
         layout = QVBoxLayout(self)
-        layout.addWidget(self.splitter)
+
+        if vbox_flag is False:
+            self.text_browser = DescriptionWidget(self)
+            self.splitter = QSplitter(self)
+
+            self.splitter.addWidget(self.property_widget)
+            self.splitter.addWidget(self.text_browser)
+            self.splitter.setSizePolicy(
+                QSizePolicy.Expanding, QSizePolicy.Expanding
+            )
+            self.splitter.setStretchFactor(1, 1)
+            self.splitter.setSizes([310, 643])
+
+            layout.addWidget(self.splitter)
+        else:
+            self.text_browser = None
+            layout.addWidget(self.property_widget)
+
         self.setLayout(layout)
 
         self.selection_model = self.property_widget.selectionModel()
@@ -147,13 +154,19 @@ class PropertyPage(QWizardPage):
             return self.next_id
         return super(PropertyPage, self).nextId()
 
+    @Slot(QModelIndex, QModelIndex)
     def _onCurrentChanged(self, current, _):
+        if self.text_browser is None:
+            return
+
         title = self.property_widget.title(current)
-        description = self.property_widget.description(current)
-        if description:
-            self.text_browser.setMarkdown(description, title=title)
-        else:
-            self.text_browser.clear()
+        description, search_path = self.property_widget.description(current)
+
+        self.text_browser.setMarkdown(description or  "", title=title, search_path=search_path)
+        # if description:
+        #     self.text_browser.setMarkdown(description, title=title)
+        # else:
+        #     self.text_browser.clear()
 
     def isComplete(self):
         return self.property_widget.is_complete()
@@ -168,6 +181,7 @@ class PropertyPage(QWizardPage):
         index = self.property_widget.first_property_index()
         self.property_widget.setCurrentIndex(index)
         self.property_widget.update_link()
+        self.property_widget.resizeColumnsToContents()
 
     def validatePage(self):
         prop_obj = self.property_widget.dump()

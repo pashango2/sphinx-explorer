@@ -4,7 +4,7 @@ description: |
     This is standard EBooks Template.
 
 wizard:
-    - Required params
+    - "#- Required params"
     -
         - project
         - path

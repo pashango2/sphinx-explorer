@@ -14,15 +14,16 @@ description: |
 
 
 wizard:
-    - "#*Required params"
+    - "#*-Required params"
     -
         - project
         - path
         - author
         - version
         - release
-        - "# More Extensions"
-        - ext-blockdiag
+    - "#* More Extensions"
+    -
+      - ext-blockdiag
 
 
 default_values:

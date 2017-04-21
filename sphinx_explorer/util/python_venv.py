@@ -5,6 +5,7 @@ import os
 import re
 import json
 import platform
+from collections import OrderedDict
 from six import string_types
 from . import exec_sphinx
 
@@ -32,7 +33,10 @@ class Env(object):
             return []
 
         if self.type == "anaconda":
-            return ["activate", self.name]
+            if platform.system() == "Linux":
+                return ["source activate " + self.name]
+            else:
+                return ["activate " + self.name]
         elif self.type == "venv":
             if os.path.isabs(self.path):
                 path = self.path
@@ -53,25 +57,22 @@ class Env(object):
 
         try:
             return Env(*json.loads(s))
-        except (json.JSONDecoder, ValueError):
+        except ValueError:
             return None
 
 
 class PythonVEnv(object):
     def __init__(self, conda_env=None, venv_list=None):
-        self._envs = {
-            "System": Env("sys", "System Default", None)
-        }
-        self._default_env = "System"
+        self._envs = OrderedDict()
+        env = Env("sys", "System Default", None)
+        self._envs[env.to_str()] = env
+        self._default_env = env.to_str()
 
         if conda_env:
             for name, default, path in conda_env:
-                key = "anaconda.name"
-                self._envs[key] = Env(
-                    "anaconda",
-                    name,
-                    path
-                )
+                env = Env("anaconda", name, path)
+                key = env.to_str()
+                self._envs[key] = env
 
                 if default:
                     self._default_env = key
@@ -98,6 +99,7 @@ class PythonVEnv(object):
 
         for key, env in self._envs.items():
             result.append((key, env))
+
         return result, self._default_env
 
     def set_anaconda_env(self, env):

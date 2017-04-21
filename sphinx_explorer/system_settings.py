@@ -7,8 +7,9 @@ from collections import OrderedDict
 
 import toml
 import yaml
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 
 from sphinx_explorer.plugin import editor
 from .property_widget import TypeChoice, PropertyModel
@@ -90,7 +91,10 @@ class SystemSettings(OrderedDict):
             return python_venv.Env()
 
     def search_venv_path_list(self):
-        return self["Python Interpreter"].get("venv_search_path", [])
+        try:
+            return self["Python Interpreter"].get("venv_search_path", [])
+        except KeyError:
+            return []
 
 
 class CategoryFilterModel(QSortFilterProxyModel):

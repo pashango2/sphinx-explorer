@@ -3,7 +3,7 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 import os
 import yaml
-from PySide.QtGui import *
+from qtpy.QtGui import *
 from sphinx_explorer.util.exec_sphinx import launch
 from typing import Iterator
 from six import string_types

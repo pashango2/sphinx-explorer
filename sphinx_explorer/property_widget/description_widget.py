@@ -2,33 +2,49 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 # from six import string_types
+import sys
 import os
-from PySide.QtCore import *
-from PySide.QtGui import *
-from PySide.QtWebKit import QWebView
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
+from qtpy.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
+# from PySide.QtWebKit import QWebView
 import markdown
+
+here = os.path.dirname(sys.argv[0])
+css_path = os.path.join(here, "css", "github-markdown.css")
 
 CssStyle = """
 <style>
-a {color: #4183C4; }
-a.absent {color: #cc0000; }
-a.anchor {
-  display: block;
-  padding-left: 30px;
-  margin-left: -30px;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0; }
+{}
+.markdown-body {{
+    background: #232629;
+    color: #FFFFFF;
+}}
+
+.markdown-body .highlight pre,
+.markdown-body pre {{
+  background-color: #474a4d;
+}}
+
+.markdown-body a {{
+  color: #a0d8ef;
+  text-decoration: none;
+}}
+
+.markdown-body img {{
+  background-color: #dcdddd;
+}}
 
 </style>
-"""
+<body class="markdown-body">
+""".format(open(css_path).read())
 
 
-# class DescriptionWidget(QWebView):
-class DescriptionWidget(QTextBrowser):
+class DescriptionWidget(QWebEngineView):
     FONT_POINT_SIZE = 12
+
+    QWebEngineSettings.globalSettings().setAttribute(QWebEngineSettings.PluginsEnabled, True)
 
     def __init__(self, parent=None):
         super(DescriptionWidget, self).__init__(parent)
@@ -36,18 +52,10 @@ class DescriptionWidget(QTextBrowser):
         font.setPointSize(self.FONT_POINT_SIZE)
         self.setFont(font)
 
-        self.setOpenExternalLinks(True)
-        # QWebPage::setLinkDelegationPolicy(QWebPage::DelegateAllLinks)
-
     def clear(self):
         pass
 
     def setMarkdown(self, description, title=None, title_prefix="#", thumbnail=None, search_path=None):
-        if search_path:
-            self.setSearchPaths([search_path])
-        else:
-            self.setSearchPaths([])
-
         md = []
         if title:
             md.append("{} {}".format(title_prefix, title))
@@ -58,12 +66,11 @@ class DescriptionWidget(QTextBrowser):
             md.append("![thumbnail]({})".format(thumbnail))
 
         mdo = markdown.Markdown(extensions=["gfm"])
-        html = CssStyle + mdo.convert("\n".join(md))
-        self.setHtml(html)
+        html = CssStyle + mdo.convert("\n".join(md)) + "</body>"
 
-        # if search_path:
-        #     base_url = QUrl.fromLocalFile(os.path.join(search_path, "index.html"))
-        #     self.setHtml(html, base_url)
-        # else:
-        #     self.setHtml(html)
+        if search_path:
+            base_url = QUrl.fromLocalFile(os.path.join(search_path, "index.html"))
+            self.setHtml(html, base_url)
+        else:
+            self.setHtml(html)
 
