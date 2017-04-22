@@ -1,21 +1,25 @@
 language: python
+sudo: required
 
 matrix:
   include:
     - os: linux
-      python: 3.4
+      python: 3.5
     #- os: osx
     #  language: generic
   #allow_failures:
   #  - os: osx
 
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - libstdc++-4.9-dev
+      
 install:
-  - if [ "$TRAVIS_OS_NAME" == "osx"   ] ; then   mac-build/install.sh ; fi
-  #- "pip install pyside"
-  - sudo apt-get install libqt4-dev
-  - pip install PySide --no-index --find-links https://parkin.github.io/python-wheelhouse/;
-  # Travis CI servers use virtualenvs, so we need to finish the install by the following
-  - python ~/virtualenv/python${TRAVIS_PYTHON_VERSION}/bin/pyside_postinstall.py -install
+  - "pip install pyqt5"
+  - "pip install qtpy"
   - "pip install pyinstaller"
   - "pip install toml"
   - "pip install pyYaml"
