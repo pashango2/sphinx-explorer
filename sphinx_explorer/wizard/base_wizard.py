@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 from qtpy.QtCore import *
-from qtpy.QtGui import *
+# from qtpy.QtGui import *
 from qtpy.QtWidgets import *
 from six import string_types
 from sphinx_explorer.util.QConsoleWidget import QConsoleWidget
@@ -139,6 +139,7 @@ class PropertyPage(QWizardPage):
         self.setLayout(layout)
 
         self.selection_model = self.property_widget.selectionModel()
+        # noinspection PyUnresolvedReferences
         self.selection_model.currentChanged.connect(self._onCurrentChanged)
         self.property_widget.setCurrentIndex(self.property_widget.index(0, 1))
 

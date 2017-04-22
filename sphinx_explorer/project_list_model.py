@@ -39,10 +39,12 @@ class ProjectListModel(QStandardItemModel):
 
     def dump(self):
         # type: () -> [str]
-        return [
-            self.item(row, 0).path()
-            for row in range(self.rowCount())
-        ]
+        items = [self.itemFromRow(row) for row in range(self.rowCount())]
+        return [item.path() for item in items]
+
+    def itemFromRow(self, row):
+        # type: (int) -> ProjectItem
+        return self.item(row, 0)
 
     def add_document(self, doc_path):
         # type: (str) -> QStandardItem or None
@@ -66,7 +68,8 @@ class ProjectListModel(QStandardItemModel):
     def itemFromIndex(self, index):
         # type: (QModelIndex) -> ProjectItem
         index = self.index(index.row(), 0)
-        return super(ProjectListModel, self).itemFromIndex(index)
+        item = super(ProjectListModel, self).itemFromIndex(index)   # type: ProjectItem
+        return item
 
     def _create_item(self, project_path):
         # type: (str) -> QStandardItem
@@ -79,13 +82,14 @@ class ProjectListModel(QStandardItemModel):
 
     def update_items(self):
         for row in range(self.rowCount()):
-            item = self.item(row, 0)
+            item = self.item(row, 0)    # type: ProjectItem
             self._analyze_item(item)
 
     def _analyze_item(self, item):
         project_path = item.path()
 
         ana = LoadSettingObject(project_path, item.path())
+        # noinspection PyUnresolvedReferences
         ana.finished.connect(self.onAnalyzeFinished)
 
         # noinspection PyArgumentList
@@ -114,13 +118,14 @@ class ProjectListModel(QStandardItemModel):
             item.setText(project_path)
 
         if item.model():
-            left = item.index()
-            right = item.model().index(left.row(), 1)
-            item.model().dataChanged.emit(left, right)
+            _left = item.index()                        # QModelIndex
+            _right = item.model().index(_left.row(), 1)
+            # noinspection PyUnresolvedReferences
+            item.model().dataChanged.emit(_left, _right)
 
     def path(self, index):
         # type: (QModelIndex) -> str
-        item = self.item(index.row(), 0)
+        item = self.item(index.row(), 0)    # type: ProjectItem
         return item and item.path()
 
     def rowItem(self, index):
@@ -382,10 +387,14 @@ ProjectDialogSettings = """
 - python:
     - value_type: TypePython
       label: Python Interpreter
+- python2:
+    - value_type: TypeChoiceSetting
+      label: Python Interpreter
 """
 
 
 class ProjectSettingDialog(QDialog):
+    # noinspection PyUnresolvedReferences
     def __init__(self, project_item, parent=None):
         super(ProjectSettingDialog, self).__init__(parent)
         self.project_item = project_item
@@ -437,6 +446,9 @@ class ProjectSettingDialog(QDialog):
                 item.set_value(project_env.to_str())
             else:
                 item.set_value(None, force_update=True)
+
+        item = self.model.get("python2")
+        item.value_item
 
         self.property_widget.setModel(self.model)
         self.property_widget.resizeColumnsToContents()

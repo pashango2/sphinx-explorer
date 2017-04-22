@@ -3,7 +3,7 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 from qtpy.QtCore import *
-from qtpy.QtGui import *
+# from qtpy.QtGui import *
 from qtpy.QtWidgets import *
 
 from sphinx_explorer.generator import apidoc

@@ -8,7 +8,7 @@ import yaml
 from six import string_types
 
 if False:
-    from typing import Optional
+    from typing import Optional, List
 
 
 class TemplateModel(QStandardItemModel):
@@ -30,7 +30,7 @@ class TemplateModel(QStandardItemModel):
 
     def find(self, title):
         # type: (string_types) -> Optional[TemplateItem]
-        items = self.findItems(title)
+        items = self.findItems(title)   # type: List[TemplateItem]
         if items:
             return items[0]
         return None
@@ -64,7 +64,3 @@ class TemplateItem(QStandardItem):
             else:
                 yield category, x
                 odd = 0
-
-
-
-

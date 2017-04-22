@@ -3,7 +3,7 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 from qtpy.QtCore import *
-from qtpy.QtGui import *
+# from qtpy.QtGui import *
 from qtpy.QtWidgets import *
 
 from sphinx_explorer.generator import quickstart
@@ -36,6 +36,7 @@ class ChoiceTemplatePage(QWizardPage):
         self.tree_view_template.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         self.template_selection_model = self.tree_view_template.selectionModel()
+        # noinspection PyUnresolvedReferences
         self.template_selection_model.currentChanged.connect(self._on_template_current_changed)
         # noinspection PyUnresolvedReferences
         self.tree_view_template.doubleClicked.connect(self._on_double_clicked)

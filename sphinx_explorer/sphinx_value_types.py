@@ -3,11 +3,10 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 from .property_widget import TypeBase, register_value_type, TypeChoice
 from .theme_dialog import HtmlThemeWidget
-from qtpy.QtCore import *
-from qtpy.QtGui import *
+# from qtpy.QtCore import *
+# from qtpy.QtGui import *
 from qtpy.QtWidgets import *
-from .util.python_venv import python_venv
-# from PySide.QtCore import *
+# from .util.python_venv import python_venv
 
 
 class TypePython(TypeChoice):

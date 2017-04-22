@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 from qtpy.QtCore import *
-from qtpy.QtWidgets import *
-import subprocess
+# from qtpy.QtWidgets import *
 import re
 import logging
+from ..util.commander import Commander
 logger = logging.getLogger(__name__)
 
 
-class Commander(object):
-    def __call__(self, cmd):
-        return cmd
+# class Commander(object):
+#     def __call__(self, cmd):
+#         return cmd
 
 
 class PipListTask(QObject):

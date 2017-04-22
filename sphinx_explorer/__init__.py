@@ -13,7 +13,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import os
 import sys
 # os.environ.setdefault("QT_API", 'pyside')
-from qtpy.QtGui import *
+# from qtpy.QtGui import *
 from qtpy.QtCore import *
 from qtpy.QtWidgets import *
 

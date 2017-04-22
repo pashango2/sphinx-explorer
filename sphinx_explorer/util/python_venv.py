@@ -7,7 +7,6 @@ import json
 import platform
 from collections import OrderedDict
 from six import string_types
-from . import exec_sphinx
 from .commander import commander
 
 ICON_DICT = {
@@ -68,6 +67,7 @@ class PythonVEnv(object):
         env = Env("sys", "System Default", None)
         self._envs[env.to_str()] = env
         self._default_env = env.to_str()
+        self._loading = False
 
         if conda_env:
             for name, default, path in conda_env:

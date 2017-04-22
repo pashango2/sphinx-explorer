@@ -73,7 +73,7 @@ class FlatTableModel(QAbstractProxyModel):
             return source_index
         return self._from_dict[source_index]
 
-    def parent(self, index):
+    def parent(self, index=QModelIndex()):
         return QModelIndex()
 
     def set_values(self, *args, **kwargs):
@@ -232,7 +232,8 @@ class PropertyModel(QStandardItemModel):
     def rowItem(self, index):
         # type: (QModelIndex) -> PropertyItem
         index = self.index(index.row(), 0, index.parent()) if index.column() != 0 else index
-        return self.itemFromIndex(index)
+        item = self.itemFromIndex(index)    # type: PropertyItem
+        return item
 
     def _property_item(self, index):
         # type: (QModelIndex) -> PropertyItem or None
@@ -251,7 +252,7 @@ class PropertyModel(QStandardItemModel):
         parent = self.invisibleRootItem()
         for key in keys:
             for row in range(parent.rowCount()):
-                item = parent.child(row)
+                item = parent.child(row)    # type: PropertyItem
                 if item.key == key:
                     parent = item
                     break
@@ -287,7 +288,7 @@ class PropertyModel(QStandardItemModel):
 
     def setData(self, index, value, role=Qt.EditRole):
         if role == Qt.EditRole:
-            item = self.itemFromIndex(index)
+            item = self.itemFromIndex(index)    # type: PropertyItem
             item.set_value(value)
             return True
 
@@ -305,7 +306,7 @@ class PropertyModel(QStandardItemModel):
         # type: () -> Iterator[PropertyItem]
         root = root or QModelIndex()
         for index in self.model_iter(root, False):
-            item = self.itemFromIndex(index)
+            item = self.itemFromIndex(index)    # type: BaseItem
             if item.header_flag:
                 yield item
 
@@ -324,11 +325,11 @@ class PropertyModel(QStandardItemModel):
         return True
 
     @staticmethod
-    def _html(dec, title, title_prefix="#"):
+    def _html(markdown_str, title, title_prefix="#"):
         md = """
 {title_prefix} {title}
 {}
-        """.strip().format(dec, title=title, title_prefix=title_prefix)
+        """.strip().format(markdown_str, title=title, title_prefix=title_prefix)
 
         mdo = markdown.Markdown(extensions=["gfm"])
         return mdo.convert(md)
@@ -361,7 +362,7 @@ class PropertyModel(QStandardItemModel):
         cat_map = {(): obj_map}
 
         for index in self.model_iter(col_iter=False):
-            item = self.itemFromIndex(index)
+            item = self.itemFromIndex(index)    # type: PropertyItem
 
             if flat:
                 if not item.is_category:
@@ -382,6 +383,8 @@ class PropertyModel(QStandardItemModel):
 
 
 class BaseItem(QStandardItem):
+    is_category = True
+
     def __init__(self, key, name):
         # type: (string_types, string_types) -> None
         super(BaseItem, self).__init__(name)
@@ -409,12 +412,10 @@ class BaseItem(QStandardItem):
 
 
 class CategoryItem(BaseItem):
-    is_category = True
     BACKGROUND_COLOR = QColor(71, 74, 77)
     FOREGROUND_COLOR = QColor(0xFF, 0xFF, 0xFF)
 
-    @staticmethod
-    def type():
+    def type(self):
         return CategoryItemType
 
     def __init__(self, key, name):
@@ -475,8 +476,7 @@ class PropertyItem(BaseItem):
         # type: (string_types) -> List[string_types]
         return PropertyItem.LinkParserRe.findall(link)
 
-    @staticmethod
-    def type():
+    def type(self):
         return PropertyItemType
 
     @property
@@ -653,6 +653,6 @@ class ValueItem(QStandardItem):
 
         if self.model():
             property_index = self.index().sibling(self.row(), 0)
-            property_item = self.model().itemFromIndex(property_index)
+            property_item = self.model().itemFromIndex(property_index)  # type: PropertyItem
             if property_item:
                 property_item.set_value(self.value, not_set_value=True)

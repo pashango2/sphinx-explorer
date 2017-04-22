@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 # from PySide.QtGui import *
-from PySide.QtCore import *
+# from PySide.QtCore import *
+from qtpy.QtCore import *
 from .project_tree import ProjectTreeModel
 
 
@@ -15,5 +16,3 @@ class ProjectTools(QObject):
     @staticmethod
     def set_file_icons(*args, **kwargs):
         ProjectTreeModel.set_file_icons(*args, **kwargs)
-
-

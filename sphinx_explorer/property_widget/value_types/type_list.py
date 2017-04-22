@@ -11,6 +11,7 @@ from .type_base import TypeBase
 class BaseListWidget(QListWidget):
     TOOL_WIDTH = 42
 
+    # noinspection PyArgumentList
     def __init__(self, parent=None):
         super(BaseListWidget, self).__init__(parent)
         self.frame = QFrame(self)
@@ -109,8 +110,8 @@ class BaseListWidget(QListWidget):
         height = self.size().height()
 
         self.frame.setGeometry(
-            width - self.TOOL_WIDTH, 0,
-            self.TOOL_WIDTH, height
+            width - self.TOOL_WIDTH - 1, 1,
+            self.TOOL_WIDTH, height - 2
         )
         return super(BaseListWidget, self).resizeEvent(evt)
 
@@ -118,7 +119,7 @@ class BaseListWidget(QListWidget):
         return [
             self.item(row).text()
             for row in range(self.count())
-            ]
+        ]
 
 
 class FontListWidget(BaseListWidget):

@@ -12,6 +12,7 @@ AllTypes = [
     TypeChoice,
     TypeFontList,
     TypeDirList,
+    TypeChoiceSetting,
 ]
 
 

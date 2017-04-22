@@ -6,6 +6,9 @@ import sys
 import subprocess
 import platform
 from six import PY2, string_types
+import logging
+logger = logging.getLogger(__name__)
+
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
 
@@ -46,8 +49,17 @@ class Commander(object):
             return '/bin/bash -i -c "{}"'.format(cmd_str)
 
     def check_output(self, cmd, shell=False):
-        output = subprocess.check_output(self(cmd), shell=shell)
-        return output.decode(sys.getfilesystemencoding())
+        try:
+            output = subprocess.check_output(self(cmd), shell=shell)
+        except subprocess.CalledProcessError:
+            logger.error("Call Error:{}".format(self(cmd)))
+            return None
+
+        try:
+            return output.decode(sys.getfilesystemencoding())
+        except UnicodeDecodeError:
+            logger.error("UnicodeDecodeError:{}".format(output))
+            return None
 
     def open_terminal(self, path):
         # type: (string_types) -> None
@@ -77,8 +89,6 @@ class Commander(object):
     @staticmethod
     def launch(cmd, cwd=None):
         # type: (string_types, string_types or None) -> None
-        # cmd = command(cmd)
-
         if platform.system() == "Windows":
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.STARTF_USESHOWWINDOW

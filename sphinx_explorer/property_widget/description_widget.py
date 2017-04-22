@@ -6,7 +6,7 @@ import sys
 import os
 from qtpy.QtCore import *
 from qtpy.QtGui import *
-from qtpy.QtWidgets import *
+# from qtpy.QtWidgets import *
 from qtpy.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 # from PySide.QtWebKit import QWebView
 import markdown

@@ -10,6 +10,7 @@ import toml
 import yaml
 from qtpy.QtCore import *
 from qtpy.QtWidgets import *
+from qtpy.QtGui import *
 
 from sphinx_explorer.plugin import editor
 from sphinx_explorer.ui.settings_ui import Ui_Form
@@ -107,7 +108,7 @@ class CategoryFilterModel(QSortFilterProxyModel):
         source_index = self.mapToSource(index)
         return self.sourceModel().itemFromIndex(source_index)
 
-    def columnCount(self, _):
+    def columnCount(self, _=QModelIndex()):
         return 1
 
     def data(self, index, role=Qt.DisplayRole):

@@ -5,11 +5,11 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import json
 
 # noinspection PyUnresolvedReferences
-from six import string_types
-# noinspection PyUnresolvedReferences
 from qtpy.QtCore import *
+# noinspection PyUnresolvedReferences
 from qtpy.QtGui import *
 from qtpy.QtWidgets import *
+
 from .property_model import PropertyItem, CategoryItem, PropertyModel
 from .property_model import PropertyItemType
 from .description_widget import DescriptionWidget
@@ -18,6 +18,7 @@ from .define import set_icon
 
 if False:
     from typing import Dict, Iterator
+    from six import string_types
 
 __all__ = [
     "PropertyWidget",
@@ -44,13 +45,11 @@ class PropertyWidget(QTableView):
 
     * Dynamic property settings.
     * Hierarchical setting of default values
-
     """
-    # currentChanged = Signal(QModelIndex, QModelIndex)
     itemChanged = Signal(QStandardItem)
 
     def __init__(self, parent=None, model=None):
-        # type: (QWidget, QStandardItemModel) -> None
+        # type: (QWidget, PropertyModel) -> None
         super(PropertyWidget, self).__init__(parent)
         self._model = model
         self.selection_model = None

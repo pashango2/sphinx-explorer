@@ -6,6 +6,7 @@ from six import string_types
 from qtpy.QtCore import *
 from qtpy.QtGui import *
 from qtpy.QtWidgets import *
+from .. import define
 
 
 class TypeBase(object):
@@ -52,6 +53,10 @@ class TypeBase(object):
     @classmethod
     def setup(cls, item):
         pass
+
+    @classmethod
+    def set_value(cls, control, value):
+        control.setText(value)
 
     is_persistent_editor = False
 
@@ -282,3 +287,38 @@ class TypeChoice(TypeBase):
             return self._data_dict[value]["icon"] if value in self._data_dict else None
         except KeyError:
             return None
+
+
+class SettingCombo(QFrame):
+    def __init__(self, parent=None):
+        super(SettingCombo, self).__init__(parent)
+
+        self.layout = QHBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.combo = QComboBox(self)
+        self.button = QToolButton(self)
+        self.button.setIcon(define.COG_ICON)
+
+        self.combo.addItem("a")
+        self.combo.addItem("b")
+
+        self.layout.addWidget(self.combo)
+        self.layout.addWidget(self.button)
+
+        self.setLayout(self.layout)
+
+
+class TypeChoiceSetting(TypeBase):
+    @classmethod
+    def control(cls, delegate, parent):
+        return SettingCombo(parent)
+
+    @classmethod
+    def set_value(cls, control, value):
+        # control.setText(value)
+        pass
+
+    @classmethod
+    def value(cls, widget):
+        # type: (QComboBox, str) -> None
+        return "fdsaf"

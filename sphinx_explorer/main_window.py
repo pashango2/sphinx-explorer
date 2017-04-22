@@ -38,9 +38,10 @@ class MainWindow(QMainWindow):
     JSON_NAME = "setting.json"
 
     if PY2:
-        def tr(self, text):
-            return super(MainWindow, self).tr(str(text))
+        def tr(self, *args):
+            return super(MainWindow, self).tr(str(args[0]))
 
+    # noinspection PyArgumentList
     def _act(self, icon_name, name, triggered=None):
         if icon_name:
             return QAction(icon.load(icon_name), name, self, triggered=triggered)
@@ -90,6 +91,7 @@ class MainWindow(QMainWindow):
 
         self.close_act = self._act(None, self.tr("Exit"), self.close)
         self.make_html_act = self._act(None, self.tr("HTML"), self._on_make_html)
+        self.make_epub_act = self._act(None, self.tr("Epub"), self._on_make_epub)
 
         # setup ui
         self.ui = Ui_MainWindow()
@@ -193,6 +195,7 @@ class MainWindow(QMainWindow):
             up_icon=icon.load("arrow_up"),
             down_icon=icon.load("arrow_down"),
             delete_icon=icon.load("remove"),
+            cog_icon=icon.load("cog"),
         )
 
         python_venv.ICON_DICT["sys"] = icon.load("python")
@@ -272,6 +275,7 @@ class MainWindow(QMainWindow):
 
         make_menu = QMenu(self)
         make_menu.addAction(self.make_html_act)
+        make_menu.addAction(self.make_epub_act)
         make_menu.setTitle("Make")
         menu.addMenu(make_menu)
 
@@ -342,6 +346,13 @@ class MainWindow(QMainWindow):
         if index and index.isValid():
             item = self.project_list_model.itemFromIndex(index)
             self._make("html", item)
+
+    def _on_make_epub(self):
+        # type: () -> None
+        index = self.ui.tree_view_projects.currentIndex()
+        if index and index.isValid():
+            item = self.project_list_model.itemFromIndex(index)
+            self._make("epub", item)
 
     def _make(self, make_cmd, project_item, callback=None):
         cwd = project_item.path()

@@ -73,7 +73,7 @@ class PluginDialog(QDialog):
 
     def _setup_preview(self, current):
         # type: (QModelIndex) -> None
-        item = self.theme_model.itemFromIndex(current)
+        item = self.theme_model.itemFromIndex(current)  # type: ThemeItem
         self.ui.text_edit_preview.setMarkdown(item.description, item.text(), thumbnail=item.thumb_path)
 
     def selectedItems(self):

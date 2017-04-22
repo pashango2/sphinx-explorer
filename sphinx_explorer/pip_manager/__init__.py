@@ -3,7 +3,7 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 from .tasks import *
 # from qtpy.QtCore import *
-from qtpy.QtWidgets import *
+# from qtpy.QtWidgets import *
 from qtpy.QtGui import *
 
 import logging
@@ -70,7 +70,7 @@ class PackageModel(QStandardItemModel):
             index = index.sibling(index.row(), 0)
             if role == Qt.DisplayRole:
                 if column == 1:
-                    item = self.itemFromIndex(index)
+                    item = self.itemFromIndex(index)    # type: PackageItem
                     return item.version
 
         return super(PackageModel, self).data(index, role)
