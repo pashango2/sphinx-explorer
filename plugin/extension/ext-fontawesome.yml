@@ -1,2 +1,4 @@
 packages: ["sphinx-fontawesome"]
-add_extensions: ["sphinx_fontawesome"]
+
+conf_py:
+    add_extensions: ["sphinx_fontawesome"]

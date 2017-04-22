@@ -4,6 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import os
 import re
 import json
+import fnmatch
 import platform
 from collections import OrderedDict
 from six import string_types
@@ -13,6 +14,11 @@ ICON_DICT = {
     "sys": None,
     "anaconda": None,
     "venv": None,
+}
+
+CONDA_LINUX_SEARCH_PATH = {
+    (os.path.expanduser('~'), "anaconda*"),
+    (os.path.expanduser('~'), "miniconda*"),
 }
 
 
@@ -34,9 +40,10 @@ class Env(object):
 
         if self.type == "anaconda":
             if platform.system() == "Linux":
-                return ["source activate " + self.name]
+                activate = os.path.join(self.path, "bin", "activate")
+                return " ".join(["source " + activate + " " + self.name])
             else:
-                return ["activate " + self.name]
+                return "activate " + self.name
         elif self.type == "venv":
             if os.path.isabs(self.path):
                 path = self.path
@@ -116,8 +123,22 @@ def setup(env):
 
 
 def anaconda_env():
+    conda_path = "conda"
+
+    if platform.system() == "Linux":
+        break_flag = False
+        for search_path, pattern in CONDA_LINUX_SEARCH_PATH:
+            for path in fnmatch.filter(list(os.listdir(search_path)), pattern):
+                conda_path = os.path.join(search_path, path, "bin", "conda")
+                break_flag = True
+                break
+            if break_flag:
+                break
+        else:
+            return []
+
     cmd = [
-        "conda", "info", "-e"
+        conda_path, "info", "-e"
     ]
 
     val = commander.check_output(" ".join(cmd), shell=True)

@@ -42,7 +42,7 @@ def command(cmd):
     if platform.system() in ("Windows", "Darwin"):
         return cmd
     else:
-        return " ".join(['/bin/bash', '-i', '-c', '"' + cmd + '"'])
+        return " ".join(['/bin/bash', '-c', '"' + cmd + '"'])
 
 
 def create_cmd(cmds):
@@ -145,7 +145,7 @@ def console(cmd, cwd=None):
             creationflags=subprocess.CREATE_NEW_CONSOLE,
         )
     elif platform.system() == "Linux":
-        cmd = "gnome-terminal -e '/bin/bash -i -c \"{}\"'".format(cmd.replace('"', '\"'))
+        cmd = "gnome-terminal -e '/bin/bash -c \"{}\"'".format(cmd.replace('"', '\"'))
         return subprocess.Popen(cmd, cwd=cwd, shell=True)
     else:
         # cmd = command(cmd)

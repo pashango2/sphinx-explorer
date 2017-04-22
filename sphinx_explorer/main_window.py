@@ -233,8 +233,11 @@ class MainWindow(QMainWindow):
         # load layout
         layout = QSettings(os.path.join(self.setting_dir, "layout.ini"), QSettings.IniFormat)
         if layout:
-            self.restoreGeometry(layout.value("geometry"))
-            self.restoreState(layout.value("windowState"))
+            if layout.value("geometry"):
+                self.restoreGeometry(layout.value("geometry"))
+
+            if layout.value("windowState"):
+                self.restoreState(layout.value("windowState"))
 
     def _save(self):
         self.settings.dump(self.project_list_model.dump())
@@ -357,8 +360,10 @@ class MainWindow(QMainWindow):
     def _make(self, make_cmd, project_item, callback=None):
         cwd = project_item.path()
         venv_info = project_item.venv_info() or self.settings.venv_info()
-        venv_cmd = python_venv.get_path(venv_info, cwd)
-        venv_cmd += [make_command(make_cmd, cwd)]
+        venv_cmd = [
+            python_venv.get_path(venv_info, cwd),
+            make_command(make_cmd, cwd)
+        ]
         venv_cmd = [x for x in venv_cmd if x]
 
         self.ui.plain_output.exec_command(

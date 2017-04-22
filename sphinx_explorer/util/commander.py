@@ -46,7 +46,7 @@ class Commander(object):
         cmd_str = " & ".join(new_cmd)
 
         if self.system == "Linux":
-            return '/bin/bash -i -c "{}"'.format(cmd_str)
+            return '/bin/bash -c "{}"'.format(cmd_str)
 
     def check_output(self, cmd, shell=False):
         try:
@@ -67,12 +67,16 @@ class Commander(object):
         if self.py2:
             cwd = cwd.encode(sys.getfilesystemencoding())
 
-        if platform.system() == "Windows":
-            subprocess.Popen("cmd", cwd=cwd)
-        elif platform.system() == "Darwin":
-            subprocess.Popen("open", cwd=cwd)
-        else:
-            subprocess.Popen("gnome-terminal", cwd=cwd)
+        # noinspection PyBroadException
+        try:
+            if platform.system() == "Windows":
+                subprocess.Popen("cmd", cwd=cwd)
+            elif platform.system() == "Darwin":
+                subprocess.Popen("open", cwd=cwd)
+            else:
+                subprocess.Popen("gnome-terminal", cwd=cwd)
+        except:
+            logger.error("Open Terminal Error.")
 
     def show_directory(self, path):
         # type: (string_types) -> None

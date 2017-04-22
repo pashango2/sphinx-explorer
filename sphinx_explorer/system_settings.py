@@ -30,8 +30,9 @@ class SystemSettings(OrderedDict):
 
         # noinspection PyBroadException
         try:
-            self.update(self.load())
-        except:
+            data = self.load()
+            self.update(data)
+        except FileNotFoundError:
             self.setup_default()
 
     def setup_default(self):
@@ -39,7 +40,9 @@ class SystemSettings(OrderedDict):
             "language": SystemSettings.default_locale(),
         }
         self["projects"] = {"projects": []}
-        self["Editor"]["editor"] = "atom"
+        self["Editor"] = {
+            "editor": "atom"
+        }
 
     def default_root_path(self, default_path):
         return self["Default Values"].get("path") or default_path

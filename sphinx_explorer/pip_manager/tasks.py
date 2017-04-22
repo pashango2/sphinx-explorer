@@ -36,9 +36,9 @@ class PipListTask(QObject):
         output = self.commander.check_output("pip list --format=legacy", shell=True)
         if not output:
             logger.warning("pip failed.")
-
-        for package, version in PipListTask.filter(output):
-            self.packages.append((package, version))
+        else:
+            for package, version in PipListTask.filter(output):
+                self.packages.append((package, version))
 
         self.finished.emit()
 

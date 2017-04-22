@@ -133,7 +133,7 @@ class Extension(object):
         if self.add_extensions:
             parser.append("extensions += [")
             for add_ext in self.add_extensions:
-                parser.append((" " * CONF_PY_NUM_INDENT) + add_ext)
+                parser.append((" " * CONF_PY_NUM_INDENT) + add_ext + ",")
             parser.append("]")
 
         # setting params

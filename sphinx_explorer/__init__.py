@@ -34,7 +34,7 @@ def main():
     logging.basicConfig()
 
     app = QApplication(sys.argv)
-    app.setStyleSheet(qdarkstyle.load_stylesheet())
+    app.setStyleSheet(qdarkstyle.load_stylesheet(False))
 
     translator = QTranslator()
     # noinspection PyArgumentList

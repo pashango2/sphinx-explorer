@@ -47,13 +47,13 @@ class PluginDialog(QDialog):
         self.sel_model = self.ui.list_view_theme.selectionModel()
         self.sel_model.currentChanged.connect(self._onCurrentChanged)
 
-        self.ui.text_edit_preview.setOpenLinks(True)
-        self.ui.text_edit_preview.setOpenExternalLinks(True)
-        self.ui.text_edit_preview.setTextInteractionFlags(
-            self.ui.text_edit_preview.textInteractionFlags() |
-            Qt.LinksAccessibleByMouse |
-            Qt.LinksAccessibleByKeyboard
-        )
+        # self.ui.text_edit_preview.setOpenLinks(True)
+        # self.ui.text_edit_preview.setOpenExternalLinks(True)
+        # self.ui.text_edit_preview.setTextInteractionFlags(
+        #     self.ui.text_edit_preview.textInteractionFlags() |
+        #     Qt.LinksAccessibleByMouse |
+        #     Qt.LinksAccessibleByKeyboard
+        # )
 
         self._double_click_done_flag = False
 
