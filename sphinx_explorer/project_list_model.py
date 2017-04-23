@@ -34,7 +34,7 @@ class ProjectListModel(QStandardItemModel):
     def load(self, project_list):
         # type: ([str]) -> None
         for project_name in project_list:
-            if project_name and os.path.isdir(project_name):
+            if project_name:
                 item = self._create_item(project_name)
                 self.appendRow(item)
 

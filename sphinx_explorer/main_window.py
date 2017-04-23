@@ -130,6 +130,7 @@ class MainWindow(QMainWindow):
         self.ui.button_down.setDefaultAction(self.ui.action_move_down)
         self.ui.button_del.setDefaultAction(self.ui.action_delete_document)
 
+        self.ui.action_delete_document.setShortcut(QKeySequence.Delete)
         self.ui.action_delete_document.setShortcutContext(Qt.WidgetShortcut)
         self.ui.action_move_up.setShortcutContext(Qt.WidgetShortcut)
         self.ui.action_move_down.setShortcutContext(Qt.WidgetShortcut)
