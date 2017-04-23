@@ -11,6 +11,7 @@ if False:
     from typing import Optional, List
 
 
+# noinspection PyArgumentList
 class TemplateModel(QStandardItemModel):
     sphinxInfoLoaded = Signal(QModelIndex)
     autoBuildRequested = Signal(str, QStandardItem)

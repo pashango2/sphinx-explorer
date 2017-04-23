@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-
+import os
 import locale
 import logging
 from collections import OrderedDict
@@ -38,6 +38,7 @@ class SystemSettings(OrderedDict):
     def setup_default(self):
         self["Default Values"] = {
             "language": SystemSettings.default_locale(),
+            "path": os.path.expanduser('~'),
         }
         self["projects"] = {"projects": []}
         self["Editor"] = {
@@ -111,7 +112,7 @@ class CategoryFilterModel(QSortFilterProxyModel):
         source_index = self.mapToSource(index)
         return self.sourceModel().itemFromIndex(source_index)
 
-    def columnCount(self, _=QModelIndex()):
+    def columnCount(self, *_):
         return 1
 
     def data(self, index, role=Qt.DisplayRole):
@@ -161,6 +162,7 @@ class SystemSettingsDialog(QDialog):
         "sep",
     ]
 
+    # noinspection PyArgumentList
     def __init__(self, parent=None):
         super(SystemSettingsDialog, self).__init__(parent)
         self.widget = QWidget(self)
@@ -181,7 +183,7 @@ class SystemSettingsDialog(QDialog):
 
         self._buttons = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-            parent=self
+            self
         )
         # noinspection PyUnresolvedReferences
         self._buttons.accepted.connect(self.accept)
@@ -205,7 +207,6 @@ class SystemSettingsDialog(QDialog):
         self.ui.button_open_home_dir.setIcon(icon.load("open_folder"))
         self.ui.button_open_home_dir.clicked.connect(self.on_button_open_home_dir_clicked)
 
-    @Slot()
     def on_button_open_home_dir_clicked(self):
         if self.home_dir:
             show_directory(self.home_dir)

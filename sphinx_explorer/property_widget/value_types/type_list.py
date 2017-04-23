@@ -126,6 +126,7 @@ class FontListWidget(BaseListWidget):
     pass
 
 
+# noinspection PyArgumentList
 class DirListWidget(BaseListWidget):
     def input_value(self):
         # noinspection PyCallByClass

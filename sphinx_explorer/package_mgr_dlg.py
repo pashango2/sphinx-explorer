@@ -6,6 +6,7 @@ from .pip_manager import PackageModel
 from .plugin import extension
 
 
+# noinspection PyArgumentList
 class PackageManagerDlg(QDialog):
     def __init__(self, package_model, parent=None):
         # type: (PackageModel, QWidget) -> None

@@ -199,6 +199,7 @@ class PropertyWidget(QTableView):
     # def closeEditor(self, editor, _):
     #     super(PropertyWidget, self).closeEditor(editor, QAbstractItemDelegate.EditNextItem)
 
+    # noinspection PyMethodOverriding
     def moveCursor(self, action, modifiers):
         if action == QAbstractItemView.MoveNext:
             action = QAbstractItemView.MoveDown

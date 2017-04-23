@@ -11,6 +11,7 @@ from .base_wizard import PropertyPage, BaseWizard, ExecCommandPage
 from ..property_widget import DescriptionWidget
 
 
+# noinspection PyArgumentList
 class ChoiceTemplatePage(QWizardPage):
     def __init__(self, template_model, parent=None):
         super(ChoiceTemplatePage, self).__init__(parent)

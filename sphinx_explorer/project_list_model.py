@@ -19,6 +19,7 @@ from .property_widget import PropertyWidget, PropertyModel
 from .task import push_task
 
 
+# noinspection PyArgumentList
 class ProjectListModel(QStandardItemModel):
     projectLoaded = Signal(QModelIndex)
     autoBuildRequested = Signal(str, QStandardItem)
@@ -387,12 +388,10 @@ ProjectDialogSettings = """
 - python:
     - value_type: TypePython
       label: Python Interpreter
-- python2:
-    - value_type: TypeChoiceSetting
-      label: Python Interpreter
 """
 
 
+# noinspection PyArgumentList
 class ProjectSettingDialog(QDialog):
     # noinspection PyUnresolvedReferences
     def __init__(self, project_item, parent=None):
@@ -446,9 +445,6 @@ class ProjectSettingDialog(QDialog):
                 item.set_value(project_env.to_str())
             else:
                 item.set_value(None, force_update=True)
-
-        item = self.model.get("python2")
-        item.value_item
 
         self.property_widget.setModel(self.model)
         self.property_widget.resizeColumnsToContents()

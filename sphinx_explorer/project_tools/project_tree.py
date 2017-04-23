@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 
 
+# noinspection PyArgumentList
 class CustomFileIconProvider(QFileIconProvider):
     def __init__(self, parent=None):
         super(CustomFileIconProvider, self).__init__(parent)

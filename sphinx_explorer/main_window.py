@@ -34,6 +34,7 @@ SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
 
 
+# noinspection PyArgumentList
 class MainWindow(QMainWindow):
     JSON_NAME = "setting.json"
 
@@ -41,7 +42,6 @@ class MainWindow(QMainWindow):
         def tr(self, *args):
             return super(MainWindow, self).tr(str(args[0]))
 
-    # noinspection PyArgumentList
     def _act(self, icon_name, name, triggered=None):
         if icon_name:
             return QAction(icon.load(icon_name), name, self, triggered=triggered)

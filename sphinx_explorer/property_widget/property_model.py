@@ -45,14 +45,17 @@ class FlatTableModel(QAbstractProxyModel):
 
         self.setSourceModel(source_model)
 
+    # noinspection PyMethodOverriding
     def rowCount(self, index=QModelIndex()):
         if index.isValid():
             return 0
         return self.row_count
 
+    # noinspection PyMethodOverriding
     def columnCount(self, index=QModelIndex()):
         return 2
 
+    # noinspection PyMethodOverriding
     def index(self, row, column, parent=QModelIndex()):
         return self.createIndex(row, column, parent)
 
@@ -213,6 +216,7 @@ class PropertyModel(QStandardItemModel):
         params = params or {}
         value = value if value is not None else params.get("value")
         default = default if default is not None else params.get("default")
+        label_name = label_name or params.get("label") or key
 
         # value type
         value_type = params.get("value_type")

@@ -12,10 +12,12 @@ from sphinx_explorer import property_widget
 from sphinx_explorer.property_widget import PropertyModel, DescriptionWidget, DefaultValues
 
 
+# noinspection PyArgumentList
 class ExecCommandPage(QWizardPage):
     BUTTON_HEIGHT = 64
     BUTTON_ICON_SIZE = 28
 
+    # noinspection PyTypeChecker
     def __init__(self, title, property_model, parent=None):
         # type: (string_types, QWidget) -> None
         super(ExecCommandPage, self).__init__(parent)
@@ -108,6 +110,7 @@ class ExecCommandPage(QWizardPage):
                 self.wizard().addDocumentRequested.emit(path)
 
 
+# noinspection PyArgumentList
 class PropertyPage(QWizardPage):
     def __init__(self, title, model, root_index, vbox_flag=False, parent=None):
         super(PropertyPage, self).__init__(parent)
@@ -163,7 +166,7 @@ class PropertyPage(QWizardPage):
         title = self.property_widget.title(current)
         description, search_path = self.property_widget.description(current)
 
-        self.text_browser.setMarkdown(description or  "", title=title, search_path=search_path)
+        self.text_browser.setMarkdown(description or "", title=title, search_path=search_path)
         # if description:
         #     self.text_browser.setMarkdown(description, title=title)
         # else:
@@ -195,6 +198,7 @@ class PropertyPage(QWizardPage):
         return self.property_widget.dump().keys()
 
 
+# noinspection PyArgumentList
 class BaseWizard(QWizard):
     addDocumentRequested = Signal(str)
 
@@ -212,6 +216,7 @@ class BaseWizard(QWizard):
         for page_name in order:
             page_data = setting_dict[page_name]
 
+            # noinspection PyTypeChecker
             page = PropertyPage(
                 params_dict,
                 page_data.get("params", []),

@@ -51,6 +51,7 @@ class Worker(QRunnable):
 
 
 def push_task(task):
+    # noinspection PyArgumentList
     thread_pool = QThreadPool.globalInstance()
     worker = Worker(task)
     thread_pool.start(worker)

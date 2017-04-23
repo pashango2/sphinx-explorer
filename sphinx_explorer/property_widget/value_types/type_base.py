@@ -61,6 +61,7 @@ class TypeBase(object):
     is_persistent_editor = False
 
 
+# noinspection PyArgumentList
 class RefButtonWidget(QFrame):
     def __init__(self, parent=None):
         super(RefButtonWidget, self).__init__(parent)
@@ -109,6 +110,7 @@ class RefButtonWidget(QFrame):
         return self.line_edit.text()
 
 
+# noinspection PyArgumentList
 class PathParamWidget(RefButtonWidget):
     def __init__(self, delegate, params=None, parent=None):
         super(PathParamWidget, self).__init__(parent)
@@ -233,6 +235,7 @@ class TypeRelDirPath(TypeDirPath):
             return "."
 
 
+# noinspection PyArgumentList
 class TypeChoice(TypeBase):
     @classmethod
     def create(cls, params):
@@ -266,6 +269,7 @@ class TypeChoice(TypeBase):
 
         return combo
 
+    # noinspection PyMethodOverriding
     @staticmethod
     def set_value(combo, value):
         # type: (QComboBox, str) -> None
@@ -289,6 +293,7 @@ class TypeChoice(TypeBase):
             return None
 
 
+# noinspection PyArgumentList
 class SettingCombo(QFrame):
     def __init__(self, parent=None):
         super(SettingCombo, self).__init__(parent)
@@ -319,6 +324,7 @@ class TypeChoiceSetting(TypeBase):
         pass
 
     @classmethod
-    def value(cls, widget):
-        # type: (QComboBox, str) -> None
+    def value(cls, _):
+        # type: (QComboBox, str) -> str
+        # noinspection PyTypeChecker
         return "fdsaf"

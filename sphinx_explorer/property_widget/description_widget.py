@@ -12,6 +12,7 @@ from qtpy.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 import markdown
 
 
+# noinspection PyArgumentList
 class DescriptionWidget(QWebEngineView):
     FONT_POINT_SIZE = 12
     SetupFlag = False

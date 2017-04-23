@@ -14,7 +14,7 @@ class TypePython(TypeChoice):
         super(TypePython, self).__init__(value)
 
 
-# noinspection PyMethodOverriding
+# noinspection PyMethodOverriding,PyArgumentList
 class TypeLanguage(TypeBase):
     Languages = """
     bn – ベンガル語

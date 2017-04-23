@@ -23,6 +23,7 @@ except AttributeError:
     pass
 
 
+# noinspection PyArgumentList
 class PluginDialog(QDialog):
     def __init__(self, plugin_dir_path, parent=None):
         # type: (six.string_types, QWidget) -> None
