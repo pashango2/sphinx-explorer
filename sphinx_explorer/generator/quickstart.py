@@ -6,7 +6,7 @@ import os
 from six import string_types
 
 from sphinx_explorer.util.conf_py_parser import extend_conf_py
-from sphinx_explorer.util.exec_sphinx import quote, command
+from sphinx_explorer.util.commander import quote, commander
 from ..project_list_model import ProjectSettings
 
 TOML_PATH = "settings/quickstart.toml"
@@ -57,18 +57,20 @@ def quickstart_cmd(d):
             else:
                 opts.append("--" + key + "=" + quote(value))
 
-    return command(
-        " ".join(
-            [
-                "sphinx-quickstart",
-                "-q",
-                "-p " + quote(d["project"]),
-                "-a " + quote(d["author"]),
-                ("-v " + quote(d["version"])) if d.get("version") else "",
-                ("-r " + quote(d["release"])) if d.get("release") else "",
-            ] + opts + [quote(d["path"])]
-        )
-    )
+    cmd = [
+        "sphinx-quickstart",
+        "-q",
+        "-p", d["project"],
+        "-a", d["author"],
+    ]
+
+    if d.get("version"):
+        cmd += ["-v", d["version"]]
+    if d.get("release"):
+        cmd += ["-r", d["release"]]
+    cmd += opts + [d["path"]]
+
+    return commander(cmd)
 
 
 def get_source_and_build(d, api_doc=False):

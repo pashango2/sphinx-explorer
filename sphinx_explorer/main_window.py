@@ -15,7 +15,7 @@ import toml
 from six import PY2
 
 from sphinx_explorer.ui.main_window_ui import Ui_MainWindow
-from . import icon
+from sphinx_explorer.util import icon
 from . import plugin
 from . import property_widget
 from . import sphinx_value_types
@@ -24,8 +24,6 @@ from .project_list_model import ProjectListModel, ProjectItem, ProjectSettingDia
 from .system_settings import SystemSettingsDialog, SystemSettings
 from .task import SystemInitTask, push_task
 from .util import python_venv
-from .util.exec_sphinx import command
-from .util.exec_sphinx import launch, make_command
 from .wizard import quickstart_wizard, apidoc_wizard
 from .package_mgr_dlg import PackageManagerDlg
 from .util.commander import commander
@@ -97,10 +95,8 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        # create models
         self.project_list_model = ProjectListModel(parent=self)
-        self.project_list_model.autoBuildRequested.connect(self.onAutoBuildRequested)
-
-        # package model
         self.package_model = PackageModel(self)
 
         task = PipListTask(commander=commander, parent=self)
@@ -363,12 +359,12 @@ class MainWindow(QMainWindow):
         venv_info = project_item.venv_info() or self.settings.venv_info()
         venv_cmd = [
             python_venv.get_path(venv_info, cwd),
-            make_command(make_cmd, cwd)
+            commander.make_command(make_cmd, cwd)
         ]
         venv_cmd = [x for x in venv_cmd if x]
 
         self.ui.plain_output.exec_command(
-            command(" & ".join(venv_cmd)),
+            commander(" & ".join(venv_cmd)),
             cwd,
             clear=True,
             callback=callback
@@ -449,11 +445,6 @@ class MainWindow(QMainWindow):
         if item:
             self.ui.plain_output.clear()
             item.apidoc_update(self.ui.plain_output)
-
-    @Slot(str, QStandardItem)
-    def onAutoBuildRequested(self, cmd, _):
-        # self.ui.plain_output.exec_command(cmd)
-        launch(cmd)
 
     @Slot()
     def on_action_settings_triggered(self):

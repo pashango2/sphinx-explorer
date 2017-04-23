@@ -10,19 +10,20 @@ from qtpy.QtGui import *
 from qtpy.QtWidgets import *
 from six import string_types
 
-from . import icon
+from sphinx_explorer.util import icon
 from .util.QConsoleWidget import QConsoleWidget
-from .util.exec_sphinx import quote, create_cmd
 from .util import python_venv
 from .util.conf_py_parser import Parser
+from .util.commander import quote, commander
 from .property_widget import PropertyWidget, PropertyModel
 from .task import push_task
+import logging
+logger = logging.getLogger(__name__)
 
 
 # noinspection PyArgumentList
 class ProjectListModel(QStandardItemModel):
     projectLoaded = Signal(QModelIndex)
-    autoBuildRequested = Signal(str, QStandardItem)
     loadFinished = Signal()
 
     def __init__(self, parent=None):
@@ -110,8 +111,7 @@ class ProjectListModel(QStandardItemModel):
             self.projectLoaded.emit(item.index())
         else:
             item.setIcon(icon.load("error"))
-            # TODO: err output
-            print(settings.error_msg)
+            logger.error(settings.error_msg)
 
         if settings.project:
             item.setText("{} ({})".format(settings.project, project_path))
@@ -182,12 +182,6 @@ class ProjectItem(QStandardItem):
             return cmd
         return None
 
-    def auto_build(self, target="html"):
-        cmd = self.auto_build_command(target)
-        model = self.model()
-        if model and cmd:
-            model.autoBuildRequested.emit(cmd, self)
-
     def apidoc_update(self, output_widget):
         # type: (QConsoleWidget) -> None
         module_dir = self.settings.module_dir
@@ -216,7 +210,7 @@ class ProjectItem(QStandardItem):
                       "-f",
                   ] + settings.get("pathnames", [])
 
-        return create_cmd(command)
+        return commander(command)
 
     def setInfo(self, settings):
         # type: (ProjectSettings) -> None

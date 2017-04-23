@@ -6,7 +6,7 @@ from qtpy.QtCore import *
 from qtpy.QtWidgets import *
 from six import string_types
 from sphinx_explorer.util.QConsoleWidget import QConsoleWidget
-from .. import icon
+from sphinx_explorer.util import icon
 
 from sphinx_explorer import property_widget
 from sphinx_explorer.property_widget import PropertyModel, DescriptionWidget, DefaultValues

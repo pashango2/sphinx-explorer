@@ -85,10 +85,6 @@ class FlatTableModel(QAbstractProxyModel):
     def dump(self, *args, **kwargs):
         return self.sourceModel().dump(*args, **kwargs)
 
-    # def flags(self, index):
-    #     flags = super(FlatTableModel, self).flags(self.mapToSource(index))
-    #     return flags
-
 
 class PropertyModel(QStandardItemModel):
     PrefixRe = re.compile(r"(^[#*-]*)\s*(.*)")

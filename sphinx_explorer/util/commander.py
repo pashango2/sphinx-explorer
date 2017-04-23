@@ -150,5 +150,35 @@ class Commander(object):
             print(platform.system())
             return None
 
+    def exec_(self, cmd, cwd=None):
+        # type: (string_types, string_types) -> int
+        shell = True
+
+        if platform.system() == "Windows":
+            cmd = self(('cmd.exe /C "' + cmd + '"'))
+            if PY2:
+                cmd = cmd.encode(_encoding())
+                cwd = cwd.encode(_encoding())
+
+            shell = False
+
+        p = subprocess.Popen(
+            cmd,
+            cwd=cwd if cwd else None,
+            shell=shell,
+        )
+        p.wait()
+        return p.returncode
+
+    @staticmethod
+    def make_command(make_cmd, cwd):
+        # type: (string_types, string_types) -> string_types
+        if platform.system() == "Windows":
+            make_bat = os.path.join(cwd, "make.bat")
+            return make_bat + " " + make_cmd
+        else:
+            return "make " + make_cmd
+
+
 
 commander = Commander()

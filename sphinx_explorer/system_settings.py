@@ -14,11 +14,11 @@ from qtpy.QtGui import *
 
 from sphinx_explorer.plugin import editor
 from sphinx_explorer.ui.settings_ui import Ui_Form
-from . import icon
+from sphinx_explorer.util import icon
 from .plugin import extension, editor
 from .property_widget import TypeChoice, PropertyModel
 from .util import python_venv
-from .util.exec_sphinx import show_directory
+from .util.commander import commander
 
 logger = logging.getLogger(__name__)
 
@@ -212,7 +212,7 @@ class SystemSettingsDialog(QDialog):
 
     def on_button_open_home_dir_clicked(self):
         if self.home_dir:
-            show_directory(self.home_dir)
+            commander.show_directory(self.home_dir)
 
     def _on_category_changed(self, current, _):
         item = self.category_model.itemFromIndex(current)

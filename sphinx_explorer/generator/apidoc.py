@@ -6,7 +6,7 @@ import os
 from six import string_types
 
 from sphinx_explorer.util.conf_py_parser import extend_conf_py
-from sphinx_explorer.util.exec_sphinx import create_cmd, exec_
+from sphinx_explorer.util.commander import commander
 from sphinx_explorer.project_list_model import ProjectSettings
 
 
@@ -36,7 +36,7 @@ def create_command(project_path, source_dir, settings=None):
         cmds += ["-R", settings.get("release")]
 
     cmds += settings.get("pathnames", [])
-    return create_cmd(cmds)
+    return commander(cmds)
 
 
 def fix_apidoc(project_path, source_dir, params, settings):
@@ -71,4 +71,4 @@ def create(project_path, source_dir, settings, cwd=None):
     if not os.path.exists(project_path):
         os.makedirs(project_path)
 
-    return exec_(cmd, cwd)
+    return commander.exec_(cmd, cwd)
