@@ -560,7 +560,7 @@ class MainWindow(QMainWindow):
                 selection,
                 QItemSelectionModel.ClearAndSelect
             )
-            selection_model.setCurrentIndex(first_item.index(), QItemSelectionModel.Current)
+            selection_model.setCurrentIndex(first_item.index(), QItemSelectionModel.SelectCurrent)
 
     @Slot()
     def on_action_move_up_triggered(self):
