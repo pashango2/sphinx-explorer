@@ -12,7 +12,7 @@ for root, dirs, files in os.walk("sphinx_explorer"):
         sources.append(os.path.join(root, file_path))
 
 cmd = [
-    "pyside-lupdate",
+    "pylupdate5",
 ] + sources + [
     "-ts",
     ts_file,
