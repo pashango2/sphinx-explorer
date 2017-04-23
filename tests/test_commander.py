@@ -8,7 +8,7 @@ def test_python_mode():
     commander = Commander(system="Linux", py2=False)
 
     c = commander(["python", "/test path"])
-    assert c == "/bin/bash -i -c \"python '/test path'\""
+    assert c == "/bin/bash -c \"python '/test path'\""
 
 
 if __name__ == "__main__":

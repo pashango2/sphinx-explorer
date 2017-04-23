@@ -48,9 +48,23 @@ class Commander(object):
         if self.system == "Linux":
             return '/bin/bash -c "{}"'.format(cmd_str)
 
+    def check_exist(self, cmds, default=None):
+        which_cmd = "which" if platform.system() != "Windows" else "where"
+        for cmd in cmds:
+            # noinspection PyBroadException
+            output = self.check_output([which_cmd, cmd], shell=True)
+
+            if output:
+                return cmd
+
+        return default
+
     def check_output(self, cmd, shell=False):
         try:
             output = subprocess.check_output(self(cmd), shell=shell)
+        except FileNotFoundError:
+            logger.error("FileNotFoundError:{}".format(self(cmd)))
+            return None
         except subprocess.CalledProcessError:
             logger.error("Call Error:{}".format(self(cmd)))
             return None

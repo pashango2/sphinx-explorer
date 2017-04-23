@@ -52,6 +52,11 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(parent)
         self.wizard_path = os.path.join(sys_dir, "settings")
 
+        # load plugin
+        plugin.init(self)
+        plugin.load_plugin(sys_dir)
+        plugin.load_plugin(home_dir)
+
         # make setting dir
         self.setting_dir = home_dir
         if not os.path.isdir(self.setting_dir):
@@ -60,11 +65,6 @@ class MainWindow(QMainWindow):
 
         # setting value types
         sphinx_value_types.init()
-
-        # load plugin
-        plugin.init(self)
-        plugin.load_plugin(sys_dir)
-        plugin.load_plugin(home_dir)
 
         # setup params dict
         toml_path = os.path.join(self.wizard_path, "params.toml")

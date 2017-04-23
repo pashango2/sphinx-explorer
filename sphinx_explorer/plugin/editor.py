@@ -8,8 +8,10 @@ from sphinx_explorer.util.exec_sphinx import launch
 from typing import Iterator
 from six import string_types
 from collections import OrderedDict
+from ..util.commander import commander
 
 Editors = OrderedDict()
+DEFAULT_EDITOR = "vscode"
 
 
 def init():
@@ -33,8 +35,15 @@ def get(editor_name=None):
     return Editors.get(editor_name or "vscode", Editors.get("vscode"))
 
 
-def default_editor(editor_name):
+def default_editor(editor_name=None):
     return editor_name if editor_name in Editors else "vscode"
+
+
+def check_exist():
+    for name, editor in Editors.items():
+        if commander.check_exist([editor.path]):
+            return name
+    return None
 
 
 def editors():
@@ -47,7 +56,7 @@ class Editor(object):
     def __init__(self, root, name, setting_dict):
         # type: (string_types, string_types, dict) -> None
         self._setting_dict = setting_dict
-        self._path = setting_dict["path"]
+        self.path = setting_dict["path"]
         icon_path = setting_dict.get("icon", os.path.join(root, name + ".png"))
         self.icon = QIcon(icon_path) if os.path.isfile(icon_path) else QIcon()
 

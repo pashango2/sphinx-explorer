@@ -13,3 +13,8 @@ path = os.path.join(
 def test_settings():
     settings = SystemSettings(path)
     print(settings)
+
+
+def test_default_settings():
+    settings = SystemSettings(None)
+    print(settings)

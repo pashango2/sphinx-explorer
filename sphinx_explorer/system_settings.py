@@ -15,7 +15,7 @@ from qtpy.QtGui import *
 from sphinx_explorer.plugin import editor
 from sphinx_explorer.ui.settings_ui import Ui_Form
 from . import icon
-from .plugin import extension
+from .plugin import extension, editor
 from .property_widget import TypeChoice, PropertyModel
 from .util import python_venv
 from .util.exec_sphinx import show_directory
@@ -34,6 +34,9 @@ class SystemSettings(OrderedDict):
             self.update(data)
         except FileNotFoundError:
             self.setup_default()
+        except:
+            logger.error("read setting file failed.")
+            self.setup_default()
 
     def setup_default(self):
         self["Default Values"] = {
@@ -42,7 +45,7 @@ class SystemSettings(OrderedDict):
         }
         self["projects"] = {"projects": []}
         self["Editor"] = {
-            "editor": "atom"
+            "editor": editor.check_exist() or editor.DEFAULT_EDITOR
         }
 
     def default_root_path(self, default_path):
