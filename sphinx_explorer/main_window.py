@@ -519,7 +519,7 @@ class MainWindow(QMainWindow):
             result = QMessageBox.question(
                 self,
                 self.windowTitle(),
-                self.tr("Remove Document?"),
+                self.tr("Remove the document from list?"),
                 QMessageBox.Yes | QMessageBox.No,
             )
             if result == QMessageBox.Yes:

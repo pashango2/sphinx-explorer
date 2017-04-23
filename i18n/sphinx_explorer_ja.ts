@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="ja_JP" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="ja_JP">
 <context>
     <name>BaseWizard</name>
     <message>
@@ -232,25 +233,30 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/main_window.py" line="501"/>
+        <location filename="../sphinx_explorer/main_window.py" line="502"/>
         <source>Add document</source>
         <translation>ドキュメントの追加</translation>
     </message>
     <message>
         <location filename="../sphinx_explorer/main_window.py" line="518"/>
         <source>Remove Document?</source>
-        <translation>ドキュメントをリストから削除しますか？</translation>
+        <translation type="obsolete">ドキュメントをリストから削除しますか？</translation>
     </message>
-    <message encoding="UTF-8">
+    <message>
+        <location filename="../sphinx_explorer/main_window.py" line="519"/>
+        <source>Remove the document from list?</source>
+        <translation>リストからドキュメントを削除しますか？</translation>
+    </message>
+    <message>
         <location filename="../sphinx_explorer/ui/main_window_ui.py" line="133"/>
         <source>リロード</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
     <name>PackageManagerDlg</name>
     <message>
-        <location filename="../sphinx_explorer/package_mgr_dlg.py" line="29"/>
+        <location filename="../sphinx_explorer/package_mgr_dlg.py" line="39"/>
         <source>Package Manager</source>
         <translation>パッケージ管理</translation>
     </message>
@@ -274,6 +280,19 @@
         <location filename="../sphinx_explorer/project_list_model.py" line="30"/>
         <source>Project List</source>
         <translation>プロジェクト一覧</translation>
+    </message>
+</context>
+<context>
+    <name>PropertyModel</name>
+    <message>
+        <location filename="../sphinx_explorer/property_widget/property_model.py" line="98"/>
+        <source>Property</source>
+        <translation>プロパティ</translation>
+    </message>
+    <message>
+        <location filename="../sphinx_explorer/property_widget/property_model.py" line="98"/>
+        <source>Value</source>
+        <translation>値</translation>
     </message>
 </context>
 <context>

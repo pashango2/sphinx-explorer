@@ -95,7 +95,10 @@ class PropertyModel(QStandardItemModel):
 
     def __init__(self, parent=None):
         super(PropertyModel, self).__init__(parent)
-        self.setHorizontalHeaderLabels(["Property", "Value"])
+        self.setHorizontalHeaderLabels([
+            self.tr("Property"),
+            self.tr("Value")
+        ])
         self._default_dict = DefaultValues()
         self._use_default = False
         self.required_flag = True
