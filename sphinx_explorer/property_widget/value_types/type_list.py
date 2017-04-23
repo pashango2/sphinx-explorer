@@ -17,7 +17,7 @@ class BaseListWidget(QListWidget):
         self.frame = QFrame(self)
         self.tool_layout = QVBoxLayout(self.frame)
         self.tool_layout.setContentsMargins(0, 0, 0, 0)
-        self.tool_layout.setSpacing(0)
+        # self.tool_layout.setSpacing(0)
         self.tool_layout.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
 
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)

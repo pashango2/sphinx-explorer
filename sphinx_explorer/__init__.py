@@ -16,6 +16,7 @@ import sys
 # from qtpy.QtGui import *
 from qtpy.QtCore import *
 from qtpy.QtWidgets import *
+import qtpy
 
 import qdarkstyle
 from .main_window import MainWindow
@@ -34,8 +35,20 @@ def main():
     logging.basicConfig()
 
     app = QApplication(sys.argv)
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-    # app.setStyleSheet(qdarkstyle.load_stylesheet(False))
+    if qtpy.PYQT5:
+        style_sheet = qdarkstyle.load_stylesheet_pyqt5()
+        # add patch
+        style_sheet += """
+QLineEdit
+{
+    padding: 0px;
+}
+        """
+
+        app.setStyleSheet(style_sheet)
+    else:
+        pyside = not qtpy.PYQT4
+        app.setStyleSheet(qdarkstyle.load_stylesheet(pyside))
 
     translator = QTranslator()
     # noinspection PyArgumentList
