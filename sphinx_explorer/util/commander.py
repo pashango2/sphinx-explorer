@@ -1,0 +1,154 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import, unicode_literals
+import os
+import sys
+import subprocess
+import platform
+from six import PY2, string_types
+import logging
+logger = logging.getLogger(__name__)
+
+
+TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
+
+if platform.system() == "Windows":
+    def quote(s):
+        if " " in s:
+            return '"' + s + '"'
+        return s
+else:
+    try:
+        from shlex import quote
+    except ImportError:
+        from pipes import quote
+
+
+def _encoding():
+    return TERM_ENCODING or sys.getfilesystemencoding()
+
+
+class Commander(object):
+    def __init__(self, system=platform.system(), py2=PY2):
+        self.system = system
+        self.py2 = py2
+        self.pre_command = [[]]
+
+    def __call__(self, cmd, cwd=None, python_mode=False):
+        new_cmd = []
+        for _cmd in self.pre_command + [cmd]:
+            if isinstance(cmd, (list, tuple)):
+                _cmd = [quote(x) for x in _cmd]
+                _cmd = " ".join(_cmd)
+            new_cmd.append(_cmd)
+
+        new_cmd = [x for x in new_cmd if x]
+        cmd_str = " & ".join(new_cmd)
+
+        if self.system == "Linux":
+            return '/bin/bash -c "{}"'.format(cmd_str)
+
+    def check_exist(self, cmds, default=None):
+        which_cmd = "which" if platform.system() != "Windows" else "where"
+        for cmd in cmds:
+            # noinspection PyBroadException
+            output = self.check_output([which_cmd, cmd], shell=True)
+
+            if output:
+                return cmd
+
+        return default
+
+    def check_output(self, cmd, shell=False):
+        try:
+            output = subprocess.check_output(self(cmd), shell=shell)
+        except FileNotFoundError:
+            logger.error("FileNotFoundError:{}".format(self(cmd)))
+            return None
+        except subprocess.CalledProcessError:
+            logger.error("Call Error:{}".format(self(cmd)))
+            return None
+
+        try:
+            return output.decode(sys.getfilesystemencoding())
+        except UnicodeDecodeError:
+            logger.error("UnicodeDecodeError:{}".format(output))
+            return None
+
+    def open_terminal(self, path):
+        # type: (string_types) -> None
+        cwd = os.path.normpath(path)
+        if self.py2:
+            cwd = cwd.encode(sys.getfilesystemencoding())
+
+        # noinspection PyBroadException
+        try:
+            if platform.system() == "Windows":
+                subprocess.Popen("cmd", cwd=cwd)
+            elif platform.system() == "Darwin":
+                subprocess.Popen("open", cwd=cwd)
+            else:
+                subprocess.Popen("gnome-terminal", cwd=cwd)
+        except:
+            logger.error("Open Terminal Error.")
+
+    def show_directory(self, path):
+        # type: (string_types) -> None
+        path = os.path.normpath(path)
+        if platform.system() == "Windows":
+            cmd = ["explorer", quote(path)]
+        elif platform.system() == "Darwin":
+            cmd = ["open", quote(path)]
+        else:
+            cmd = ["xdg-open", quote(path)]
+
+        self.launch(" ".join(cmd), path)
+
+    @staticmethod
+    def launch(cmd, cwd=None):
+        # type: (string_types, string_types or None) -> None
+        if platform.system() == "Windows":
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.STARTF_USESHOWWINDOW
+            if PY2:
+                cmd = cmd.encode(_encoding())
+                cwd = cwd.encode(sys.getfilesystemencoding()) if cwd else cwd
+
+            subprocess.Popen(
+                cmd,
+                cwd=cwd,
+                shell=True,
+                startupinfo=startupinfo
+            )
+        else:
+            subprocess.Popen(
+                cmd,
+                cwd=cwd,
+                shell=True,
+                env=os.environ.copy(),
+            )
+
+    def console(self, cmd, cwd=None):
+        # type: (string_types, string_types) -> None or subprocess.Popen
+        if platform.system() == "Windows":
+            cmd = self(cmd)
+            if PY2:
+                cmd = cmd.encode(_encoding())
+                cwd = cwd.encode(sys.getfilesystemencoding()) if cwd else cwd
+
+            return subprocess.Popen(
+                cmd,
+                cwd=cwd,
+                creationflags=subprocess.CREATE_NEW_CONSOLE,
+            )
+        elif platform.system() == "Linux":
+            cmd = 'gnome-terminal -e "{}"'.format(cmd)
+            return subprocess.Popen(cmd, cwd=cwd, shell=True)
+        else:
+            # cmd = command(cmd)
+            # subprocess.Popen(cmd, cwd=cwd, shell=True)
+            print(platform.system())
+            return None
+
+
+commander = Commander()

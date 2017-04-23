@@ -3,7 +3,8 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 import sys
 import os
-from PySide.QtGui import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from sphinx_explorer.util.QConsoleWidget import QConsoleWidget
 
 try:

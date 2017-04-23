@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from PySide.QtCore import *
+from qtpy.QtCore import *
 
 QT_TRANSLATE_NOOP("QDialogButtonBox", "Cancel")
 QT_TRANSLATE_NOOP("QDialogButtonBox", "&Yes")

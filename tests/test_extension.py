@@ -41,7 +41,7 @@ description: |
 
 """
     obj = yaml.load(plugin_text)
-    ext = Extension(obj)
+    ext = Extension("test_plugin", obj, None)
 
     assert ext.packages == ["commonmark", "recommonmark"]
     assert ext.extra_code
@@ -49,7 +49,7 @@ description: |
         "from recommonmark.parser import CommonMarkParser",
         "from recommonmark.transform import AutoStructify"
     ]
-    assert not ext.add_extensions
+    assert ext.add_extensions == ["'commonmark'", "'recommonmark'"]
     assert ext.source_suffix == ('.md', 'CommonMarkParser')
 
 

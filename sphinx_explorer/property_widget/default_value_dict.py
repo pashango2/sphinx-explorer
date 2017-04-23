@@ -27,8 +27,19 @@ class DefaultValues(object):
         for key in self.keys():
             yield key, self[key]
 
-    def get(self, key, default=None):
+    def get(self, key, default=None, parent=None):
         for d in self._dicts:
+            if parent:
+                break_flag = False
+                for pkey in parent:
+                    if pkey in d:
+                        d = d[pkey]
+                    else:
+                        break_flag = True
+                        break
+                if break_flag:
+                    continue
+
             if key in d:
                 return d[key]
         return default

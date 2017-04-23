@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from PySide.QtGui import *
-from PySide.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtCore import *
 import os
 import yaml
 from six import string_types
 
 if False:
-    from typing import Optional
+    from typing import Optional, List
 
 
+# noinspection PyArgumentList
 class TemplateModel(QStandardItemModel):
     sphinxInfoLoaded = Signal(QModelIndex)
     autoBuildRequested = Signal(str, QStandardItem)
@@ -30,7 +31,7 @@ class TemplateModel(QStandardItemModel):
 
     def find(self, title):
         # type: (string_types) -> Optional[TemplateItem]
-        items = self.findItems(title)
+        items = self.findItems(title)   # type: List[TemplateItem]
         if items:
             return items[0]
         return None
@@ -50,6 +51,10 @@ class TemplateItem(QStandardItem):
     def description(self):
         return self.template.get("description")
 
+    @property
+    def wizard_settings(self):
+        return self.template.get("wizard", [])
+
     def wizard_iter(self):
         odd = 0
         category = None
@@ -60,7 +65,3 @@ class TemplateItem(QStandardItem):
             else:
                 yield category, x
                 odd = 0
-
-
-
-

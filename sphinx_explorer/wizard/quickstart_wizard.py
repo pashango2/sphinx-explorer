@@ -2,14 +2,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+# from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 
 from sphinx_explorer.generator import quickstart
 from .base_wizard import PropertyPage, BaseWizard, ExecCommandPage
 from ..property_widget import DescriptionWidget
 
 
+# noinspection PyArgumentList
 class ChoiceTemplatePage(QWizardPage):
     def __init__(self, template_model, parent=None):
         super(ChoiceTemplatePage, self).__init__(parent)
@@ -35,10 +37,16 @@ class ChoiceTemplatePage(QWizardPage):
         self.tree_view_template.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         self.template_selection_model = self.tree_view_template.selectionModel()
+        # noinspection PyUnresolvedReferences
         self.template_selection_model.currentChanged.connect(self._on_template_current_changed)
         # noinspection PyUnresolvedReferences
         self.tree_view_template.doubleClicked.connect(self._on_double_clicked)
         self.tree_view_template.setCurrentIndex(template_model.index(0, 0))
+
+    def validatePage(self):
+        wizard = self.wizard()
+        wizard.create_template_page(self.choice())
+        return True
 
     def _on_double_clicked(self, _):
         # type: (QModelIndex) -> None
@@ -71,21 +79,35 @@ class QuickstartExecCommandPage(ExecCommandPage):
         cmd = quickstart.quickstart_cmd(settings)
         self.exec_command(cmd)
 
+    def setModel(self, model):
+        self.property_widget.setModel(model)
+
     def finished(self, return_code):
-        super(QuickstartExecCommandPage, self).finished(return_code)
         if return_code == 0:
-            settings = self.dump()
-            quickstart.fix(settings, self.cmd)
+            params = self.dump()
+            quickstart.fix(params, self.wizard().default_values, self.cmd)
+
+        super(QuickstartExecCommandPage, self).finished(return_code)
 
     def nextId(self):
         return -1
 
 
 class QuickStartWizard(BaseWizard):
+    START_PAGE = 0
+    FINISH_PAGE = 1
+    WIZARD_PAGE = 2
+
     def __init__(self, params_dict, default_settings, parent=None):
         super(QuickStartWizard, self).__init__(params_dict, default_settings, parent)
         self.params_dict = params_dict
         self.page_dict = {}
+        self.page_list = []
+        self.finish_page = self.create_final_page()
+
+    def setTemplateModel(self, template_model):
+        self.setPage(self.START_PAGE, ChoiceTemplatePage(template_model, self))
+        self.setPage(self.FINISH_PAGE, self.finish_page)
 
     def path(self):
         return self._value_dict.get("path")
@@ -103,47 +125,45 @@ class QuickStartWizard(BaseWizard):
         self.default_values.push(template_item.default_values)
 
         self.property_model.removeRows(0, self.property_model.rowCount())
+        self.property_model.load_settings(
+            template_item.wizard_settings,
+            self.params_dict,
+            self.default_values,
+        )
 
-        page_ids = []
-        last_page = None
-        for category_name, params in template_item.wizard_iter():
-            self.property_model.load_settings(
-                ["#{}".format(category_name)] + params,
-                self.params_dict
-            )
-
+        self.page_list = []
+        for header_item in self.property_model.headers():
             last_page = PropertyPage(
-                category_name,
-                self.property_model.create_filter_model(params),
-                self.default_values
+                header_item.text(),
+                self.property_model,
+                header_item.index(),
+                vbox_flag=header_item.vbox_flag,
             )
             page_id = self.addPage(last_page)
-            page_ids.append(page_id)
+            self.page_list.append(page_id)
 
-        if last_page:
-            last_page.next_id = 1
-            return page_ids[0]
-        return -1
+        return True
 
     def nextId(self):
         current_id = self.currentId()
-        if current_id == 0:
-            template_item = self.currentPage().choice()
-            if template_item:
-                return self.create_template_page(template_item)
+        if self.page_list:
+            if current_id == 0:
+                return self.page_list[0]
+            elif current_id == self.page_list[-1]:
+                model = self.property_model.create_table_model(QModelIndex(), self.finish_page)
+                self.finish_page.setModel(model)
+                return self.FINISH_PAGE
 
         return super(QuickStartWizard, self).nextId()
 
 
 def create_wizard(template_model, params_dict, default_settings, parent=None):
     wizard = QuickStartWizard(params_dict, default_settings, parent)
+    wizard.setTemplateModel(template_model)
 
     # for Windows
     # For default VistaStyle painting hardcoded in source of QWizard(qwizard.cpp[1805]).
     wizard.setWizardStyle(QWizard.ClassicStyle)
-
-    wizard.addPage(ChoiceTemplatePage(template_model, wizard))
-    wizard.addPage(wizard.create_final_page())
 
     wizard.setWindowTitle("Sphinx Apidoc Wizard")
     wizard.resize(QSize(1000, 600).expandedTo(wizard.minimumSizeHint()))

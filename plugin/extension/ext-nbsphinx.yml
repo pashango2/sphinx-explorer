@@ -1,1 +1,5 @@
 packages: ["nbsphinx"]
+
+conf_py:
+  exclude_patterns: ['_build', '**.ipynb_checkpoints']
+

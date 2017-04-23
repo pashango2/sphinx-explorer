@@ -1,10 +1,10 @@
 packages: [
+    "recommonmark",
     "commonmark",
-    "recommonmark"
 ]
 
 conf_py:
-    add_extension: no
+    add_extensions: no
 
     source_suffix: '.md'
     source_parsers: "CommonMarkParser"

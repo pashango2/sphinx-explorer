@@ -8,8 +8,8 @@ required = true
 [path]
 label = "Root path"
 value_type = "TypeDirPath"
+link="{_default}/{project}"
 required = true
-link="project"
 
 description = """
 Root path for documentation.
@@ -136,10 +136,12 @@ default = false
 [apidoc-sourcedir]
 label = "Module directory"
 value_type = "TypeDirPath"
-required = true
 require_input = true
 link="path"
 
+[python]
+label = "Python Interpreter"
+value_type = "TypePython"
 
 [ext-autodoc]
 value_type = "TypeBool"

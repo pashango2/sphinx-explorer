@@ -28,12 +28,21 @@ def _encoding():
     return TERM_ENCODING or sys.getfilesystemencoding()
 
 
+def make_command(make_cmd, cwd):
+    # type: (string_types, string_types) -> string_types
+    if platform.system() == "Windows":
+        make_bat = os.path.join(cwd, "make.bat")
+        return make_bat + " " + make_cmd
+    else:
+        return "make " + make_cmd
+
+
 def command(cmd):
     # type: (string_types) -> string_types
     if platform.system() in ("Windows", "Darwin"):
         return cmd
     else:
-        return " ".join(['/bin/bash', '-i', '-c', '"' + cmd + '"'])
+        return " ".join(['/bin/bash', '-c', '"' + cmd + '"'])
 
 
 def create_cmd(cmds):
@@ -47,7 +56,7 @@ def create_cmd(cmds):
     return command(str_cmd)
 
 
-def check_output(cmd):
+def check_output(cmd, stderr=subprocess.PIPE):
     # type: (string_types) -> (int, string_types)
     cmd = command(cmd)
     if PY2:
@@ -56,6 +65,7 @@ def check_output(cmd):
     try:
         output = subprocess.check_output(
             cmd,
+            stderr=stderr,
             shell=True,
         )
     except subprocess.CalledProcessError as exc:
@@ -97,7 +107,7 @@ def exec_(cmd, cwd=None):
 
 def launch(cmd, cwd=None):
     # type: (string_types, string_types or None) -> None
-    cmd = command(cmd)
+    # cmd = command(cmd)
 
     if platform.system() == "Windows":
         startupinfo = subprocess.STARTUPINFO()
@@ -113,7 +123,12 @@ def launch(cmd, cwd=None):
             startupinfo=startupinfo
         )
     else:
-        subprocess.Popen(cmd, cwd=cwd, shell=True)
+        subprocess.Popen(
+            cmd,
+            cwd=cwd,
+            shell=True,
+            env=os.environ.copy(),
+        )
 
 
 def console(cmd, cwd=None):
@@ -130,7 +145,7 @@ def console(cmd, cwd=None):
             creationflags=subprocess.CREATE_NEW_CONSOLE,
         )
     elif platform.system() == "Linux":
-        cmd = "gnome-terminal -e '/bin/bash -i -c \"{}\"'".format(cmd)
+        cmd = "gnome-terminal -e '/bin/bash -c \"{}\"'".format(cmd.replace('"', '\"'))
         return subprocess.Popen(cmd, cwd=cwd, shell=True)
     else:
         # cmd = command(cmd)
@@ -152,15 +167,3 @@ def show_directory(path):
     launch(" ".join(cmd), path)
 
 
-def open_terminal(path):
-    # type: (string_types) -> None
-    cwd = os.path.normpath(path)
-    if PY2:
-        cwd = cwd.encode(sys.getfilesystemencoding())
-
-    if platform.system() == "Windows":
-        subprocess.Popen("cmd", cwd=cwd)
-    elif platform.system() == "Darwin":
-        subprocess.Popen("open", cwd=cwd)
-    else:
-        subprocess.Popen("gnome-terminal", cwd=cwd)

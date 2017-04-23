@@ -3,16 +3,21 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 from .value_types import find_value_type, TypeBase
 from six import string_types
-from PySide.QtCore import *
+import re
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from .default_value_dict import DefaultValues
-from .property_filter_model import PropertyFilterModel
 from collections import OrderedDict
 import markdown
-from PySide.QtGui import *
+
+if False:
+    from typing import Iterator, Dict, List
+
 
 __all__ = [
     "PropertyModel",
-    "PropertyCategoryItem",
+    "CategoryItem",
     "PropertyItem",
 ]
 
@@ -20,88 +25,293 @@ CategoryItemType = QStandardItem.UserType + 1
 PropertyItemType = CategoryItemType + 1
 
 
-class ValueItem(object):
-    def __init__(self, value):
-        self.value = value
-        self._linked = []
+class FlatTableModel(QAbstractProxyModel):
+    """
+    TreeModel -> TableModel Translate Model
+    """
+    def __init__(self, source_model, root_index, parent=None):
+        # type: (PropertyModel, QModelIndex, QWidget) -> None
+        super(FlatTableModel, self).__init__(parent)
+        self._map_dict = {}
+        self._from_dict = {}
+        self.row_count = 0
+
+        for i, index in enumerate(source_model.model_iter(root_index, False)):
+            self._map_dict[(i, 0)] = index
+            self._map_dict[(i, 1)] = index.sibling(index.row(), 1)
+            self._from_dict[index] = self.index(i, 0)
+            self._from_dict[index.sibling(index.row(), 1)] = self.index(i, 1)
+            self.row_count += 1
+
+        self.setSourceModel(source_model)
+
+    # noinspection PyMethodOverriding
+    def rowCount(self, index=QModelIndex()):
+        if index.isValid():
+            return 0
+        return self.row_count
+
+    # noinspection PyMethodOverriding
+    def columnCount(self, index=QModelIndex()):
+        return 2
+
+    # noinspection PyMethodOverriding
+    def index(self, row, column, parent=QModelIndex()):
+        return self.createIndex(row, column, parent)
+
+    def itemFromIndex(self, index):
+        source_index = self.mapToSource(index)
+        return self.sourceModel().itemFromIndex(source_index)
+
+    def mapToSource(self, index):
+        if not index.isValid():
+            return index
+        return self._map_dict[(index.row(), index.column())]
+
+    def rowItem(self, index):
+        return self.sourceModel().rowItem(self.mapToSource(index))
+
+    def mapFromSource(self, source_index):
+        if not source_index.isValid():
+            return source_index
+        return self._from_dict[source_index]
+
+    def parent(self, index=QModelIndex()):
+        return QModelIndex()
+
+    def set_values(self, *args, **kwargs):
+        return self.sourceModel().set_values(*args, **kwargs)
+
+    def dump(self, *args, **kwargs):
+        return self.sourceModel().dump(*args, **kwargs)
+
+    # def flags(self, index):
+    #     flags = super(FlatTableModel, self).flags(self.mapToSource(index))
+    #     return flags
 
 
 class PropertyModel(QStandardItemModel):
-    DEFAULT_VALUE_FOREGROUND_COLOR = QColor(0x80, 0x80, 0x80)
+    PrefixRe = re.compile(r"(^[#*-]*)\s*(.*)")
 
     def __init__(self, parent=None):
         super(PropertyModel, self).__init__(parent)
         self.setHorizontalHeaderLabels(["Property", "Value"])
-        self._readonly = False
-        self._use_default = False
         self._default_dict = DefaultValues()
+        self._use_default = False
+        self.required_flag = True
 
-    def create_filter_model(self, property_filter, parent=None):
-        return PropertyFilterModel(self, property_filter, parent)
+    def create_table_model(self, root_index, parent):
+        return FlatTableModel(self, root_index, parent)
 
-    def create_property(self, key, params, label_name=None):
-        # type: (string_types, dict, string_types or None) -> PropertyItem
-        label_name = label_name or params.get("label") or key
-        value = params.get("value")
-        default_value = self.default_value(key) or params.get("default")
-
-        item = PropertyItem(key, label_name, value, params, default_value)
-
-        # if "default" in params:
-        #     self._model.set_default_value(key, params["default"], update=False)
-
-        item.update_link(self.default_value(key))
-        item.set_required(params.get("required", False))
-
-        if params.get("description"):
-            html = self._html(params.get("description").strip(), label_name, "###")
-            item.setToolTip(html)
-
-        return item
-
-    def _load_settings(self, settings, params_dict):
-        key_item_map = {}
-
+    def _load_settings(self, settings, parent_item, params_dict, default_values):
+        last_item = None
         for setting in settings:
-            if isinstance(setting, string_types):
-                if "#" == setting[0]:
-                    self.add_category(setting, setting[1:].strip())
-                    continue
-                else:
-                    key = setting
-                    params = params_dict.get(setting, {})
-            elif isinstance(setting, dict):
+            if isinstance(setting, dict) and setting:
                 key = list(setting.keys())[0]
-                params = params_dict.get(key, {}).copy()
-                params.update(setting[key])
+                setting_param = setting.get(key, [{}])[0]
+            elif isinstance(setting, (list, tuple)):
+                assert last_item is not None
+                self._load_settings(setting, last_item, params_dict, default_values)
+                continue
+            elif isinstance(setting, string_types):
+                key = setting.strip()
+                setting_param = {}
             else:
-                raise ValueError(setting)
+                continue
 
-            item = self.create_property(key, params)
-            self.add_property_item(item)
-            key_item_map[key] = [item, params]
+            if not key:
+                continue
 
-        return key_item_map
+            g = self.PrefixRe.match(key)
+            category_flag = False
+            header_flag = False
+            vbox_flag = False
+            if g:
+                prefix, key = g.group(1), g.group(2)
+                category_flag = "#" in prefix
+                header_flag = "*" in prefix
+                vbox_flag = "-" in prefix
 
-    def load_settings(self, settings, params_dict=None):
-        # (dict) -> None
+            if category_flag:
+                label = setting_param.get("label", key)
+                last_item = self.add_category(parent_item, key, label)
+                last_item.header_flag = header_flag
+                last_item.vbox_flag = vbox_flag
+            else:
+                _params_dict = params_dict.get(key, {}).copy()
+                _params_dict.update(setting_param)
+
+                value = setting_param.get("value")
+                default = setting_param.get("default")
+                if default is None:
+                    default = self._get_default_value(parent_item, key, default_values)
+                    if default is None:
+                        default = params_dict.get(key, {}).get("default")
+
+                if header_flag:
+                    _params_dict["required"] = True
+                    _params_dict["require_input"] = True
+
+                last_item = self.add_property(parent_item, key, value, default, _params_dict)
+
+    @staticmethod
+    def _get_default_value(parent_item, key, default_values):
+        # hierarchy access
+        if parent_item and parent_item.index().isValid():
+            try:
+                d = default_values
+                for pkey in parent_item.tree_key():
+                    d = d[pkey]
+                return d[key]
+            except KeyError:
+                pass
+
+        # root access
+        try:
+            return default_values[key]
+        except KeyError:
+            pass
+
+        return None
+
+    def load_settings(self, settings, params_dict=None, default_values=None):
+        root_item = self.invisibleRootItem()
+        default_values = default_values or {}
         params_dict = params_dict or {}
 
-        key_item_map = self._load_settings(settings, params_dict)
+        self._load_settings(settings, root_item, params_dict, default_values)
 
         # setup link
         prop_map = self.property_map()
-        for key, (item, params) in key_item_map.items():
-            if "link" not in params:
+        for key, item in prop_map.items():
+            if "link" not in item.params:
                 continue
             item = prop_map[key]
-            item.set_link(prop_map.get(params["link"]))
+            item.setup_link(prop_map)
 
-    def properties(self):
+    @staticmethod
+    def create_category(key, label=None):
+        # type: (string_types, string_types) -> CategoryItem
+        return CategoryItem(key, label or key)
+
+    @staticmethod
+    def create_property(key, value_item, value_type, params=None, label_name=None):
+        params = params or {}
+        return PropertyItem(
+            key,
+            label_name or params.get("label", key),
+            value_item,
+            value_type,
+            params
+        )
+
+    def add_category(self, parent_item, *args, **kwargs):
+        value_item = QStandardItem()
+        left_item = self.create_category(*args, **kwargs)
+        parent_item.appendRow([left_item, value_item])
+        return left_item
+
+    def add_property(self, parent_item, key, value=None, default=None, params=None, label_name=None):
+        parent_item = parent_item or self.invisibleRootItem()
+        params = params or {}
+        value = value if value is not None else params.get("value")
+        default = default if default is not None else params.get("default")
+        label_name = label_name or params.get("label") or key
+
+        # value type
+        value_type = params.get("value_type")
+        if isinstance(value_type, string_types):
+            value_type = find_value_type(value_type, params)
+
+        value_item = ValueItem(value, default, value_type)
+        left_item = self.create_property(key, value_item, value_type, params, label_name)
+
+        if params.get("description"):
+            html = self._html(params.get("description").strip(), label_name, "###")
+            left_item.setToolTip(html)
+
+        parent_item.appendRow([left_item, value_item])
+        return left_item
+
+    def rowItem(self, index):
+        # type: (QModelIndex) -> PropertyItem
+        index = self.index(index.row(), 0, index.parent()) if index.column() != 0 else index
+        item = self.itemFromIndex(index)    # type: PropertyItem
+        return item
+
+    def _property_item(self, index):
+        # type: (QModelIndex) -> PropertyItem or None
+        if not index.isValid():
+            return None
+
+        item = self.itemFromIndex(self.index(index.row(), 0, index.parent()))
+        if item.type() == PropertyItemType:
+            return item
+        return None
+
+    def get(self, keys):
+        if isinstance(keys, string_types):
+            keys = keys.split(".")
+
+        parent = self.invisibleRootItem()
+        for key in keys:
+            for row in range(parent.rowCount()):
+                item = parent.child(row)    # type: PropertyItem
+                if item.key == key:
+                    parent = item
+                    break
+            else:
+                return None
+
+        return parent
+
+    # def default_value(self, key):
+    #     # (string_types) -> any
+    #     return self._default_dict.get(key)
+    #
+    # def set_default_value(self, key, value, update=True):
+    #     # type: (string_types, any, bool) -> None
+    #     if not update and key in self._default_dict:
+    #         return
+    #     self._default_dict.set_default_value(key, value)
+    #
+    # def set_default_dict(self, default_dict):
+    #     # (dict) -> None
+    #     if isinstance(default_dict, DefaultValues):
+    #         self._default_dict = default_dict
+    #     elif isinstance(default_dict, dict):
+    #         self._default_dict = DefaultValues(default_dict)
+    #     self._use_default = bool(default_dict)
+
+    def set_values(self, values, root=None):
+        root = root or self.invisibleRootItem()
+        values = values or {}
+        for property_item in self.properties(root.index()):
+            value = self._get_default_value(property_item.parent(), property_item.key, values)
+            property_item.set_value(value)
+
+    def setData(self, index, value, role=Qt.EditRole):
+        if role == Qt.EditRole:
+            item = self.itemFromIndex(index)    # type: PropertyItem
+            item.set_value(value)
+            return True
+
+        return super(PropertyModel, self).setData(index, value, role)
+
+    def properties(self, root_index=None):
         # type: () -> Iterator[PropertyItem]
-        for row in range(self.rowCount()):
-            item = self.item(row)
-            if item.type() == PropertyItemType:
+        root_index = root_index or QModelIndex()
+        for index in self.model_iter(root_index, False):
+            item = self.itemFromIndex(index)
+            if item and item.type() == PropertyItemType:
+                yield item
+
+    def headers(self, root=None):
+        # type: () -> Iterator[PropertyItem]
+        root = root or QModelIndex()
+        for index in self.model_iter(root, False):
+            item = self.itemFromIndex(index)    # type: BaseItem
+            if item.header_flag:
                 yield item
 
     def property_map(self):
@@ -111,121 +321,111 @@ class PropertyModel(QStandardItemModel):
             prop_map[item.key] = item
         return prop_map
 
-    def set_default_dict(self, default_dict):
-        # (dict) -> None
-        if isinstance(default_dict, DefaultValues):
-            self._default_dict = default_dict
-        elif isinstance(default_dict, dict):
-            self._default_dict = DefaultValues(default_dict)
-        self._use_default = bool(default_dict)
-
-    def set_use_default(self, use_default):
-        # (bool) -> None
-        self._use_default = use_default
-
-    def default_value(self, key):
-        # (string_types) -> any
-        return self._default_dict.get(key)
-
-    def set_default_value(self, key, value, update=True):
-        # type: (string_types, any, bool) -> None
-        if not update and key in self._default_dict:
-            return
-        self._default_dict.set_default_value(key, value)
-
-    def add_category(self, key, name):
-        # type: (string_types, string_types) -> PropertyCategoryItem
-        item = PropertyCategoryItem(key, name)
-        self.add_category_item(item)
-        return item
-
-    def add_category_item(self, item):
-        # type: (PropertyCategoryItem) -> None
-        self.appendRow(item)
-
-    def add_property_item(self, item):
-        # type: (PropertyItem) -> None
-        self.appendRow(item)
-
-    def setReadOnly(self, readonly):
-        # type: (bool) -> None
-        self._readonly = readonly
-
-    def rowItem(self, index):
-        # type: (QModelIndex) -> PropertyItem
-        index = self.index(index.row(), 0) if index.column() != 0 else index
-        return self.itemFromIndex(index)
-
-    def _property_item(self, index):
-        # type: (QModelIndex) -> PropertyItem or None
-        if not index.isValid():
-            return None
-
-        item = self.item(index.row(), 0)
-        if item.type() == PropertyItemType:
-            return item
-        return None
+    def is_complete(self, root_index=QModelIndex()):
+        # type: () -> bool
+        for property_item in self.properties(root_index):
+            if not property_item.is_complete():
+                return False
+        return True
 
     @staticmethod
-    def _html(dec, title, title_prefix="#"):
+    def _html(markdown_str, title, title_prefix="#"):
         md = """
-    {title_prefix} {title}
-    {}
-            """.strip().format(dec, title=title, title_prefix=title_prefix)
+{title_prefix} {title}
+{}
+        """.strip().format(markdown_str, title=title, title_prefix=title_prefix)
 
         mdo = markdown.Markdown(extensions=["gfm"])
         return mdo.convert(md)
 
-    def data(self, index, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole or role == Qt.EditRole:
-            if index.column() == 1:
-                item = self._property_item(index)
-                if item:
-                    value = item.value
-                    if value is None:
-                        value = self._default_dict.get(item.key)
-                    return item.value_type.data(value) if item.value_type else value
-        elif role == Qt.DecorationRole:
-            if index.column() == 1:
-                item = self._property_item(index)
-                if item:
-                    if item.value_type:
-                        return item.value_type.icon(item.value)
-        elif role == Qt.ForegroundRole:
-            if index.column() == 1:
-                item = self._property_item(index)
-                if item:
-                    if item.was_default():
-                        return self.DEFAULT_VALUE_FOREGROUND_COLOR
+    def model_iter(self, parent_index=QModelIndex(), col_iter=True):
+        """
+        :rtype: generator(QModelIndex)
+        :type col_iter: bool
+        :type parent_index: QModelIndex
+        """
+        index = self.index(0, 0, parent_index)
 
-        return super(PropertyModel, self).data(index, role)
+        while True:
+            if col_iter:
+                for col in range(0, self.columnCount(parent_index)):
+                    yield index.sibling(index.row(), col)
+            else:
+                yield index
 
-    def setData(self, index, value, role=Qt.EditRole):
-        if role == Qt.EditRole:
-            if index.column() == 1:
-                index = self.index(index.row(), 0)
-                item = self.itemFromIndex(index)
-                item.set_value(value)
-                # noinspection PyUnresolvedReferences
-                self.itemChanged.emit(item)
-                return True
+            if self.rowCount(index) > 0:
+                for _ in self.model_iter(index, col_iter):
+                    yield _
 
-        return super(PropertyModel, self).setData(index, value, role)
+            index = index.sibling(index.row() + 1, index.column())
+            if not index.isValid():
+                break
+
+    def dump(self, store_none=False, flat=False, exclude_default=False):
+        obj_map = {}
+        cat_map = {(): obj_map}
+
+        for index in self.model_iter(col_iter=False):
+            item = self.itemFromIndex(index)    # type: PropertyItem
+
+            if flat:
+                if not item.is_category:
+                    if store_none or item.value is not None:
+                        if exclude_default is False or not item.was_default():
+                            obj_map[item.key] = item.value
+            else:
+                parent_key = item.tree_key()[:-1]
+                if not item.is_category:
+                    if store_none or item.value is not None:
+                        if exclude_default is False or not item.was_default():
+                            cat_map[parent_key][item.key] = item.value
+                else:
+                    if self.rowCount(index) > 0:
+                        cat_map[item.tree_key()] = cat_map[parent_key][item.key] = {}
+
+        return obj_map
 
 
-class PropertyCategoryItem(QStandardItem):
+class BaseItem(QStandardItem):
     is_category = True
+
+    def __init__(self, key, name):
+        # type: (string_types, string_types) -> None
+        super(BaseItem, self).__init__(name)
+        self.key = key
+        self.header_flag = False
+        self.vbox_flag = False
+
+    def tree_key(self):
+        keys = []
+        item = self
+        while item:
+            keys.append(item.key)
+            item = item.parent()
+
+        return tuple(reversed(keys))
+
+    def add_property(self, *args, **kwargs):
+        return self.model().add_property(self, *args, **kwargs)
+
+    def add_category(self, *args, **kwargs):
+        return self.model().add_category(self, *args, **kwargs)
+
+    def set_values(self, values, root=None):
+        return self.model().set_values(values, root or self)
+
+
+class CategoryItem(BaseItem):
     BACKGROUND_COLOR = QColor(71, 74, 77)
     FOREGROUND_COLOR = QColor(0xFF, 0xFF, 0xFF)
 
-    @staticmethod
-    def type():
+    def type(self):
         return CategoryItemType
 
     def __init__(self, key, name):
         # type: (string_types, string_types) -> None
-        super(PropertyCategoryItem, self).__init__(name)
-        self.key = key
+
+        super(CategoryItem, self).__init__(key, name)
         self.setBackground(QBrush(self.BACKGROUND_COLOR))
         self.setForeground(self.FOREGROUND_COLOR)
         font = self.font()
@@ -235,51 +435,57 @@ class PropertyCategoryItem(QStandardItem):
         self.setEnabled(True)
 
 
-class PropertyItem(QStandardItem):
+class PropertyItem(BaseItem):
     is_category = False
     REQUIRED_FOREGROUND_COLOR = QColor("#f8b862")
     BOLD_FONT = QFont()
     BOLD_FONT.setBold(True)
 
-    @staticmethod
-    def type():
-        return PropertyItemType
+    LinkParserRe = re.compile("{(.*?)}")
 
-    def __init__(self, key, label, value, params, default_value=None):
+    def __init__(self, key, label, value_item, value_type, params):
         # type: (string_types, dict) -> None
-        super(PropertyItem, self).__init__(label)
-        self.key = key
-        self._value = value
+        super(PropertyItem, self).__init__(key, label)
+        self.value_item = value_item
         self.description = params.get("description")
+        self.description_path = params.get("description_path", ".")
         self.required = params.get("required", False)
         self.require_input = params.get("require_input", False)
         self.link_format = params.get("link_format")
+        self.params = params
 
         # value type
-        value_type = params.get("value_type")
-        if isinstance(value_type, string_types):
-            value_type = find_value_type(value_type, params)
-
         self.value_type = value_type
 
         # item flags
         self.setFlags(Qt.NoItemFlags)
         self.setEnabled(True)
-        self.setEditable(True)
+        self.setEditable(False)
 
         # link param
         self.link = None
         self._linked = []
+        self._links = []
 
         # default values
-        self._default_flag = value is None
-        self._default = default_value
-        self._default_cache = self._default
+        self._default_flag = value_item.value is None
 
         # reserved
         self.validator = None
 
         self.update_bg_color()
+
+    @staticmethod
+    def parse_link(link):
+        # type: (string_types) -> List[string_types]
+        return PropertyItem.LinkParserRe.findall(link)
+
+    def type(self):
+        return PropertyItemType
+
+    @property
+    def default(self):
+        return self.value_item.default
 
     def update_bg_color(self):
         if not self.is_complete():
@@ -300,78 +506,157 @@ class PropertyItem(QStandardItem):
         # type: (QValidator) -> None
         self.validator = validator
 
-    def set_value(self, value, force_update=False):
+    def set_value(self, value, force_update=False, not_set_value=False):
         # (Any) -> None
-        if value == self._default and not force_update and not self.require_input:
+        if value == self.default and not force_update and not self.require_input:
             return
 
-        self._value = self.type_class().filter(value)
+        if not not_set_value:
+            self.value_item.set_value(self.type_class().filter(value))
         self._default_flag = self.value is None
 
         for linked in self._linked:
-            linked.update_link(value)
+            linked.update_link()
 
         self.update_bg_color()
 
-    def update_link(self, value=None):
+    def update_link(self):
         # (Any) -> None
         if self.link is None:
             if self.model():
-                self._default = self.model().default_value(self.key) or self._default
-                self._default_cache = self._default
+                self.value_item.set_default_display(self.default)
                 self.update_bg_color()
             return
 
-        link_value = value or self.link.value
-        default_value = self.model().default_value(self.key) or self._default
+        # create format dict
+        default_value = self.value_item.default
 
-        if self.link_format:
-            cache = self.link_format.format(_link_value=link_value, _default_value=default_value)
-        elif self.value_type:
-            cache = self.value_type.link_value(default_value, link_value)
+        if self.link:
+            d = {
+                "_default": default_value,
+            }
+            for item in self._links:
+                d[item.key] = item.value if item.value else ""
+
+            try:
+                cache = self.link.format(**d)
+            except KeyError:
+                cache = default_value
         else:
-            cache = link_value or default_value
+            cache = default_value
 
-        self.type_class().set_link(link_value)
-        self._default_cache = self.type_class().filter(cache)
+        # self.type_class().set_link(link_value)
+        self.value_item.set_default_display(self.type_class().filter(cache))
         self.update_bg_color()
 
     @property
     def value(self):
         # type: () -> any
-        if self._value is not None:
-            return self._value
-        else:
-            return self._default_cache
+        return self.value_item.value
 
     def was_default(self):
         # type: () -> bool
-        return self._default_flag
+        return self.value_item.was_default()
 
-    def set_link(self, link):
-        # type: (PropertyItem or None) -> None
-        if link is None:
+    def setup_link(self, prop_map):
+        # type: (dict, string_types) -> None
+        link = self.params.get("link")
+        if not link:
             return
 
-        self.link = link
-        # noinspection PyProtectedMember
-        link._linked.append(self)
-        self.update_link(link.value)
+        self._links = []
 
-    def set_link_value(self, value):
-        link = ValueItem(value)
-        self.set_link(link)
+        keys = self.parse_link(link)
+        if not keys:
+            keys = [link]
+            link = "{" + link + "}"
+
+        for key in keys:
+            item = prop_map.get(key)
+            if item:
+                self._links.append(item)
+                # noinspection PyProtectedMember
+                item._linked.append(self)
+
+        self.link = link
+        self.update_link()
 
     def is_complete(self):
         # type: () -> bool
-        if self.required:
+        if self.required and self.model() and self.model().required_flag:
             if not self.value:
                 return False
 
-            if not self._value and self.require_input:
+            if not self.value_item.input_value and self.require_input:
                 return False
 
         return True
 
     def type_class(self):
         return self.value_type or TypeBase
+
+
+class ValueItem(QStandardItem):
+    DEFAULT_VALUE_FOREGROUND_COLOR = QColor(0x80, 0x80, 0x80)
+
+    def __init__(self, value, default, value_type):
+        super(ValueItem, self).__init__()
+        self._input_value = value
+        self._default_value = default
+        self._default_display = default
+        self.value_type = value_type
+        self.setFlags(self.flags() | Qt.ItemIsEditable | Qt.ItemIsSelectable)
+
+        self.set_value(value)
+        if self.value_type:
+            self.setSizeHint(self.value_type.sizeHint())
+            self.value_type.setup(self)
+
+    @property
+    def input_value(self):
+        return self._input_value
+
+    @property
+    def value(self):
+        if self._input_value is None:
+            return self._default_display
+        return self._input_value
+
+    def was_default(self):
+        return self._input_value is None
+
+    @property
+    def default(self):
+        return self._default_value
+
+    def set_default_display(self, value):
+        self._default_display = value
+        if not self._input_value:
+            self.set_value(self._input_value)
+
+    def update(self):
+        if not self._input_value:
+            self.set_value(self._input_value)
+
+    def set_value(self, value):
+        _value = value if value is not None else self._default_display
+        _value = self.value_type.filter(_value) if self.value_type else _value
+        _display_value = self.value_type.data(_value) if self.value_type else _value
+
+        self.setText(_display_value or "")
+        self._input_value = value
+
+        icon = self.value_type.icon(_value) if self.value_type else None
+        if icon:
+            self.setIcon(icon)
+
+        if value is not None:
+            self.setData(None, Qt.ForegroundRole)
+        else:
+            self.setForeground(self.DEFAULT_VALUE_FOREGROUND_COLOR)
+
+        if self.model():
+            property_index = self.index().sibling(self.row(), 0)
+            property_item = self.model().itemFromIndex(property_index)  # type: PropertyItem
+            if property_item:
+                property_item.set_value(self.value, not_set_value=True)

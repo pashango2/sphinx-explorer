@@ -1,21 +1,25 @@
 language: python
+sudo: required
 
 matrix:
   include:
     - os: linux
-      python: 3.4
+      python: 3.5
     #- os: osx
     #  language: generic
   #allow_failures:
   #  - os: osx
 
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - libstdc++-4.9-dev
+      
 install:
-  - if [ "$TRAVIS_OS_NAME" == "osx"   ] ; then   mac-build/install.sh ; fi
-  #- "pip install pyside"
-  - sudo apt-get install libqt4-dev
-  - pip install PySide --no-index --find-links https://parkin.github.io/python-wheelhouse/;
-  # Travis CI servers use virtualenvs, so we need to finish the install by the following
-  - python ~/virtualenv/python${TRAVIS_PYTHON_VERSION}/bin/pyside_postinstall.py -install
+  - "pip install pyqt5"
+  - "pip install qtpy"
   - "pip install pyinstaller"
   - "pip install toml"
   - "pip install pyYaml"
@@ -32,7 +36,7 @@ script:
 deploy:
   provider: releases
   api_key:
-    secure: "XNjsi7FIZTNoJSw+fUDQwL+3CaJsc0vAh2QiHaCHriAop3sldYnI35rjG4Go/Ba2hd22Oj944kJL6N97BE6v0/uveZ54yaOz7FtaOYQbf00r5MARwsPVtRiD2X/MHlOI5CuRMKwhByju64rM33NjrTVCs9ma9FPIFFJguLC2uvEcXyN73A7fPZrJ0FKXtHdeoon0v1wAc2GLtdXeG+7x3FgIB4QYOI7gSUL/elmqIIVOQCxeINeSyvHivsr3rxQP4KzNk177lcuLsXbA+GZaw3dDEbdKeDy4RqZthFM/8F8h3MmL6mw6Ks9oVWmEc+9d4PeIqEr+hqAGEQzL/9+DD1deFDucNWlR8s+yJw4rWblWmN0+MALHB8lKN6824SlaHmKcmZL7sLwUjGyRtT7HACU0qwpE0wAi63u9XagU9nzKbr5pUza2WLA5xiARDde4QmQLj70xoVOSC0uKOs1/pN1TQqtcwJm/CLsDBdS9eBkVCB8yAiOqeCsA7t/JYYMqzpkwq/OGudUV5JCEf+pWv4sWRbOZANEpMOIxk9fvqmIq4A5xDtkNfunrhsmtr7zo0/TA8dOScp79v0xHMnYU8F2nwe/i02OKXmhriQNskL6/5VHtrapG1KQZQWVx10it8umSfz+TPXkgHocX3cytyVJAhgxc0SxiDNslbEHksp0="
+    secure: "wVG/kg8BA4T/8uFgaaQEYZtEv+uPL7BQhjM0FOtCf2np/+HIblENq97gqOxKpQb0opV3QX+lQQNZzjeDIOkNXRF1Kmfx0Rlobmv5ni6h5Z0s6cvjxdvBsvgAij0y0M6aSYUYsQIda1zPNFYDL4mJbFq0dUNFhg/mWHyQreCctyQ6wBIld5I6OGmdRS5412vDlmG65rakCLYDVzrCxuEBIjSzcfdpa1I9ZZLXVYvblGDottv7osMlGCWSiRY9EDrDPQk+E0XZFRvW5eHF+ljLWlIj3YY8Ik0HayeXS0JIJGDpdbma4mLmErUPsTDp+1MNr/WJslqiD9UR0V1hF+Rj15RRCMzrxMhxZPYrsUPAx5ZZQcinPxr32NIzrg2ow7BNnu/beDjXQftMuUIkSosGrICVguSNeGACX9ZQ43GI7iOwur0hMS5v05RBbW/84O0CmS4U6gKrZJG7TiLyIVUUt88uiHndn/i9C1Zorrr+0db1EqEZAgwVKt2StudiMgU9yBkO0x7g7/fax3LabxDXue1SMRJl+/IbPsmHu+HL9nEpSMIA0jSBGnBVAOxaxLNNFdkJtR5PH5gUWixkMG60tah52gCdEEox3FrSofV3ROL7mI7khlOS+uUYJu+RPD5w6ELjYg+yozu8XnGSYB+wiv80vhN4UbofAnlDGALmb5Q="
   file_glob: true
   file: "sphinx-explorer_*.zip"
   skip_cleanup: true

@@ -1,43 +1,61 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+from qtpy.QtCore import *
+# noinspection PyUnresolvedReferences
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 
 import ctypes
 import os
 import platform
 import webbrowser
 from collections import OrderedDict
-
 import toml
-from PySide.QtCore import *
-from PySide.QtGui import *
 from six import PY2
 
-from .wizard import quickstart_wizard, apidoc_wizard
+from sphinx_explorer.ui.main_window_ui import Ui_MainWindow
 from . import icon
-from . import sphinx_value_types
-from .main_window_ui import Ui_MainWindow
-from .project_list_model import ProjectListModel, ProjectItem
-from .system_settings import SystemSettingsDialog, SystemSettings
 from . import plugin
+from . import property_widget
+from . import sphinx_value_types
+from .pip_manager import PackageModel, PipListTask
+from .project_list_model import ProjectListModel, ProjectItem, ProjectSettingDialog
+from .system_settings import SystemSettingsDialog, SystemSettings
+from .task import SystemInitTask, push_task
+from .util import python_venv
 from .util.exec_sphinx import command
-
-from .util.exec_sphinx import launch, console, show_directory, open_terminal
+from .util.exec_sphinx import launch, make_command
+from .wizard import quickstart_wizard, apidoc_wizard
+from .package_mgr_dlg import PackageManagerDlg
+from .util.commander import commander
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
 
 
+# noinspection PyArgumentList
 class MainWindow(QMainWindow):
     JSON_NAME = "setting.json"
 
     if PY2:
-        def tr(self, text):
-            return super(MainWindow, self).tr(str(text))
+        def tr(self, *args):
+            return super(MainWindow, self).tr(str(args[0]))
+
+    def _act(self, icon_name, name, triggered=None):
+        if icon_name:
+            return QAction(icon.load(icon_name), name, self, triggered=triggered)
+        else:
+            return QAction(name, self, triggered=triggered)
 
     def __init__(self, sys_dir, home_dir, parent=None):
         super(MainWindow, self).__init__(parent)
         self.wizard_path = os.path.join(sys_dir, "settings")
+
+        # load plugin
+        plugin.init(self)
+        plugin.load_plugin(sys_dir)
+        plugin.load_plugin(home_dir)
 
         # make setting dir
         self.setting_dir = home_dir
@@ -48,10 +66,6 @@ class MainWindow(QMainWindow):
         # setting value types
         sphinx_value_types.init()
 
-        # load plugin
-        plugin.load_plugin(sys_dir, self)
-        # self._load_plugin(sys_dir)
-
         # setup params dict
         toml_path = os.path.join(self.wizard_path, "params.toml")
         self.params_dict = toml.load(toml_path, OrderedDict)
@@ -60,20 +74,24 @@ class MainWindow(QMainWindow):
             self.params_dict[ext_name] = {
                 "value_type": "TypeBool",
                 "default": True,
-                "description": ext.description
+                "description": ext.description,
+                "description_path": ext.ext_path,
             }
 
         # create actions
-        self.open_act = QAction(icon.load("editor"), self.tr("Open Editor"), self, triggered=self._open_dir)
-        self.show_act = QAction(icon.load("open_folder"), self.tr("Open Directory"), self,
-                                triggered=self._show_directory)
-        self.terminal_act = QAction(icon.load("terminal"), self.tr("Open Terminal"), self,
-                                    triggered=self._open_terminal)
-        self.auto_build_act = QAction(icon.load("reload"), self.tr("Auto Build"), self, triggered=self._auto_build)
-        self.apidoc_act = QAction(icon.load("update"), self.tr("Update sphinx-apidoc"), self, triggered=self._apidoc)
-        self.open_html_act = QAction(icon.load("chrome"), self.tr("Open browser"), self, triggered=self._open_browser)
-        self.close_act = QAction(self.tr("Exit"), self, triggered=self.close)
-        self.make_html_act = QAction("HTML", self, triggered=self._on_make_html)
+        self.open_act = self._act("editor", self.tr("Open Editor"), self._open_dir)
+        self.show_act = self._act("open_folder", self.tr("Open Directory"), self._show_directory)
+        self.terminal_act = self._act("terminal", self.tr("Open Terminal"), self._open_terminal)
+        self.auto_build_act = self._act("reload", self.tr("Auto Build"), self._auto_build)
+        self.apidoc_act = self._act("update", self.tr("Update sphinx-apidoc"), self._apidoc)
+        self.open_html_act = self._act("chrome", self.tr("Open browser"), self._open_browser)
+        self.copy_path_act = self._act("clippy", self.tr("Copy Path"), self._on_copy_path)
+        self.project_setting_act = self._act("setting", self.tr("Project Setting"), self._project_setting)
+        self.package_mgr_act = self._act("package", self.tr("Package Manager"), self._package_manager)
+
+        self.close_act = self._act(None, self.tr("Exit"), self.close)
+        self.make_html_act = self._act(None, self.tr("HTML"), self._on_make_html)
+        self.make_epub_act = self._act(None, self.tr("Epub"), self._on_make_epub)
 
         # setup ui
         self.ui = Ui_MainWindow()
@@ -82,12 +100,22 @@ class MainWindow(QMainWindow):
         self.project_list_model = ProjectListModel(parent=self)
         self.project_list_model.autoBuildRequested.connect(self.onAutoBuildRequested)
 
+        # package model
+        self.package_model = PackageModel(self)
+
+        task = PipListTask(commander=commander, parent=self)
+        self.package_mgr_act.setEnabled(False)
+        task.finished.connect(self._on_pip_list_loaded)
+        push_task(task)
+
         # setup file menu
         self.ui.menuFile_F.addSeparator()
         self.ui.menuFile_F.addAction(self.close_act)
 
+        # setup tool bar
+        self.ui.toolBar.addAction(self.package_mgr_act)
+
         # setup icon
-        self.ui.tool_button_quick_start.setIcon(icon.load("book"))
         self.ui.action_add_document.setIcon(icon.load("plus"))
         self.ui.action_settings.setIcon(icon.load("setting"))
         self.ui.action_wizard.setIcon(icon.load("magic"))
@@ -97,7 +125,6 @@ class MainWindow(QMainWindow):
         self.ui.action_delete_document.setIcon(icon.load("remove"))
 
         # setup tool button
-        self.ui.tool_setting.setDefaultAction(self.ui.action_settings)
         self.ui.button_add.setDefaultAction(self.ui.action_add_document)
         self.ui.button_up.setDefaultAction(self.ui.action_move_up)
         self.ui.button_down.setDefaultAction(self.ui.action_move_down)
@@ -106,6 +133,8 @@ class MainWindow(QMainWindow):
         self.ui.action_delete_document.setShortcutContext(Qt.WidgetShortcut)
         self.ui.action_move_up.setShortcutContext(Qt.WidgetShortcut)
         self.ui.action_move_down.setShortcutContext(Qt.WidgetShortcut)
+        self.copy_path_act.setShortcut(QKeySequence.Copy)
+        self.copy_path_act.setShortcutContext(Qt.WidgetShortcut)
 
         # connect
         self.ui.action_reload.triggered.connect(self.reload)
@@ -114,29 +143,29 @@ class MainWindow(QMainWindow):
         self.quick_start_menu = QMenu(self)
         self.quick_start_menu.addAction(self.ui.action_wizard)
         self.quick_start_menu.addAction(self.ui.action_apidoc)
-        self.ui.tool_button_quick_start.setMenu(self.quick_start_menu)
-        self.ui.tool_button_quick_start.setPopupMode(QToolButton.InstantPopup)
 
         # setup project tree view
         self.ui.tree_view_projects.addAction(self.ui.action_move_up)
         self.ui.tree_view_projects.addAction(self.ui.action_move_down)
         self.ui.tree_view_projects.addAction(self.ui.action_delete_document)
         self.ui.tree_view_projects.addAction(self.ui.action_reload)
+        self.ui.tree_view_projects.addAction(self.copy_path_act)
 
         self.ui.tree_view_projects.setIndentation(0)
-        self.ui.tree_view_projects.setHeaderHidden(True)
         self.ui.tree_view_projects.setModel(self.project_list_model)
         self.ui.tree_view_projects.resizeColumnToContents(0)
+        self.projects_selection_model = self.ui.tree_view_projects.selectionModel()
+
+        self.projects_selection_model.currentChanged.connect(self._on_project_changed)
 
         # setup project model
-        self.project_list_model.sphinxInfoLoaded.connect(self.onSphinxInfoLoaded)
+        self.project_list_model.projectLoaded.connect(self.onProjectLoaded)
 
         # setup context menu
         self.ui.tree_view_projects.setContextMenuPolicy(Qt.CustomContextMenu)
 
-        self.setAcceptDrops(True)
-        self._setup()
-        self.ui.tree_view_projects.setFocus()
+        # setup toolbar
+        self.ui.toolBar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
 
         # move to center
         r = self.geometry()
@@ -154,11 +183,69 @@ class MainWindow(QMainWindow):
 
         self.setWindowIcon(icon.load("sphinx"))
 
+        # set icon
+        # TODO: This is Feature Support.
+        # ProjectTools.set_file_icons(
+        #     folder_icon=icon.load("folder"),
+        #     file_icon=icon.load("file_text")
+        # )
+
+        property_widget.set_icon(
+            add_icon=icon.load("plus"),
+            up_icon=icon.load("arrow_up"),
+            down_icon=icon.load("arrow_down"),
+            delete_icon=icon.load("remove"),
+            cog_icon=icon.load("cog"),
+        )
+
+        python_venv.ICON_DICT["sys"] = icon.load("python")
+        python_venv.ICON_DICT["anaconda"] = icon.load("anaconda")
+        python_venv.ICON_DICT["venv"] = icon.load("python")
+
+        # system init task
+        task = SystemInitTask(self.settings, self)
+        task.messaged.connect(self._on_task_message)
+        task.finished.connect(self._on_system_init_finished)
+        push_task(task)
+
+        # setup end
+        self.setAcceptDrops(True)
+        self._setup()
+        self.ui.tree_view_projects.setFocus()
+
+    def _on_task_message(self, msg, timeout=3000):
+        self.ui.statusbar.showMessage(msg, timeout)
+
+    @Slot()
+    def _on_pip_list_loaded(self):
+        sender = self.sender()
+        if isinstance(sender, PipListTask):
+            self.package_mgr_act.setEnabled(True)
+            self.package_model.load(sender.packages)
+
+    @staticmethod
+    def _on_system_init_finished(env):
+        python_venv.setup(env)
+
     def _setup(self):
         self.project_list_model.load(self.settings.projects)
 
+        # load layout
+        layout = QSettings(os.path.join(self.setting_dir, "layout.ini"), QSettings.IniFormat)
+        if layout:
+            if layout.value("geometry"):
+                self.restoreGeometry(layout.value("geometry"))
+
+            if layout.value("windowState"):
+                self.restoreState(layout.value("windowState"))
+
     def _save(self):
         self.settings.dump(self.project_list_model.dump())
+
+        # save layout
+        layout = QSettings(os.path.join(self.setting_dir, "layout.ini"), QSettings.IniFormat)
+        layout.setValue("geometry", self.saveGeometry())
+        layout.setValue("windowState", self.saveState())
 
     def _create_context_menu(self, item, doc_path):
         # type : (ProjectItem, str) -> QMenu
@@ -183,7 +270,6 @@ class MainWindow(QMainWindow):
         # open_act.triggered.connect(lambda: self.editor.open_dir(doc_path))
         # show_act.triggered.connect(self._show_directory)
         # terminal_act.triggered.connect(lambda: self._open_terminal(doc_path))
-
         menu.addAction(self.open_act)
         menu.addAction(self.show_act)
         menu.addAction(self.terminal_act)
@@ -192,6 +278,7 @@ class MainWindow(QMainWindow):
 
         make_menu = QMenu(self)
         make_menu.addAction(self.make_html_act)
+        make_menu.addAction(self.make_epub_act)
         make_menu.setTitle("Make")
         menu.addMenu(make_menu)
 
@@ -203,7 +290,10 @@ class MainWindow(QMainWindow):
         menu.addAction(self.open_html_act)
         menu.addAction(self.auto_build_act)
         menu.addSeparator()
+        menu.addAction(self.copy_path_act)
         menu.addAction(self.ui.action_delete_document)
+        menu.addSeparator()
+        menu.addAction(self.project_setting_act)
 
         return menu
 
@@ -234,53 +324,98 @@ class MainWindow(QMainWindow):
 
     def _open_dir(self):
         # type: () -> None
-        path = self.sender().data()
-        if not path:
-            return
-        self.settings.editor().open_dir(path)
+        index = self.ui.tree_view_projects.currentIndex()
+        item = self.project_list_model.itemFromIndex(index)
+        if item:
+            self.settings.editor().open_dir(item.path())
 
     def _show_directory(self):
         # type: () -> None
-        path = self.sender().data()
-        if path:
-            show_directory(path)
+        index = self.ui.tree_view_projects.currentIndex()
+        item = self.project_list_model.itemFromIndex(index)
+        if item:
+            commander.show_directory(item.path())
 
     def _open_terminal(self):
         # type: () -> None
-        path = self.sender().data()
-        if path:
-            open_terminal(path)
+        index = self.ui.tree_view_projects.currentIndex()
+        item = self.project_list_model.itemFromIndex(index)
+        if item:
+            commander.open_terminal(item.path())
 
     def _on_make_html(self):
         # type: () -> None
-        index = self.sender().data()
+        index = self.ui.tree_view_projects.currentIndex()
         if index and index.isValid():
-            pass
+            item = self.project_list_model.itemFromIndex(index)
+            self._make("html", item)
 
-        item = self.project_list_model.itemFromIndex(index)
-        self._make("html", item.path())
+    def _on_make_epub(self):
+        # type: () -> None
+        index = self.ui.tree_view_projects.currentIndex()
+        if index and index.isValid():
+            item = self.project_list_model.itemFromIndex(index)
+            self._make("epub", item)
 
-    def _make(self, make_cmd, cwd, callback=None):
+    def _make(self, make_cmd, project_item, callback=None):
+        cwd = project_item.path()
+        venv_info = project_item.venv_info() or self.settings.venv_info()
+        venv_cmd = [
+            python_venv.get_path(venv_info, cwd),
+            make_command(make_cmd, cwd)
+        ]
+        venv_cmd = [x for x in venv_cmd if x]
+
         self.ui.plain_output.exec_command(
-            command("make " + make_cmd),
+            command(" & ".join(venv_cmd)),
             cwd,
             clear=True,
             callback=callback
         )
 
+    def _project_setting(self):
+        current = self.ui.tree_view_projects.currentIndex()
+        item = self.project_list_model.itemFromIndex(current)
+        if item:
+            dlg = ProjectSettingDialog(item, self)
+            dlg.exec_()
+
+    def _package_manager(self):
+        dlg = PackageManagerDlg(self.package_model, self)
+        dlg.exec_()
+
+    def _on_project_changed(self, current, _):
+        # type: (QModelIndex, QModelIndex) -> None
+        # TODO: This is Feature Support
+        # item = self.project_list_model.itemFromIndex(current)
+        # if item:
+        #     tools = ProjectTools(item.path(), self)
+        #     self.ui.treeView.setModel(tools.file_model)
+        #     if item.source_dir_path():
+        #         self.ui.treeView.setRootIndex(tools.file_model.index(item.source_dir_path()))
+        #     self.ui.treeView.header().hide()
+        #     self.ui.treeView.hideColumn(1)
+        #     self.ui.treeView.hideColumn(2)
+        #     self.ui.treeView.hideColumn(3)
+        #     item.set_tools(tools)
+        pass
+
     def _auto_build(self):
         # type: () -> None
-        index = self.sender().data()
+        index = self.ui.tree_view_projects.currentIndex()
         if not index.isValid():
             return
 
         item = self.project_list_model.itemFromIndex(index)  # type: ProjectItem
         if item:
-            console(item.auto_build_command(), os.path.normpath(item.path()))
+            commander.console(
+                item.auto_build_command(),
+                os.path.normpath(item.path())
+            )
 
     def _open_browser(self):
         # type: () -> None
-        index = self.sender().data()
+        index = self.ui.tree_view_projects.currentIndex()
         if not index.isValid():
             return
 
@@ -288,13 +423,20 @@ class MainWindow(QMainWindow):
         if item:
             if not item.has_html():
                 html_path = item.html_path()
-                print(html_path)
                 if html_path:
-                    self._make("html", item.path(), lambda: webbrowser.open(html_path))
+                    self._make("html", item, lambda: webbrowser.open(html_path))
             else:
                 html_path = item.html_path()
                 if os.path.isfile(html_path):
                     webbrowser.open(html_path)
+
+    def _on_copy_path(self):
+        index = self.ui.tree_view_projects.currentIndex()
+        path = self.project_list_model.path(index)
+        if path:
+            # noinspection PyArgumentList
+            clipboard = QApplication.clipboard()
+            clipboard.setText(path)
 
     def _apidoc(self):
         # type: () -> None
@@ -307,7 +449,7 @@ class MainWindow(QMainWindow):
             self.ui.plain_output.clear()
             item.apidoc_update(self.ui.plain_output)
 
-    @Slot(str, ProjectItem)
+    @Slot(str, QStandardItem)
     def onAutoBuildRequested(self, cmd, _):
         # self.ui.plain_output.exec_command(cmd)
         launch(cmd)
@@ -315,19 +457,19 @@ class MainWindow(QMainWindow):
     @Slot()
     def on_action_settings_triggered(self):
         dlg = SystemSettingsDialog(self)
-        dlg.setup(self.settings, self.params_dict)
+        dlg.setup(self.setting_dir, self.settings, self.params_dict)
         if dlg.exec_() == QDialog.Accepted:
             dlg.update_settings(self.settings)
 
     @Slot(QModelIndex)
-    def onSphinxInfoLoaded(self, index):
+    def onProjectLoaded(self, index):
         # type: (QModelIndex) -> None
+        # self.ui.tree_view_projects.resizeColumnToContents(0)
         pass
 
     @Slot()
     def on_action_wizard_triggered(self):
         # () -> None
-        # quickstart_wizard.main(self.settings.default_values, self.add_document, self)
         wizard = quickstart_wizard.create_wizard(
             plugin.template_model,
             self.params_dict,
@@ -358,7 +500,7 @@ class MainWindow(QMainWindow):
         # noinspection PyCallByClass
         doc_dir = QFileDialog.getExistingDirectory(
             self,
-            "add document",
+            self.tr("Add document"),
             self.settings.default_root_path(default_path),
         )
 
@@ -369,22 +511,24 @@ class MainWindow(QMainWindow):
     def on_action_delete_document_triggered(self):
         # () -> None
         indexes = self.ui.tree_view_projects.selectedIndexes()
+        indexes = [x for x in indexes if x.column() == 0]
 
         if indexes:
             # noinspection PyCallByClass
             result = QMessageBox.question(
                 self,
                 self.windowTitle(),
-                "Delete Document?",
+                self.tr("Remove Document?"),
                 QMessageBox.Yes | QMessageBox.No,
             )
             if result == QMessageBox.Yes:
-                for index in sorted(indexes, key=lambda x: x.row(), reverse=True):
+                for index in sorted(indexes, key=lambda idx: idx.row(), reverse=True):
                     self.project_list_model.takeRow(index.row())
 
     def _move(self, up_flag):
         # type: (bool) -> None
         indexes = self.ui.tree_view_projects.selectedIndexes()
+        indexes = [index for index in indexes if index.column() == 0]
         if indexes:
             indexes.sort(key=lambda x: x.row(), reverse=not up_flag)
 
@@ -392,9 +536,11 @@ class MainWindow(QMainWindow):
             selection = QItemSelection()
 
             stop_idx = -1 if up_flag else self.project_list_model.rowCount()
+            first_item = None
 
             for index in indexes:
                 item = self.project_list_model.itemFromIndex(index)
+                first_item = first_item or item
                 if up_flag:
                     insert_row = item.row() - 1
                     movable = stop_idx < insert_row
@@ -408,12 +554,13 @@ class MainWindow(QMainWindow):
                 else:
                     stop_idx = item.row()
 
-                selection.select(item.index(), item.index())
+                selection.select(item.index(), item.index().sibling(item.row(), 1))
 
             selection_model.select(
                 selection,
                 QItemSelectionModel.ClearAndSelect
             )
+            selection_model.setCurrentIndex(first_item.index(), QItemSelectionModel.SelectCurrent)
 
     @Slot()
     def on_action_move_up_triggered(self):
@@ -431,7 +578,7 @@ class MainWindow(QMainWindow):
         if index.isValid():
             path = self.project_list_model.path(index)
             if path:
-                show_directory(path)
+                commander.show_directory(path)
 
     @Slot(QPoint)
     def on_tree_view_projects_customContextMenuRequested(self, pos):

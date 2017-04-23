@@ -5,14 +5,13 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import ast
 import codecs
 import os
-
+from collections import OrderedDict
 from six import string_types
 
 from sphinx_explorer.plugin import extension
 from sphinx_explorer.plugin.extension import Extension
 
 CONF_PY_ENCODING = "utf-8"
-CONF_PY_NUM_INDENT = 4
 
 
 # memo:
@@ -27,6 +26,7 @@ class MyNodeVisitor(ast.NodeVisitor):
 
         self._source_lines = source_lines[:]
         self.replace_dict = replace_dict or {}
+        self._params_map = OrderedDict()
 
     def visit_Assign(self, node):
         # type: (ast.Assign) -> ast.Assign
@@ -37,7 +37,13 @@ class MyNodeVisitor(ast.NodeVisitor):
                 new_line = "{} = {}\n".format(left_name, repr(self.replace_dict[left_name]))
                 self._source_lines[node.lineno - 1] = new_line
 
+            if isinstance(node.value, ast.Str):
+                self._params_map[left_name] = node.value.s
+
         return node
+
+    def params(self):
+        return self._params_map
 
     def visit(self, tree):
         super(MyNodeVisitor, self).visit(tree)
@@ -67,8 +73,8 @@ class Parser(object):
                 insert_sys_flag = True
                 new_lines.append(line)
                 for path in path_list:
-                    path = "u'" + path + "'"
-                    new_lines.append("sys.path.insert(0, os.path.abspath({}))\n".format(path))
+                    path = path.replace("\\", "\\\\")
+                    new_lines.append("sys.path.insert(0, os.path.abspath('{}'))\n".format(path))
             else:
                 new_lines.append(line)
         self._source = new_lines
@@ -84,12 +90,17 @@ class Parser(object):
     def dumps(self):
         return "".join(self._source)
 
+    def params(self):
+        parser = MyNodeVisitor(self._source)
+        parser.visit(self._tree)
+        return parser.params()
+
     @property
     def lines(self):
         return self._source
 
 
-def extend_conf_py(conf_py_path, params, extensions=None, insert_paths=None):
+def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths=None):
     extensions = extensions or []
 
     if os.path.isfile(conf_py_path):
@@ -104,28 +115,8 @@ def extend_conf_py(conf_py_path, params, extensions=None, insert_paths=None):
             if key.startswith("ext-"):
                 ext = extension.get(key)    # type: Extension
                 if ext:
-                    # add comment
-                    comment = "# -- {} ".format(key)
-                    comment += "-" * (75 - len(comment))
-                    parser.append("\n\n")
-                    parser.append(comment + "\n")
-
-                    # add imports
-                    if ext.imports:
-                        for imp in ext.imports:
-                            parser.append(imp + "\n")
-                        parser.append("\n")
-
-                    # add extensions
-                    if ext.add_extensions:
-                        parser.append("extensions += [\n")
-                        for add_ext in ext.add_extensions:
-                            parser.append((" " * CONF_PY_NUM_INDENT) + add_ext + ",\n")
-                        parser.append("]\n")
-
-                    # add extra code
-                    if ext.extra_code:
-                        parser.append(ext.extra_code)
+                    parser.append(ext.generate_py_script(params, settings))
+                    parser.append("\n")
 
         with codecs.open(conf_py_path, "w", CONF_PY_ENCODING) as fd:
             fd.write(parser.dumps())

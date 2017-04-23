@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+# from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 
 from sphinx_explorer.generator import apidoc
 from .base_wizard import BaseWizard, PropertyPage, ExecCommandPage
@@ -17,17 +18,23 @@ class ApidocWizard(BaseWizard):
 
 
 class ApiDocSecondPropertyPage(PropertyPage):
-    def initializePage(self):
-        super(ApiDocSecondPropertyPage, self).initializePage()
-
-        root_path = self.wizard().value("path")
-        item = self.property_widget.item("apidoc-sourcedir")
-        item.set_link_value(root_path)
-
-        self.property_widget.update_default()
+    # def initializePage(self):
+    #     super(ApiDocSecondPropertyPage, self).initializePage()
+    #
+    #     root_path = self.wizard().value("path")
+    #     item = self.property_widget.item("apidoc-sourcedir")
+    #     item.set_link_value(root_path)
+    #
+    #     self.property_widget.update_default()
+    pass
 
 
 class ApiDocExecCommandPage(ExecCommandPage):
+    def initializePage(self):
+        super(ApiDocExecCommandPage, self).initializePage()
+        model = self.property_model.create_table_model(QModelIndex(), self)
+        self.property_widget.setModel(model)
+
     def exec_(self):
         super(ApiDocExecCommandPage, self).exec_()
 
@@ -41,11 +48,12 @@ class ApiDocExecCommandPage(ExecCommandPage):
 
     def finished(self, return_code):
         super(ApiDocExecCommandPage, self).finished(return_code)
-        settings = self.dump()
+        params = self.dump()
         apidoc.fix_apidoc(
-            settings["path"],
-            settings["apidoc-sourcedir"],
-            settings,
+            params["path"],
+            params["apidoc-sourcedir"],
+            params,
+            self.wizard().default_values,
         )
 
 
@@ -63,39 +71,35 @@ def create_wizard(params_dict, default_settings, parent=None):
 
     property_model.load_settings(
         [
-            "#Path setting",
-            "project",
-            "path",
-            "#Project setting",
-            "apidoc-sourcedir",
-            "author",
-            "html_theme",
-            "apidoc-separate",
-            "apidoc-private",
+            "#*Path setting",
+            [
+                "*project",
+                "path",
+            ],
+            "#*Project setting",
+            [
+                "*apidoc-sourcedir",
+                "author",
+                "html_theme",
+                "apidoc-separate",
+                "apidoc-private",
+            ]
         ],
-        params_dict
+        params_dict,
+        default_values=default_settings,
     )
 
     first_page = PropertyPage(
         "Path setting",
-        property_model.create_filter_model([
-            "project",
-            "path",
-        ]),
-        default_settings,
+        property_model,
+        property_model.get("Path setting").index(),
         parent=wizard,
     )
 
     sec_page = ApiDocSecondPropertyPage(
         "Project setting",
-        property_model.create_filter_model([
-            "apidoc-sourcedir",
-            "author",
-            "html_theme",
-            "apidoc-separate",
-            "apidoc-private",
-        ]),
-        default_settings,
+        property_model,
+        property_model.get("Project setting").index(),
         parent=wizard,
     )
 

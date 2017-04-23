@@ -1,25 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-import sys
 import os
 import fnmatch
 import yaml
 from six import string_types
 
 Extensions = {}
+CONF_PY_NUM_INDENT = 4
 
 
 def init(plugin_dir):
     global Extensions
 
-    sys.path.insert(0, plugin_dir)
-
-    Extensions = {}
     for root, dirs, files in os.walk(plugin_dir):
         for file_name in fnmatch.filter(files, "ext-*.yml"):
             ext_name = file_name[:-len(".yml")]
-            Extensions[ext_name] = Extension(yaml.load(open(os.path.join(root, file_name))))
+            Extensions[ext_name] = Extension(
+                ext_name,
+                yaml.load(open(os.path.join(root, file_name))),
+                root,
+            )
+
+
+def extensions():
+    return Extensions.items()
 
 
 def get(ext_name):
@@ -31,10 +36,18 @@ def list_iter():
         yield ext_name, ext
 
 
+def dependent_packages():
+    for ext_name, ext in Extensions.items():
+        for package in ext.packages:
+            yield package
+
+
 class Extension(object):
     # TODO: ast check
-    def __init__(self, ext_setting):
+    def __init__(self, name, ext_setting, ext_path=None):
+        self.name = name
         self.ext_setting = ext_setting
+        self.ext_path = ext_path
 
     @property
     def description(self):
@@ -75,7 +88,7 @@ class Extension(object):
 
     @property
     def add_extensions(self):
-        d = self.conf_py.get("add_extension")
+        d = self.conf_py.get("add_extensions")
         if d is None:
             d = self.packages
         elif d is False:
@@ -86,3 +99,51 @@ class Extension(object):
         d = ["'" + x + "'" for x in d]
 
         return d
+
+    @property
+    def exclude_patterns(self):
+        return self.conf_py.get("exclude_poatterns", [])
+
+    def has_setting_params(self):
+        return bool(self.ext_setting.get("setting_params"))
+
+    @property
+    def setting_params(self):
+        for ext in self.ext_setting.get("setting_params", []):
+            for key, value in ext.items():
+                yield key, value
+
+    def generate_py_script(self, params, settings):
+        parser = []
+
+        # add comment
+        comment = "# -- {} ".format(self.name)
+        comment += "-" * (75 - len(comment))
+        parser.append("")
+        parser.append("")
+        parser.append(comment)
+
+        # add imports
+        if self.imports:
+            for imp in self.imports:
+                parser.append(imp)
+            parser.append("")
+
+        # add extensions
+        if self.add_extensions:
+            parser.append("extensions += [")
+            for add_ext in self.add_extensions:
+                parser.append((" " * CONF_PY_NUM_INDENT) + add_ext + ",")
+            parser.append("]")
+
+        # setting params
+        for param_name, param_setting in self.setting_params:
+            value = params.get(param_name) or settings.get(param_name) or param_setting.get("default")
+            if value:
+                parser.append("{} = {}".format(param_name, repr(value)))
+
+        # add extra code
+        if self.extra_code:
+            parser.append(self.extra_code)
+
+        return "\n".join(parser)

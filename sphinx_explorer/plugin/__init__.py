@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import os
 import fnmatch
 import yaml
-from PySide.QtGui import *
+from qtpy.QtWidgets import *
 from typing import Iterator
 from six import string_types
 from .template_model import TemplateModel
@@ -14,12 +14,16 @@ from . import extension
 template_model = None
 
 
-def load_plugin(sys_dir, parent=None):
-    # type: (string_types, QWidget) -> None
+def init(parent=None):
+    # type: (QWidget) -> None
     global template_model
-
     template_model = TemplateModel(parent)
     editor.init()
+
+
+def load_plugin(sys_dir):
+    # type: (string_types) -> None
+    global template_model
 
     # load plugin
     extension.init(os.path.join(sys_dir, "plugin", "extension"))
@@ -53,5 +57,6 @@ def _walk_files(dir_path, ext):
         if ext_name in yaml_dict:
             yield yaml_dict[ext_name]
             del yaml_dict[ext_name]
+
     for x in yaml_dict.values():
         yield x

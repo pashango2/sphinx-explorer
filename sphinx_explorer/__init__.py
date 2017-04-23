@@ -10,12 +10,17 @@ from __future__ import division, print_function, absolute_import, unicode_litera
     * toml
     * qdarkstyle
 """
-from PySide.QtGui import *
-from PySide.QtCore import *
-import sys
 import os
+import sys
+# os.environ.setdefault("QT_API", 'pyside')
+# from qtpy.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtWidgets import *
+import qtpy
+
 import qdarkstyle
 from .main_window import MainWindow
+import logging
 
 HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx-explorer")
 
@@ -23,13 +28,22 @@ __version__ = 0.9
 
 
 def main():
-    # if sys.stdout.encoding is None:
-    #     sys.stdout = codecs.open("sphinx-exploere.log", "w", "utf-8")
-    # if sys.stderr.encoding is None:
-    #     sys.stderr = codecs.open("sphinx-exploere_error.log", "w", "utf-8")
+    logging.basicConfig()
 
     app = QApplication(sys.argv)
-    app.setStyleSheet(qdarkstyle.load_stylesheet())
+    if qtpy.PYQT5:
+        style_sheet = qdarkstyle.load_stylesheet_pyqt5()
+        # add patch
+        style_sheet += """
+QLineEdit
+{
+    padding: 0px;
+}
+        """
+
+        app.setStyleSheet(style_sheet)
+    else:
+        app.setStyleSheet(qdarkstyle.load_stylesheet(not qtpy.PYQT4))
 
     translator = QTranslator()
     # noinspection PyArgumentList

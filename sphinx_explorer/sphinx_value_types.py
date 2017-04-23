@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from .property_widget import TypeBase, register_value_type
+from .property_widget import TypeBase, register_value_type, TypeChoice
 from .theme_dialog import HtmlThemeWidget
-from PySide.QtGui import *
+# from qtpy.QtCore import *
+# from qtpy.QtGui import *
+from qtpy.QtWidgets import *
+from .util import python_venv
 
 
-# noinspection PyMethodOverriding
+# noinspection PyMethodOverriding,PyArgumentList
 class TypeLanguage(TypeBase):
     Languages = """
     bn – ベンガル語
@@ -89,7 +92,41 @@ class TypeHtmlTheme(TypeBase):
         return control.text()
 
 
+class TypePython(TypeChoice):
+    def __init__(self, value):
+        super(TypePython, self).__init__(value)
+
+    @classmethod
+    def create(cls, params):
+        combo = TypeChoice.create(params)
+
+        project_path = params.get("project_path")
+        extend_venv = []
+        if project_path:
+            extend_venv += python_venv.search_venv(project_path, fullpath=True)
+
+        choices = []
+        env_list, default_value = python_venv.sys_env.env_list(venv_list=extend_venv)
+        for key, env in env_list:
+            choices.append({
+                "text": str(env),
+                "value": key,
+                "icon": python_venv.ICON_DICT[env.type],
+            })
+
+        if params.get("is_project", False):
+            choices.append({
+                "text": "Use Sphinx Explorer Default",
+                "value": None,
+                "icon": python_venv.ICON_DICT["sys"],
+            })
+        combo.setup_choices(choices)
+
+        return combo
+
+
 # noinspection PyTypeChecker
 def init():
     register_value_type(TypeLanguage)
     register_value_type(TypeHtmlTheme)
+    register_value_type(TypePython)

@@ -4,19 +4,21 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 
 import json
 
-from collections import OrderedDict
 # noinspection PyUnresolvedReferences
-from six import string_types
+from qtpy.QtCore import *
 # noinspection PyUnresolvedReferences
-from PySide.QtCore import *
-from PySide.QtGui import *
-from .property_model import PropertyItem, PropertyCategoryItem, PropertyModel
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
+
+from .property_model import PropertyItem, CategoryItem, PropertyModel
 from .property_model import PropertyItemType
 from .description_widget import DescriptionWidget
 from .default_value_dict import DefaultValues
+from .define import set_icon
 
 if False:
     from typing import Dict, Iterator
+    from six import string_types
 
 __all__ = [
     "PropertyWidget",
@@ -25,10 +27,12 @@ __all__ = [
     "TypeBool",
     "TypeDirPath",
     "TypeChoice",
+    "TypeFontList"
     "register_value_type",
     "find_value_type",
     "DescriptionWidget",
     "DefaultValues",
+    "set_icon"
 ]
 
 __version__ = "1.0"
@@ -41,17 +45,14 @@ class PropertyWidget(QTableView):
 
     * Dynamic property settings.
     * Hierarchical setting of default values
-
     """
-    currentChanged = Signal(QModelIndex, QModelIndex)
     itemChanged = Signal(QStandardItem)
 
     def __init__(self, parent=None, model=None):
-        # type: (QWidget, QAbstractItemModel) -> None
+        # type: (QWidget, PropertyModel) -> None
         super(PropertyWidget, self).__init__(parent)
-        self._model = model or PropertyModel(self)
-        self.setModel(self._model)
-        self.selection_model = self.selectionModel()
+        self._model = model
+        self.selection_model = None
         self._first_property_index = QModelIndex()
 
         self._delegate = PropertyItemDelegate(self)
@@ -62,48 +63,69 @@ class PropertyWidget(QTableView):
         self.setEditTriggers(QAbstractItemView.AllEditTriggers)
         self.setTabKeyNavigation(False)
 
+        self.setModel(self._model)
+
+    def setModel(self, model):
+        self._model = model
+
+        if model:
+            super(PropertyWidget, self).setModel(model)
+            # self._connect()
+            self.selection_model = self.selectionModel()
+            self.setup()
+
+    def setRootIndex(self, index):
+        super(PropertyWidget, self).setRootIndex(index)
         self.setup()
-        self._connect()
 
     def setup(self):
         self.clearSpans()
+        self._first_property_index = QModelIndex()
 
-        for row in range(self._model.rowCount()):
-            item = self._model.item(row)
+        for row in range(self._model.rowCount(self.rootIndex())):
+            index = self._model.index(row, 0, self.rootIndex())
+            item = self._model.itemFromIndex(index)
+
             if item.is_category:
                 self.setSpan(row, 0, 1, 2)
-            else:
-                if not self._first_property_index.isValid():
-                    self._first_property_index = self.index(row, 1)
+
+            if not self._first_property_index.isValid():
+                self._first_property_index = self.index(row, 1, self.rootIndex())
+
+        # self.setCurrentIndex(self._first_property_index)
+        self.resizeRowsToContents()
+        self.resizeColumnToContents(0)
 
     def clear(self):
         self._model.removeRows(0, self._model.rowCount())
 
     # noinspection PyUnresolvedReferences
-    def _connect(self):
-        self.selection_model.currentChanged.connect(self.currentChanged.emit)
-        self._model.itemChanged.connect(self.itemChanged.emit)
+    # def _connect(self):
+    #     if self.selection_model:
+    #         self.selection_model.currentChanged.connect(self.currentChanged.emit)
 
-    def index(self, row, column):
+    def index(self, row, column, parent=QModelIndex()):
         # type: (int, int) -> QModelIndex
-        return self._model.index(row, column)
+        return self._model.index(row, column, parent)
 
     def add_category(self, key, name=None):
-        # type: (string_types, string_types) -> PropertyCategoryItem
+        # type: (string_types, string_types) -> CategoryItem
         name = name or key
         item = self._model.add_category(key, name)
         self.setSpan(item.row(), 0, 1, 2)
         return item
 
-    def add_property(self, item_key, params, label_name=None):
+    def add_property(self, parent_item, item_key, params, label_name=None):
         # type: (str, dict, str or None) -> PropertyItem
-        item = self._model.create_property(item_key, params, label_name)
-        self._model.add_property_item(item)
+        item = self._model.add_property(parent_item, item_key, params, label_name)
 
         if not self._first_property_index.isValid():
             self._first_property_index = self.index(item.row(), 1)
 
         return item
+
+    def get(self, keys):
+        return self._model.get(keys)
 
     def first_property_index(self):
         # type: () -> QModelIndex
@@ -116,13 +138,9 @@ class PropertyWidget(QTableView):
         else:
             self.setEditTriggers(QAbstractItemView.AllEditTriggers)
 
-    def dump(self):
+    def dump(self, flat=False, exclude_default=False):
         # type: () -> dict
-        result = {}
-        for item in self.properties():
-            if item.value is not None:
-                result[item.key] = item.value
-        return result
+        return self._model.dump(flat=flat, exclude_default=exclude_default)
 
     def dumps(self):
         # type: () -> str
@@ -154,31 +172,34 @@ class PropertyWidget(QTableView):
         # type: (string_types) -> PropertyItem
         return self.property_map().get(name)
 
-    def properties(self):
-        # type: () -> Iterator[PropertyItem]
-        return self._model.properties()
+    def properties(self, root_index=None):
+        # type: (QModelIndex) -> Iterator[PropertyItem]
+        return self._model.properties(root_index)
 
     def description(self, index):
         # type: (QModelIndex) -> str or None
         if not index.isValid():
             return None
 
-        item = self._model.item(index.row())
+        index = index.sibling(index.row(), 0)
+        item = self._model.itemFromIndex(index)
         if item.type() == PropertyItemType:
-            return item.description
-        return None
+            return item.description, item.description_path
+        return None, None
 
     def title(self, index):
         # type: (QModelIndex) -> str or None
         if not index.isValid():
             return None
 
-        item = self._model.item(index.row())
-        return item.text()
+        index = index.sibling(index.row(), 0)
+        item = self._model.itemFromIndex(index)
+        return item.text() if item else ""
 
-    def closeEditor(self, editor, _):
-        super(PropertyWidget, self).closeEditor(editor, QAbstractItemDelegate.EditNextItem)
+    # def closeEditor(self, editor, _):
+    #     super(PropertyWidget, self).closeEditor(editor, QAbstractItemDelegate.EditNextItem)
 
+    # noinspection PyMethodOverriding
     def moveCursor(self, action, modifiers):
         if action == QAbstractItemView.MoveNext:
             action = QAbstractItemView.MoveDown
@@ -189,10 +210,7 @@ class PropertyWidget(QTableView):
 
     def is_complete(self):
         # type: () -> bool
-        for property_item in self.properties():
-            if not property_item.is_complete():
-                return False
-        return True
+        return self._model.is_complete(self.rootIndex())
 
     def update_link(self):
         for property_item in self.properties():
@@ -203,10 +221,7 @@ class PropertyWidget(QTableView):
         self.update_default()
 
     def set_values(self, values_dict):
-        prop_map = self.property_map()
-        for key, value in values_dict.items():
-            if key in prop_map:
-                prop_map[key].set_value(value, force_update=True)
+        self._model.set_values(values_dict)
 
     def default_value(self, key):
         return self._model.default_value(key)
@@ -214,10 +229,6 @@ class PropertyWidget(QTableView):
     def update_default(self):
         for prop in self.properties():
             prop.update_link()
-
-    def set_default_dict(self, default_dict):
-        self._model.set_default_dict(default_dict)
-        self.update_default()
 
 
 class PropertyItemDelegate(QStyledItemDelegate):
@@ -239,8 +250,8 @@ class PropertyItemDelegate(QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         # type: (QWidget, QModelIndex) -> None
-        model = index.model()  # :type: PropertyModel
-        item = model.rowItem(index)  # :type: PropertyItem
+        model = index.model()  # :type: ProtpertyModel
+        item = model.itemFromIndex(index)  # :type: PropertyItem
 
         if item.value_type:
             item.value_type.set_value(editor, item.value)
@@ -249,7 +260,6 @@ class PropertyItemDelegate(QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         # type: (QWidget, PropertyModel, QModelIndex) -> None
-        model = index.model()  # :type: PropertyModel
         item = model.rowItem(index)  # :type: PropertyItem
 
         if item.value_type is None:
@@ -257,6 +267,9 @@ class PropertyItemDelegate(QStyledItemDelegate):
         else:
             value = item.value_type.value(editor)
             model.setData(index, value, Qt.EditRole)
+
+    def updateEditorGeometry(self, editor, option, index):
+        editor.setGeometry(option.rect)
 
 
 from .value_types import *  # NOQA

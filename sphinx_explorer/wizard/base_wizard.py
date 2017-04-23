@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+# from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from six import string_types
 from sphinx_explorer.util.QConsoleWidget import QConsoleWidget
 from .. import icon
@@ -11,14 +12,17 @@ from sphinx_explorer import property_widget
 from sphinx_explorer.property_widget import PropertyModel, DescriptionWidget, DefaultValues
 
 
+# noinspection PyArgumentList
 class ExecCommandPage(QWizardPage):
     BUTTON_HEIGHT = 64
     BUTTON_ICON_SIZE = 28
 
+    # noinspection PyTypeChecker
     def __init__(self, title, property_model, parent=None):
         # type: (string_types, QWidget) -> None
         super(ExecCommandPage, self).__init__(parent)
         self.console_widget = QConsoleWidget(self)
+        self.property_model = property_model
         self.property_widget = property_widget.PropertyWidget(self, property_model)
         self.gen_button = QPushButton(self)
         self.gen_button.setMinimumHeight(self.BUTTON_HEIGHT)
@@ -63,7 +67,7 @@ class ExecCommandPage(QWizardPage):
         # settings, params_dict = self.wizard().all_props()
         # self.property_widget.load_settings(settings, params_dict)
         self.property_widget.setup()
-        self.property_widget.set_values(self.wizard().dump())
+        # self.property_widget.set_values(self.wizard().dump())
 
         self.property_widget.resizeColumnsToContents()
         self.gen_button.setFocus()
@@ -85,11 +89,12 @@ class ExecCommandPage(QWizardPage):
         # type: () -> dict
         wizard = self.wizard()  # type: BaseWizard
         d = wizard.default_values.copy()
-        d.update(self.property_widget.dump())
+        d.update(self.property_widget.dump(flat=True))
         return d
 
     def finished(self, return_code):
         self.succeeded = return_code == 0
+        # noinspection PyUnresolvedReferences
         self.completeChanged.emit()
         self.validatePage()
 
@@ -100,38 +105,49 @@ class ExecCommandPage(QWizardPage):
         else:
             self.gen_button.setEnabled(False)
 
-            path = self.wizard().path()
+            path = self.dump().get("path")
             if path:
                 self.wizard().addDocumentRequested.emit(path)
 
 
+# noinspection PyArgumentList
 class PropertyPage(QWizardPage):
-    def __init__(self, title, filter_model, default_dict, parent=None):
+    def __init__(self, title, model, root_index, vbox_flag=False, parent=None):
         super(PropertyPage, self).__init__(parent)
-        self.filter_model = filter_model
+        self.model = model
 
-        self.property_widget = property_widget.PropertyWidget(self, self.filter_model)
-        self.property_widget.set_default_dict(default_dict or {})
-        self.text_browser = DescriptionWidget(self)
-        self.splitter = QSplitter(self)
-
-        self.splitter.addWidget(self.property_widget)
-        self.splitter.addWidget(self.text_browser)
-        self.splitter.setSizePolicy(
-            QSizePolicy.Expanding, QSizePolicy.Expanding
-        )
-        self.splitter.setStretchFactor(1, 1)
-        self.splitter.setSizes([310, 643])
+        self.property_widget = property_widget.PropertyWidget(self, self.model)
+        self.property_widget.setRootIndex(root_index)
+        self.property_widget.setup()
 
         layout = QVBoxLayout(self)
-        layout.addWidget(self.splitter)
+
+        if vbox_flag is False:
+            self.text_browser = DescriptionWidget(self)
+            self.splitter = QSplitter(self)
+
+            self.splitter.addWidget(self.property_widget)
+            self.splitter.addWidget(self.text_browser)
+            self.splitter.setSizePolicy(
+                QSizePolicy.Expanding, QSizePolicy.Expanding
+            )
+            self.splitter.setStretchFactor(1, 1)
+            self.splitter.setSizes([310, 643])
+
+            layout.addWidget(self.splitter)
+        else:
+            self.text_browser = None
+            layout.addWidget(self.property_widget)
+
         self.setLayout(layout)
 
-        self.property_widget.currentChanged.connect(self._onCurrentChanged)
+        self.selection_model = self.property_widget.selectionModel()
+        # noinspection PyUnresolvedReferences
+        self.selection_model.currentChanged.connect(self._onCurrentChanged)
         self.property_widget.setCurrentIndex(self.property_widget.index(0, 1))
 
         self.property_widget.resizeColumnsToContents()
-        self.property_widget.itemChanged.connect(self._onItemChanged)
+        self.property_widget.model().itemChanged.connect(self._onItemChanged)
 
         self.setTitle(title)
 
@@ -142,13 +158,19 @@ class PropertyPage(QWizardPage):
             return self.next_id
         return super(PropertyPage, self).nextId()
 
+    @Slot(QModelIndex, QModelIndex)
     def _onCurrentChanged(self, current, _):
+        if self.text_browser is None:
+            return
+
         title = self.property_widget.title(current)
-        description = self.property_widget.description(current)
-        if description:
-            self.text_browser.setMarkdown(description, title=title)
-        else:
-            self.text_browser.clear()
+        description, search_path = self.property_widget.description(current)
+
+        self.text_browser.setMarkdown(description or "", title=title, search_path=search_path)
+        # if description:
+        #     self.text_browser.setMarkdown(description, title=title)
+        # else:
+        #     self.text_browser.clear()
 
     def isComplete(self):
         return self.property_widget.is_complete()
@@ -163,6 +185,7 @@ class PropertyPage(QWizardPage):
         index = self.property_widget.first_property_index()
         self.property_widget.setCurrentIndex(index)
         self.property_widget.update_link()
+        self.property_widget.resizeColumnsToContents()
 
     def validatePage(self):
         prop_obj = self.property_widget.dump()
@@ -175,6 +198,7 @@ class PropertyPage(QWizardPage):
         return self.property_widget.dump().keys()
 
 
+# noinspection PyArgumentList
 class BaseWizard(QWizard):
     addDocumentRequested = Signal(str)
 
@@ -192,6 +216,7 @@ class BaseWizard(QWizard):
         for page_name in order:
             page_data = setting_dict[page_name]
 
+            # noinspection PyTypeChecker
             page = PropertyPage(
                 params_dict,
                 page_data.get("params", []),
@@ -221,4 +246,3 @@ class BaseWizard(QWizard):
                 props += page.keys()
 
         return props, self.params_dict
-

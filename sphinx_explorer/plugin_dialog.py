@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from PySide.QtGui import *
-from PySide.QtCore import *
+
+import fnmatch
 import os
 from collections import OrderedDict
-import toml
-import markdown
-# import CommonMark
-import fnmatch
+
 import six
-from .theme_dialog_ui import Ui_Dialog
+import toml
 import typing
+from qtpy.QtCore import *
+from qtpy.QtWidgets import *
+from qtpy.QtGui import *
+
+from sphinx_explorer.ui.theme_dialog_ui import Ui_Dialog
 
 try:
     # noinspection PyUnresolvedReferences
@@ -21,6 +23,7 @@ except AttributeError:
     pass
 
 
+# noinspection PyArgumentList
 class PluginDialog(QDialog):
     def __init__(self, plugin_dir_path, parent=None):
         # type: (six.string_types, QWidget) -> None
@@ -45,13 +48,13 @@ class PluginDialog(QDialog):
         self.sel_model = self.ui.list_view_theme.selectionModel()
         self.sel_model.currentChanged.connect(self._onCurrentChanged)
 
-        self.ui.text_edit_preview.setOpenLinks(True)
-        self.ui.text_edit_preview.setOpenExternalLinks(True)
-        self.ui.text_edit_preview.setTextInteractionFlags(
-            self.ui.text_edit_preview.textInteractionFlags() |
-            Qt.LinksAccessibleByMouse |
-            Qt.LinksAccessibleByKeyboard
-        )
+        # self.ui.text_edit_preview.setOpenLinks(True)
+        # self.ui.text_edit_preview.setOpenExternalLinks(True)
+        # self.ui.text_edit_preview.setTextInteractionFlags(
+        #     self.ui.text_edit_preview.textInteractionFlags() |
+        #     Qt.LinksAccessibleByMouse |
+        #     Qt.LinksAccessibleByKeyboard
+        # )
 
         self._double_click_done_flag = False
 
@@ -71,7 +74,7 @@ class PluginDialog(QDialog):
 
     def _setup_preview(self, current):
         # type: (QModelIndex) -> None
-        item = self.theme_model.itemFromIndex(current)
+        item = self.theme_model.itemFromIndex(current)  # type: ThemeItem
         self.ui.text_edit_preview.setMarkdown(item.description, item.text(), thumbnail=item.thumb_path)
 
     def selectedItems(self):

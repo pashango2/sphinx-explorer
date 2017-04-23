@@ -3,8 +3,10 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 import os
 from six import string_types
-from PySide.QtCore import *
-from PySide.QtGui import *
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
+from .. import define
 
 
 class TypeBase(object):
@@ -44,9 +46,22 @@ class TypeBase(object):
     def link_value(cls, default_value, link_value):
         return link_value or default_value
 
+    @classmethod
+    def sizeHint(cls):
+        return QSize(-1, -1)
+
+    @classmethod
+    def setup(cls, item):
+        pass
+
+    @classmethod
+    def set_value(cls, control, value):
+        control.setText(value)
+
     is_persistent_editor = False
 
 
+# noinspection PyArgumentList
 class RefButtonWidget(QFrame):
     def __init__(self, parent=None):
         super(RefButtonWidget, self).__init__(parent)
@@ -95,6 +110,7 @@ class RefButtonWidget(QFrame):
         return self.line_edit.text()
 
 
+# noinspection PyArgumentList
 class PathParamWidget(RefButtonWidget):
     def __init__(self, delegate, params=None, parent=None):
         super(PathParamWidget, self).__init__(parent)
@@ -175,6 +191,10 @@ class TypeDirPath(TypeBase):
         return control.text()
 
     @classmethod
+    def filter(cls, value):
+        return os.path.normpath(value) if value else value
+
+    @classmethod
     def link_value(cls, default_value, link_value):
         if default_value is None and link_value is None:
             return ""
@@ -215,10 +235,28 @@ class TypeRelDirPath(TypeDirPath):
             return "."
 
 
+# noinspection PyArgumentList
 class TypeChoice(TypeBase):
-    def __init__(self, selects):
-        self.selects = selects
-        self._data_dict = {item["value"]: item for item in selects}
+    @classmethod
+    def create(cls, params):
+        return cls(params.get("choices", []))
+
+    def __init__(self, choices):
+        self.selects = []
+        self._data_dict = {}
+        self.setup_choices(choices)
+
+    def setup_choices(self, choices):
+        self.selects = []
+
+        for item in choices:
+            if isinstance(item, string_types):
+                item = {
+                    "text": item,
+                    "value": item,
+                }
+            self.selects.append(item)
+        self._data_dict = {item["value"]: item for item in self.selects}
 
     def control(self, delegate, parent):
         combo = QComboBox(parent)
@@ -226,11 +264,14 @@ class TypeChoice(TypeBase):
         for i, item in enumerate(self.selects):
             combo.addItem(item["text"])
             combo.setItemData(i, item["value"])
+            if "icon" in item:
+                combo.setItemIcon(i, item["icon"])
 
         return combo
 
-    @classmethod
-    def set_value(cls, combo, value):
+    # noinspection PyMethodOverriding
+    @staticmethod
+    def set_value(combo, value):
         # type: (QComboBox, str) -> None
         index = combo.findData(value)
         combo.setCurrentIndex(index)
@@ -246,26 +287,44 @@ class TypeChoice(TypeBase):
 
     # noinspection PyMethodOverriding
     def icon(self, value):
-        return self._data_dict[value]["icon"] if value in self._data_dict else None
+        try:
+            return self._data_dict[value]["icon"] if value in self._data_dict else None
+        except KeyError:
+            return None
 
 
-AllTypes = [
-    TypeBool,
-    TypeDirPath,
-    TypeRelDirPath,
-    TypeChoice,
-]
+# noinspection PyArgumentList
+class SettingCombo(QFrame):
+    def __init__(self, parent=None):
+        super(SettingCombo, self).__init__(parent)
+
+        self.layout = QHBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.combo = QComboBox(self)
+        self.button = QToolButton(self)
+        self.button.setIcon(define.COG_ICON)
+
+        self.combo.addItem("a")
+        self.combo.addItem("b")
+
+        self.layout.addWidget(self.combo)
+        self.layout.addWidget(self.button)
+
+        self.setLayout(self.layout)
 
 
-def register_value_type(value_type):
-    # type: (TypeBase) -> None
-    global AllTypes
-    AllTypes.append(value_type)
+class TypeChoiceSetting(TypeBase):
+    @classmethod
+    def control(cls, delegate, parent):
+        return SettingCombo(parent)
 
+    @classmethod
+    def set_value(cls, control, value):
+        # control.setText(value)
+        pass
 
-def find_value_type(type_name, params=None):
-    # type: (string_types, dict or None) -> TypeBase or None
-    for value_type in AllTypes:
-        if value_type.__name__ == type_name:
-            return value_type.create(params)
-    return None
+    @classmethod
+    def value(cls, _):
+        # type: (QComboBox, str) -> str
+        # noinspection PyTypeChecker
+        return "fdsaf"

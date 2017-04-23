@@ -4,22 +4,32 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 
 import os
 import toml
-from PySide.QtCore import *
-from PySide.QtGui import *
+import yaml
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from six import string_types
 
-from sphinx_explorer.generator import apidoc
 from . import icon
 from .util.QConsoleWidget import QConsoleWidget
-from .util.exec_sphinx import quote
+from .util.exec_sphinx import quote, create_cmd
+from .util import python_venv
+from .util.conf_py_parser import Parser
+from .property_widget import PropertyWidget, PropertyModel
+from .task import push_task
 
 
+# noinspection PyArgumentList
 class ProjectListModel(QStandardItemModel):
-    sphinxInfoLoaded = Signal(QModelIndex)
+    projectLoaded = Signal(QModelIndex)
     autoBuildRequested = Signal(str, QStandardItem)
+    loadFinished = Signal()
 
     def __init__(self, parent=None):
         super(ProjectListModel, self).__init__(parent)
+        self.setHorizontalHeaderLabels([
+            self.tr("Project List"),
+        ])
 
     def load(self, project_list):
         # type: ([str]) -> None
@@ -30,10 +40,12 @@ class ProjectListModel(QStandardItemModel):
 
     def dump(self):
         # type: () -> [str]
-        return [
-            self.index(row, 0).data()
-            for row in range(self.rowCount())
-        ]
+        items = [self.itemFromRow(row) for row in range(self.rowCount())]
+        return [item.path() for item in items]
+
+    def itemFromRow(self, row):
+        # type: (int) -> ProjectItem
+        return self.item(row, 0)
 
     def add_document(self, doc_path):
         # type: (str) -> QStandardItem or None
@@ -49,13 +61,20 @@ class ProjectListModel(QStandardItemModel):
         # type: (str) -> QModelIndex
         for row in range(self.rowCount()):
             index = self.index(row, 0)
-            if index.data() == doc_path:
+            item = self.itemFromIndex(index)
+            if item.path() == doc_path:
                 return index
         return QModelIndex()
 
+    def itemFromIndex(self, index):
+        # type: (QModelIndex) -> ProjectItem
+        index = self.index(index.row(), 0)
+        item = super(ProjectListModel, self).itemFromIndex(index)   # type: ProjectItem
+        return item
+
     def _create_item(self, project_path):
         # type: (str) -> QStandardItem
-        item = ProjectItem(os.path.normpath(project_path))
+        item = ProjectItem("-", os.path.normpath(project_path))
         item.setIcon(icon.load("eye"))
 
         self._analyze_item(item)
@@ -64,18 +83,18 @@ class ProjectListModel(QStandardItemModel):
 
     def update_items(self):
         for row in range(self.rowCount()):
-            item = self.item(row, 0)
+            item = self.item(row, 0)    # type: ProjectItem
             self._analyze_item(item)
 
     def _analyze_item(self, item):
-        project_path = item.text()
+        project_path = item.path()
 
-        ana = LoadSettingObject(project_path, item.text())
+        ana = LoadSettingObject(project_path, item.path())
+        # noinspection PyUnresolvedReferences
         ana.finished.connect(self.onAnalyzeFinished)
 
         # noinspection PyArgumentList
-        thread_pool = QThreadPool.globalInstance()
-        thread_pool.start(ana)
+        push_task(ana)
 
     @Slot(object, str)
     def onAnalyzeFinished(self, settings, project_path):
@@ -88,30 +107,27 @@ class ProjectListModel(QStandardItemModel):
         item.setInfo(settings)
         if settings.is_valid():
             item.setIcon(icon.load("book"))
-            self.sphinxInfoLoaded.emit(item.index())
+            self.projectLoaded.emit(item.index())
         else:
             item.setIcon(icon.load("error"))
             # TODO: err output
             print(settings.error_msg)
 
+        if settings.project:
+            item.setText("{} ({})".format(settings.project, project_path))
+        else:
+            item.setText(project_path)
+
         if item.model():
-            left = item.index()
-            right = item.model().index(left.row(), 1)
-            item.model().dataChanged.emit(left, right)
-
-    def data(self, index, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole:
-            if index.column() == 1:
-                index = self.index(index.row(), 0)
-                item = self.itemFromIndex(index)
-                return item.project()
-
-        return super(ProjectListModel, self).data(index, role)
+            _left = item.index()                        # QModelIndex
+            _right = item.model().index(_left.row(), 1)
+            # noinspection PyUnresolvedReferences
+            item.model().dataChanged.emit(_left, _right)
 
     def path(self, index):
         # type: (QModelIndex) -> str
-        index = self.index(index.row(), 0)
-        return index.data()
+        item = self.item(index.row(), 0)    # type: ProjectItem
+        return item and item.path()
 
     def rowItem(self, index):
         # type: (QModelIndex) -> ProjectItem
@@ -120,13 +136,28 @@ class ProjectListModel(QStandardItemModel):
 
 
 class ProjectItem(QStandardItem):
-    def __init__(self, name):
+    def __init__(self, name, path):
         super(ProjectItem, self).__init__(name)
-        self.settings = None    # type: ProjectSettings
+        self.settings = ProjectSettings(path)    # type: ProjectSettings
+        self._path = path
+        self._tools = None
+
+    def set_tools(self, tools):
+        self._tools = tools
+
+    def project(self):
+        return self.settings.project
 
     def path(self):
         # type: () -> string_types
-        return self.text()
+        return self._path
+
+    def source_dir_path(self):
+        # type: () -> string_types
+        try:
+            return os.path.join(self._path, self.settings.source_dir)
+        except (ValueError, TypeError):
+            return self._path
 
     def html_path(self):
         # type: () -> string_types
@@ -144,7 +175,7 @@ class ProjectItem(QStandardItem):
     def auto_build_command(self, target="html"):
         model = self.model()
         if model:
-            cmd = "sphinx-autobuild -p 0 --open-browser {} {}".format(
+            cmd = "sphinx-autobuild -p 0 -s 1 --open-browser {} {}".format(
                 quote(self.settings.source_dir),
                 quote(os.path.join(self.settings.build_dir, target)),
             )
@@ -163,10 +194,10 @@ class ProjectItem(QStandardItem):
         if not module_dir or not self.settings.source_dir:
             return
 
-        project_dir = self.text()
+        project_dir = self.path()
         source_dir = os.path.join(project_dir, self.settings.source_dir)
         module_dir = os.path.join(source_dir, module_dir)
-        cmd = apidoc.update_cmd(
+        cmd = self.api_update_cmd(
             module_dir,
             source_dir,
             {}
@@ -174,9 +205,23 @@ class ProjectItem(QStandardItem):
 
         output_widget.exec_command(cmd, cwd=self.settings.source_dir)
 
-    def setInfo(self, info):
+    @staticmethod
+    def api_update_cmd(source_dir, output_dir, settings):
+        # type: (string_types, string_types, dict, string_types or None) -> int
+        command = [
+                      "sphinx-apidoc",
+                      source_dir,
+                      "-o", output_dir,
+                      # "-e" if settings.get("separate", True) else "",
+                      "-f",
+                  ] + settings.get("pathnames", [])
+
+        return create_cmd(command)
+
+    def setInfo(self, settings):
         # type: (ProjectSettings) -> None
-        self.settings = info
+        self.setText(settings.project)
+        self.settings = settings
 
     def can_make(self):
         # type: () -> bool
@@ -185,6 +230,9 @@ class ProjectItem(QStandardItem):
     def can_apidoc(self):
         # type: () -> bool
         return self.settings.can_apidoc()
+
+    def venv_info(self):
+        return self.settings.venv_info()
 
 
 class ProjectSettings(object):
@@ -197,15 +245,31 @@ class ProjectSettings(object):
         # self.conf = {}
         self.settings = {}
         self.error_msg = ""
+        self.project = ""
 
         self._analyze()
 
     @staticmethod
-    def dump(source_dir, build_dir, module_dir=None, cmd=None):
+    def save(project_path, source_dir, build_dir, project, module_dir=None, cmd=None):
+        setting_path = os.path.join(project_path, ProjectSettings.SETTING_NAME)
+        setting_obj = ProjectSettings.dump(
+            source_dir,
+            build_dir,
+            project,
+            module_dir,
+            cmd
+        )
+        with open(setting_path, "w") as fd:
+            toml.dump(setting_obj, fd)
+
+    @staticmethod
+    def dump(source_dir, build_dir, project, module_dir=None, cmd=None):
         d = {
             "source_dir": source_dir,
             "build_dir": build_dir,
         }
+        if project:
+            d["project"] = project
         if cmd:
             d["command"] = cmd
 
@@ -214,6 +278,11 @@ class ProjectSettings(object):
                 "module_dir": module_dir,
             }
         return d
+
+    def store(self):
+        save_path = os.path.join(self.path, self.SETTING_NAME)
+        with open(save_path, "w") as fd:
+            toml.dump(self.settings, fd)
 
     def _analyze(self):
         # search conf.py
@@ -227,6 +296,8 @@ class ProjectSettings(object):
                 self.settings = toml.load(path)
             except toml.TomlDecodeError as e:
                 self.error_msg = "TomlDecodeError: {}".format(e)
+
+        self.project = self.settings.get("project", "-")
 
     def is_valid(self):
         # type: () -> bool
@@ -281,19 +352,84 @@ class ProjectSettings(object):
         except KeyError:
             return False
 
+    def venv_info(self):
+        try:
+            env = self.settings["Python Interpreter"].get("python")
+            return python_venv.Env.from_str(env)
+        except KeyError:
+            return None
 
-class LoadSettingObject(QObject, QRunnable):
+    def set_python(self, env):
+        self.settings.setdefault("Python Interpreter", {})["python"] = env
+
+
+class LoadSettingObject(QObject):
     finished = Signal(ProjectSettings, str)
 
-    def __init__(self, doc_path, project_path):
+    def __init__(self, doc_path, project_path, parent=None):
         # type: (str, str) -> None
-        QObject.__init__(self)
-        QRunnable.__init__(self)
+        super(LoadSettingObject, self).__init__(parent)
 
         self.doc_path = doc_path
         self.project_path = project_path
 
     def run(self):
         settings = ProjectSettings(self.doc_path)
+
+        if settings.conf_py_path:
+            parser = Parser(settings.conf_py_path)
+            settings.project = parser.params().get("project", "")
+
         self.finished.emit(settings, self.project_path)
+
+
+ProjectDialogSettings = """
+- "#Python Interpreter"
+- python:
+    - value_type: TypePython
+      label: Python Interpreter,
+      is_project: true,
+"""
+
+
+# noinspection PyArgumentList
+class ProjectSettingDialog(QDialog):
+    # noinspection PyUnresolvedReferences
+    def __init__(self, project_item, parent=None):
+        super(ProjectSettingDialog, self).__init__(parent)
+        self.project_item = project_item
+
+        self.layout = QVBoxLayout(self)
+        # self.property_widget = PropertyWidget(parent=self)
+        self.property_widget = PropertyWidget(self)
+        self.model = PropertyModel(self)
+
+        self.button_box = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+            parent=self
+        )
+
+        self.layout.addWidget(self.property_widget)
+        self.layout.addWidget(self.button_box)
+
+        self.setLayout(self.layout)
+        self.setWindowTitle(self.tr(str("Project Settings")))
+        self.resize(1000, 600)
+
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+
+        settings = yaml.load(ProjectDialogSettings)
+        python_dict = settings[1]["python"][0]
+        python_dict["project_path"] = project_item.path()
+        self.model.load_settings(settings)
+
+        self.property_widget.setModel(self.model)
+        self.property_widget.resizeColumnsToContents()
+
+    def accept(self):
+        dump = self.model.dump(flat=True)
+        self.project_item.settings.set_python(dump.get("python"))
+        self.project_item.settings.store()
+        super(ProjectSettingDialog, self).accept()
 
