@@ -11,6 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 class PackageModel(QStandardItemModel):
+    COLOR_OK = QColor("#3b7960")
+    COLOR_NOT_INSTALL = QColor("#c9171e")
+
     def __init__(self, parent=None):
         super(PackageModel, self).__init__(parent)
         self._package_dict = {}
@@ -40,6 +43,12 @@ class PackageModel(QStandardItemModel):
 
         item = PackageItem(package, version)
         self._package_dict[package] = item
+
+        if version:
+            item.setBackground(self.COLOR_OK)
+        else:
+            item.setBackground(self.COLOR_NOT_INSTALL)
+
         if row < 0:
             self.appendRow([item, QStandardItem()])
         else:
@@ -86,9 +95,9 @@ class PackageItem(QStandardItem):
 
 
 class PackageFilterModel(QSortFilterProxyModel):
-    def __init__(self, soruce_model, package_list, parent=None):
+    def __init__(self, source_model, package_list, parent=None):
         super(PackageFilterModel, self).__init__(parent)
-        self.setSourceModel(soruce_model)
+        self.setSourceModel(source_model)
         self.package_list = package_list
 
     def filterAcceptsRow(self, source_row, source_parent):

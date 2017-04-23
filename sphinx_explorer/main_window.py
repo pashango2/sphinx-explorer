@@ -500,7 +500,7 @@ class MainWindow(QMainWindow):
         # noinspection PyCallByClass
         doc_dir = QFileDialog.getExistingDirectory(
             self,
-            "add document",
+            self.tr("Add document"),
             self.settings.default_root_path(default_path),
         )
 
@@ -518,7 +518,7 @@ class MainWindow(QMainWindow):
             result = QMessageBox.question(
                 self,
                 self.windowTitle(),
-                "Delete Document?",
+                self.tr("Remove Document?"),
                 QMessageBox.Yes | QMessageBox.No,
             )
             if result == QMessageBox.Yes:

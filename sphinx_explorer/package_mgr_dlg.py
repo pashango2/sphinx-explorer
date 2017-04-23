@@ -14,6 +14,7 @@ class PackageManagerDlg(QDialog):
         self.package_model = package_model
 
         self.tree_view = QTreeView(self)
+        self.tree_view.setRootIsDecorated(False)
 
         self.filter_model = self.package_model.create_filter_model(
             extension.dependent_packages(),

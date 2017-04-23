@@ -231,6 +231,21 @@
         <source>toolBar</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="133"/>
+        <source>????</source>
+        <translation type="obsolete">リロード</translation>
+    </message>
+    <message>
+        <location filename="../sphinx_explorer/main_window.py" line="501"/>
+        <source>Add document</source>
+        <translation>ドキュメントの追加</translation>
+    </message>
+    <message>
+        <location filename="../sphinx_explorer/main_window.py" line="518"/>
+        <source>Remove Document?</source>
+        <translation>ドキュメントをリストから削除しますか？</translation>
+    </message>
     <message encoding="UTF-8">
         <location filename="../sphinx_explorer/ui/main_window_ui.py" line="133"/>
         <source>リロード</source>
