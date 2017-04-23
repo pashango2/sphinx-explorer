@@ -28,10 +28,6 @@ __version__ = 0.9
 
 
 def main():
-    # if sys.stdout.encoding is None:
-    #     sys.stdout = codecs.open("sphinx-exploere.log", "w", "utf-8")
-    # if sys.stderr.encoding is None:
-    #     sys.stderr = codecs.open("sphinx-exploere_error.log", "w", "utf-8")
     logging.basicConfig()
 
     app = QApplication(sys.argv)
@@ -47,8 +43,7 @@ QLineEdit
 
         app.setStyleSheet(style_sheet)
     else:
-        pyside = not qtpy.PYQT4
-        app.setStyleSheet(qdarkstyle.load_stylesheet(pyside))
+        app.setStyleSheet(qdarkstyle.load_stylesheet(not qtpy.PYQT4))
 
     translator = QTranslator()
     # noinspection PyArgumentList

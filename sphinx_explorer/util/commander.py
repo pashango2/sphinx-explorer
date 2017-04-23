@@ -142,9 +142,7 @@ class Commander(object):
                 creationflags=subprocess.CREATE_NEW_CONSOLE,
             )
         elif platform.system() == "Linux":
-            cmd = self(cmd).replace('"', '\\\\"').replace("'", "\\\\'")
-            cmd = "gnome-terminal -e '{}'".format(cmd)
-            print(cmd)
+            cmd = 'gnome-terminal -e "{}"'.format(cmd)
             return subprocess.Popen(cmd, cwd=cwd, shell=True)
         else:
             # cmd = command(cmd)

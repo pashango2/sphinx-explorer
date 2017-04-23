@@ -26,4 +26,4 @@ class PackageManagerDlg(QDialog):
         layout.addWidget(self.tree_view)
         self.setLayout(layout)
 
-
+        self.setWindowTitle(self.tr("Package Manager"))
