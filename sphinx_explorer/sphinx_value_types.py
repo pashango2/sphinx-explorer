@@ -6,12 +6,7 @@ from .theme_dialog import HtmlThemeWidget
 # from qtpy.QtCore import *
 # from qtpy.QtGui import *
 from qtpy.QtWidgets import *
-# from .util.python_venv import python_venv
-
-
-class TypePython(TypeChoice):
-    def __init__(self, value):
-        super(TypePython, self).__init__(value)
+from .util import python_venv
 
 
 # noinspection PyMethodOverriding,PyArgumentList
@@ -95,6 +90,39 @@ class TypeHtmlTheme(TypeBase):
     @classmethod
     def value(cls, control):
         return control.text()
+
+
+class TypePython(TypeChoice):
+    def __init__(self, value):
+        super(TypePython, self).__init__(value)
+
+    @classmethod
+    def create(cls, params):
+        combo = TypeChoice.create(params)
+
+        project_path = params.get("project_path")
+        extend_venv = []
+        if project_path:
+            extend_venv += python_venv.search_venv(project_path, fullpath=True)
+
+        choices = []
+        env_list, default_value = python_venv.sys_env.env_list(venv_list=extend_venv)
+        for key, env in env_list:
+            choices.append({
+                "text": str(env),
+                "value": key,
+                "icon": python_venv.ICON_DICT[env.type],
+            })
+
+        if params.get("is_project", False):
+            choices.append({
+                "text": "Use Sphinx Explorer Default",
+                "value": None,
+                "icon": python_venv.ICON_DICT["sys"],
+            })
+        combo.setup_choices(choices)
+
+        return combo
 
 
 # noinspection PyTypeChecker

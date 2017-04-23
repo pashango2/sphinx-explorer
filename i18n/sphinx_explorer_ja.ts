@@ -232,11 +232,6 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="133"/>
-        <source>????</source>
-        <translation type="obsolete">リロード</translation>
-    </message>
-    <message>
         <location filename="../sphinx_explorer/main_window.py" line="501"/>
         <source>Add document</source>
         <translation>ドキュメントの追加</translation>
@@ -253,16 +248,32 @@
     </message>
 </context>
 <context>
+    <name>PackageManagerDlg</name>
+    <message>
+        <location filename="../sphinx_explorer/package_mgr_dlg.py" line="29"/>
+        <source>Package Manager</source>
+        <translation>パッケージ管理</translation>
+    </message>
+</context>
+<context>
     <name>PackageModel</name>
     <message>
-        <location filename="../sphinx_explorer/pip_manager/__init__.py" line="18"/>
+        <location filename="../sphinx_explorer/pip_manager/__init__.py" line="21"/>
         <source>Package</source>
         <translation>パッケージ</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/pip_manager/__init__.py" line="18"/>
+        <location filename="../sphinx_explorer/pip_manager/__init__.py" line="21"/>
         <source>Version</source>
         <translation>バージョン</translation>
+    </message>
+</context>
+<context>
+    <name>ProjectListModel</name>
+    <message>
+        <location filename="../sphinx_explorer/project_list_model.py" line="30"/>
+        <source>Project List</source>
+        <translation>プロジェクト一覧</translation>
     </message>
 </context>
 <context>

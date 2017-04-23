@@ -116,10 +116,11 @@ class BaseListWidget(QListWidget):
         return super(BaseListWidget, self).resizeEvent(evt)
 
     def to_list(self):
-        return [
+        result = [
             self.item(row).text()
             for row in range(self.count())
         ]
+        return result or None
 
 
 class FontListWidget(BaseListWidget):

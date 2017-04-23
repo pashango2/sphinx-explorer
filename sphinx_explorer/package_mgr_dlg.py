@@ -16,6 +16,14 @@ class PackageManagerDlg(QDialog):
         self.tree_view = QTreeView(self)
         self.tree_view.setRootIsDecorated(False)
 
+        self.button_box = QDialogButtonBox(
+            QDialogButtonBox.Close,
+            self
+        )
+
+        # noinspection PyUnresolvedReferences
+        self.button_box.rejected.connect(self.close)
+
         self.filter_model = self.package_model.create_filter_model(
             extension.dependent_packages(),
             parent=self,
@@ -24,6 +32,8 @@ class PackageManagerDlg(QDialog):
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.tree_view)
+        layout.addWidget(self.button_box)
         self.setLayout(layout)
 
+        self.tree_view.resizeColumnToContents(0)
         self.setWindowTitle(self.tr("Package Manager"))

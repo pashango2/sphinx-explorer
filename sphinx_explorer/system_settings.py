@@ -258,20 +258,6 @@ class SystemSettingsDialog(QDialog):
             },
         )
 
-        # setup python
-        item = self.property_model.get("Python Interpreter.python")
-
-        choices = []
-        env_list, default_value = python_venv.sys_env.env_list()
-        for key, env in env_list:
-            choices.append({
-                "text": str(env),
-                "value": key,
-                "icon": python_venv.ICON_DICT[env.type],
-            })
-        item.value_type.setup_choices(choices)
-        item.set_value(default_value)
-
         # setup extension
         self.setup_extensions()
 

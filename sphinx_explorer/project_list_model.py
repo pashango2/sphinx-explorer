@@ -28,7 +28,7 @@ class ProjectListModel(QStandardItemModel):
     def __init__(self, parent=None):
         super(ProjectListModel, self).__init__(parent)
         self.setHorizontalHeaderLabels([
-            "Project List",
+            self.tr("Project List"),
         ])
 
     def load(self, project_list):
@@ -175,7 +175,7 @@ class ProjectItem(QStandardItem):
     def auto_build_command(self, target="html"):
         model = self.model()
         if model:
-            cmd = "sphinx-autobuild -p 0 --open-browser {} {}".format(
+            cmd = "sphinx-autobuild -p 0 -s 1 --open-browser {} {}".format(
                 quote(self.settings.source_dir),
                 quote(os.path.join(self.settings.build_dir, target)),
             )
@@ -387,7 +387,8 @@ ProjectDialogSettings = """
 - "#Python Interpreter"
 - python:
     - value_type: TypePython
-      label: Python Interpreter
+      label: Python Interpreter,
+      is_project: true,
 """
 
 
@@ -419,32 +420,9 @@ class ProjectSettingDialog(QDialog):
         self.button_box.rejected.connect(self.reject)
 
         settings = yaml.load(ProjectDialogSettings)
+        python_dict = settings[1]["python"][0]
+        python_dict["project_path"] = project_item.path()
         self.model.load_settings(settings)
-
-        project_venv = python_venv.python_venv(project_item.path())
-        item = self.model.get("python")
-        if item:
-            choices = []
-            env_list, _ = python_venv.sys_env.env_list(project_venv)
-            for key, env in env_list:
-                choices.append({
-                    "text": str(env),
-                    "value": key,
-                    "icon": python_venv.ICON_DICT[env.type],
-                })
-
-            choices.append({
-                "text": "Use Sphinx Explorer Default",
-                "value": None,
-                "icon": python_venv.ICON_DICT["sys"],
-            })
-            item.value_type.setup_choices(choices)
-
-            project_env = project_item.settings.venv_info()
-            if project_env:
-                item.set_value(project_env.to_str())
-            else:
-                item.set_value(None, force_update=True)
 
         self.property_widget.setModel(self.model)
         self.property_widget.resizeColumnsToContents()

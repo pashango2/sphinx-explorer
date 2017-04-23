@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from qtpy.QtCore import *
 # from qtpy.QtGui import *
 # from qtpy.QtWidgets import *
-from ..util.python_venv import anaconda_env, python_venv, PythonVEnv
+from ..util.python_venv import anaconda_env, search_venv, PythonVEnv
 
 
 class BaseTask(QObject):
@@ -33,7 +33,7 @@ class SystemInitTask(BaseTask):
         self.message("Checking System Python...")
         venv_list = []
         for path in self.settings.search_venv_path_list():
-            venv_list.extend(python_venv(path, fullpath=True))
+            venv_list.extend(search_venv(path, fullpath=True))
 
         self.message("System Check Finished")
 

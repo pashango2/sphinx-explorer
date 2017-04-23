@@ -165,7 +165,7 @@ def _env_path():
         return os.path.join("bin", "activate")
 
 
-def python_venv(cwd, fullpath=False):
+def search_venv(cwd, fullpath=False):
     # find venv
     result = []
 
