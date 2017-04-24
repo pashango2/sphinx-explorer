@@ -422,6 +422,7 @@ class ProjectSettingDialog(QDialog):
         self.property_widget.resizeColumnsToContents()
 
     def accept(self):
+        self.property_widget.teardown()
         dump = self.model.dump(flat=True)
         self.project_item.settings.set_python(dump.get("python"))
         self.project_item.settings.store()

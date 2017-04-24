@@ -8,7 +8,7 @@ import fnmatch
 import platform
 from collections import OrderedDict
 from six import string_types
-from .commander import commander
+from .commander import commander, quote
 
 ICON_DICT = {
     "sys": None,
@@ -20,6 +20,8 @@ CONDA_LINUX_SEARCH_PATH = {
     (os.path.expanduser('~'), "anaconda*"),
     (os.path.expanduser('~'), "miniconda*"),
 }
+
+PYTHON_VERSION_RE = re.compile(r"Python ([^\s]*).*?")
 
 
 class Env(object):
@@ -178,6 +180,22 @@ def search_venv(cwd, fullpath=False):
                 result.append(Env("venv", x, path))
 
     return result
+
+
+def check_python_version(path):
+    ret = commander.check_output("{} --version".format(quote(path)), True)
+
+    if ret:
+        return parse_python_version(ret)
+
+    return None
+
+
+def parse_python_version(text):
+    g = PYTHON_VERSION_RE.match(text)
+    if g:
+        return g.group(1)
+    return None
 
 
 def get_path(venv_info, cwd=None):

@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from .property_widget import TypeBase, register_value_type, TypeChoice, cog_icon
-from .theme_dialog import HtmlThemeWidget
+from sphinx_explorer.property_widget import TypeBase, TypeChoice
+from .widgets import *
+from sphinx_explorer.theme_dialog import HtmlThemeWidget
 # from qtpy.QtCore import *
 # from qtpy.QtGui import *
 from qtpy.QtWidgets import *
-from .util import python_venv
+from sphinx_explorer.util import python_venv
 
 
 # noinspection PyMethodOverriding,PyArgumentList
@@ -90,35 +91,6 @@ class TypeHtmlTheme(TypeBase):
         return control.text()
 
 
-class ComboButton(QFrame):
-    def __init__(self, parent=None):
-        super(ComboButton, self).__init__(parent)
-
-        self.combo_box = QComboBox(self)
-        self.tool_button = QToolButton(self)
-        self.layout = QHBoxLayout(self)
-
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.tool_button.setText("setting")
-        self.tool_button.setIcon(cog_icon())
-
-        self.layout.addWidget(self.combo_box)
-        self.layout.addWidget(self.tool_button)
-        self.setLayout(self.layout)
-
-    def findData(self, *args, **kwargs):
-        return self.combo_box.findData(*args, **kwargs)
-
-    def currentIndex(self):
-        return self.combo_box.currentIndex()
-
-    def setCurrentIndex(self, index):
-        self.combo_box.setCurrentIndex(index)
-
-    def itemData(self, *args):
-        return self.combo_box.itemData(*args)
-
-
 class TypePython(TypeChoice):
     is_persistent_editor = True
 
@@ -126,7 +98,7 @@ class TypePython(TypeChoice):
         super(TypePython, self).__init__(value)
 
     def control(self, delegate, parent):
-        ctrl = ComboButton(parent)
+        ctrl = PythonComboButton(parent)
         self.setup_combo_box(ctrl.combo_box)
         return ctrl
 
@@ -158,9 +130,5 @@ class TypePython(TypeChoice):
 
         return combo
 
-
-# noinspection PyTypeChecker
-def init():
-    register_value_type(TypeLanguage)
-    register_value_type(TypeHtmlTheme)
-    register_value_type(TypePython)
+    def sizeHint(self):
+        return PythonComboButton().sizeHint()

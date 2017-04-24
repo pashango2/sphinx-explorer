@@ -18,4 +18,18 @@ def test_pyenv():
     assert str(python_venv.Env.from_str(env.to_str())) == "py34(./py34)"
 
 
+def test_python_version():
+    v = "Python 3.6.0 :: Continuum Analytics, Inc."
+    r = python_venv.parse_python_version(v)
+    assert r == "3.6.0"
 
+
+def test_sys_env():
+    env = python_venv.PythonVEnv()
+
+    env_list = env.env_list()
+    print(env_list)
+
+
+
+    print(env)

@@ -1,22 +1,35 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+
 import os
-from six import string_types
+
 from qtpy.QtCore import *
-from qtpy.QtGui import *
+# from qtpy.QtGui import *
 from qtpy.QtWidgets import *
-from .. import define
+from six import string_types
+
+from ..widgets import PathParamWidget, RelPathParamWidget
 
 
 class TypeBase(object):
     @classmethod
     def create(cls, _):
+        """
+        Create instance or return class
+        """
         return cls
 
     @staticmethod
     def data(value):
+        """
+        return item's data() value
+        """
         return value
+
+    @classmethod
+    def value(cls, control):
+        return None
 
     @staticmethod
     def icon(_):
@@ -59,101 +72,6 @@ class TypeBase(object):
         control.setText(value)
 
     is_persistent_editor = False
-
-
-# noinspection PyArgumentList
-class RefButtonWidget(QFrame):
-    def __init__(self, parent=None):
-        super(RefButtonWidget, self).__init__(parent)
-        self.line_edit = QLineEdit(self)
-        self.ref_button = QToolButton(self)
-        self.ref_button.setText("...")
-        self.ref_button.setAutoRaise(False)
-        self.ref_button.setContentsMargins(0, 0, 0, 0)
-
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.line_edit)
-        layout.addWidget(self.ref_button)
-
-        # noinspection PyUnresolvedReferences
-        self.ref_button.clicked.connect(self._onRefButtonClicked)
-        self.setTabOrder(self.line_edit, self.ref_button)
-        self.setFocusProxy(self.line_edit)
-        self.setFocusPolicy(Qt.WheelFocus)
-
-        self.line_edit.installEventFilter(self)
-
-        self._block = False
-
-    def eventFilter(self, obj, evt):
-        if evt.type() == QEvent.FocusOut:
-            if self._block is False:
-                # noinspection PyCallByClass
-                QApplication.postEvent(self, QFocusEvent(evt.type(), evt.reason()))
-                return False
-        return super(RefButtonWidget, self).eventFilter(obj, evt)
-
-    def _onRefButtonClicked(self):
-        self._block = True
-        try:
-            self.onRefButtonClicked()
-        finally:
-            self._block = False
-
-    def setText(self, text):
-        self.line_edit.setText(text)
-        self.line_edit.selectAll()
-        self.line_edit.setFocus()
-
-    def text(self):
-        return self.line_edit.text()
-
-
-# noinspection PyArgumentList
-class PathParamWidget(RefButtonWidget):
-    def __init__(self, delegate, params=None, parent=None):
-        super(PathParamWidget, self).__init__(parent)
-        params = params or {}
-        self.delegate = delegate
-        self.title = params.get("selector_title", "Select directory")
-
-    def onRefButtonClicked(self):
-        path_dir = self.get_path()
-        if path_dir:
-            self.setText(path_dir)
-            self.closeEditor()
-
-    def closeEditor(self):
-        if self.delegate:
-            self.delegate.commitData.emit(self)
-            self.delegate.closeEditor.emit(self, QAbstractItemDelegate.EditNextItem)
-
-    def get_path(self, cwd=None):
-        cwd = cwd or self.line_edit.text() or os.getcwd()
-        # noinspection PyCallByClass
-        path_dir = QFileDialog.getExistingDirectory(
-            self, self.title, cwd
-        )
-        return path_dir
-
-
-class RelPathParamWidget(PathParamWidget):
-    def __init__(self, delegate, relpath, params=None, parent=None):
-        super(RelPathParamWidget, self).__init__(delegate, params, parent)
-        self.relpath = relpath
-
-    def onRefButtonClicked(self):
-        path_dir = self.get_path(self.relpath)
-        if path_dir:
-            if self.relpath:
-                try:
-                    path_dir = os.path.relpath(path_dir, self.relpath)
-                    path_dir = path_dir.replace(os.path.sep, "/")
-                except ValueError:
-                    pass
-            self.setText(path_dir)
-            self.closeEditor()
 
 
 class TypeBool(TypeBase):
@@ -294,38 +212,3 @@ class TypeChoice(TypeBase):
             return None
 
 
-# noinspection PyArgumentList
-class SettingCombo(QFrame):
-    def __init__(self, parent=None):
-        super(SettingCombo, self).__init__(parent)
-
-        self.layout = QHBoxLayout(self)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.combo = QComboBox(self)
-        self.button = QToolButton(self)
-        self.button.setIcon(define.COG_ICON)
-
-        self.combo.addItem("a")
-        self.combo.addItem("b")
-
-        self.layout.addWidget(self.combo)
-        self.layout.addWidget(self.button)
-
-        self.setLayout(self.layout)
-
-
-class TypeChoiceSetting(TypeBase):
-    @classmethod
-    def control(cls, delegate, parent):
-        return SettingCombo(parent)
-
-    @classmethod
-    def set_value(cls, control, value):
-        # control.setText(value)
-        pass
-
-    @classmethod
-    def value(cls, _):
-        # type: (QComboBox, str) -> str
-        # noinspection PyTypeChecker
-        return "fdsaf"
