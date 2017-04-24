@@ -260,14 +260,15 @@ class TypeChoice(TypeBase):
 
     def control(self, delegate, parent):
         combo = QComboBox(parent)
+        self.setup_combo_box(combo)
+        return combo
 
+    def setup_combo_box(self, combo):
         for i, item in enumerate(self.selects):
             combo.addItem(item["text"])
             combo.setItemData(i, item["value"])
             if "icon" in item:
                 combo.setItemIcon(i, item["icon"])
-
-        return combo
 
     # noinspection PyMethodOverriding
     @staticmethod

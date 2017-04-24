@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from .property_widget import TypeBase, register_value_type, TypeChoice
+from .property_widget import TypeBase, register_value_type, TypeChoice, cog_icon
 from .theme_dialog import HtmlThemeWidget
 # from qtpy.QtCore import *
 # from qtpy.QtGui import *
@@ -77,8 +77,6 @@ class TypeLanguage(TypeBase):
 
 # noinspection PyMethodOverriding
 class TypeHtmlTheme(TypeBase):
-    is_persistent_editor = True
-
     @classmethod
     def control(cls, _, parent):
         return HtmlThemeWidget(parent)
@@ -92,13 +90,49 @@ class TypeHtmlTheme(TypeBase):
         return control.text()
 
 
+class ComboButton(QFrame):
+    def __init__(self, parent=None):
+        super(ComboButton, self).__init__(parent)
+
+        self.combo_box = QComboBox(self)
+        self.tool_button = QToolButton(self)
+        self.layout = QHBoxLayout(self)
+
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.tool_button.setText("setting")
+        self.tool_button.setIcon(cog_icon())
+
+        self.layout.addWidget(self.combo_box)
+        self.layout.addWidget(self.tool_button)
+        self.setLayout(self.layout)
+
+    def findData(self, *args, **kwargs):
+        return self.combo_box.findData(*args, **kwargs)
+
+    def currentIndex(self):
+        return self.combo_box.currentIndex()
+
+    def setCurrentIndex(self, index):
+        self.combo_box.setCurrentIndex(index)
+
+    def itemData(self, *args):
+        return self.combo_box.itemData(*args)
+
+
 class TypePython(TypeChoice):
+    is_persistent_editor = True
+
     def __init__(self, value):
         super(TypePython, self).__init__(value)
 
+    def control(self, delegate, parent):
+        ctrl = ComboButton(parent)
+        self.setup_combo_box(ctrl.combo_box)
+        return ctrl
+
     @classmethod
     def create(cls, params):
-        combo = TypeChoice.create(params)
+        combo = TypePython(params)
 
         project_path = params.get("project_path")
         extend_venv = []

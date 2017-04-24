@@ -264,24 +264,6 @@ class PropertyModel(QStandardItemModel):
 
         return parent
 
-    # def default_value(self, key):
-    #     # (string_types) -> any
-    #     return self._default_dict.get(key)
-    #
-    # def set_default_value(self, key, value, update=True):
-    #     # type: (string_types, any, bool) -> None
-    #     if not update and key in self._default_dict:
-    #         return
-    #     self._default_dict.set_default_value(key, value)
-    #
-    # def set_default_dict(self, default_dict):
-    #     # (dict) -> None
-    #     if isinstance(default_dict, DefaultValues):
-    #         self._default_dict = default_dict
-    #     elif isinstance(default_dict, dict):
-    #         self._default_dict = DefaultValues(default_dict)
-    #     self._use_default = bool(default_dict)
-
     def set_values(self, values, root=None):
         root = root or self.invisibleRootItem()
         values = values or {}
@@ -359,6 +341,14 @@ class PropertyModel(QStandardItemModel):
             index = index.sibling(index.row() + 1, index.column())
             if not index.isValid():
                 break
+
+    def data(self, index, role=Qt.DisplayRole):
+        if index.isValid() and role == Qt.ToolTipRole:
+            if index.column() == 1:
+                index = index.sibling(index.row(), 0)
+                return index.data(role)
+
+        return super(PropertyModel, self).data(index, role)
 
     def dump(self, store_none=False, flat=False, exclude_default=False):
         obj_map = {}

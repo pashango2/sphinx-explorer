@@ -15,6 +15,10 @@ DELETE_ICON = QIcon()
 COG_ICON = QIcon()
 
 
+def cog_icon():
+    return COG_ICON
+
+
 def set_icon(**params):
     global ADD_ICON, UP_ICON, DOWN_ICON, DELETE_ICON, COG_ICON
 

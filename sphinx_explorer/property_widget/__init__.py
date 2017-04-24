@@ -14,7 +14,7 @@ from .property_model import PropertyItem, CategoryItem, PropertyModel
 from .property_model import PropertyItemType
 from .description_widget import DescriptionWidget
 from .default_value_dict import DefaultValues
-from .define import set_icon
+from .define import set_icon, cog_icon
 
 if False:
     from typing import Dict, Iterator
@@ -91,6 +91,9 @@ class PropertyWidget(QTableView):
 
             if not self._first_property_index.isValid():
                 self._first_property_index = self.index(row, 1, self.rootIndex())
+
+            if not item.is_category and item.value_type and item.value_type.is_persistent_editor:
+                self.openPersistentEditor(index.sibling(index.row(), 1))
 
         # self.setCurrentIndex(self._first_property_index)
         self.resizeRowsToContents()
