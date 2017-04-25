@@ -6,6 +6,7 @@ import re
 import json
 import fnmatch
 import platform
+import subprocess
 from collections import OrderedDict
 from six import string_types
 from .commander import commander, quote
@@ -25,16 +26,35 @@ PYTHON_VERSION_RE = re.compile(r"Python ([^\s]*).*?")
 
 
 class Env(object):
-    def __init__(self, env_type=None, name=None, path=None):
+    def __init__(self, env_type=None, name=None, path=None, version=None):
         self.type = env_type
         self.name = name
         self.path = path
+        self.version = version
 
     def __str__(self):
         # type: () -> string_types
-        if self.type is None or self.name is None or self.path is None:
-            return "Default System Python"
-        return "{}({})".format(self.name, self.path)
+        if self.path is None:
+            if self.version:
+                return "{} ({})".format(self.version, self.name)
+            else:
+                return self.name
+
+        if self.version:
+            return "{} ({})".format(self.version, self.path)
+        else:
+            return "{} ({})".format(self.name, self.path)
+
+    def python_path(self):
+        if self.path is None:
+            return "python"
+
+        elif self.type == "anaconda":
+            return os.path.join(self.path, "bin", "python")
+        elif self.type == "venv":
+            return os.path.join(self.path, "bin", "python")
+
+        return None
 
     def command(self, cwd=None):
         if self.type is None or self.type == "sys":
@@ -112,6 +132,13 @@ class PythonVEnv(object):
 
         return result, self._default_env
 
+    def check_version(self):
+        env_list, _ = self.env_list()
+        for key, env in env_list:
+            python_path = env.python_path()
+            if python_path:
+                env.version = check_python_version(python_path)
+
     def set_anaconda_env(self, env):
         pass
 
@@ -124,7 +151,7 @@ def setup(env):
     sys_env = env
 
 
-def anaconda_env():
+def search_anaconda():
     conda_path = "conda"
 
     if platform.system() == "Linux":
@@ -183,7 +210,7 @@ def search_venv(cwd, fullpath=False):
 
 
 def check_python_version(path):
-    ret = commander.check_output("{} --version".format(quote(path)), True)
+    ret = commander.check_output([path, "--version"], stderr=subprocess.STDOUT, shell=True)
 
     if ret:
         return parse_python_version(ret)

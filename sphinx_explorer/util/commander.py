@@ -59,9 +59,9 @@ class Commander(object):
 
         return default
 
-    def check_output(self, cmd, shell=False):
+    def check_output(self, cmd, stderr=None, shell=False):
         try:
-            output = subprocess.check_output(self(cmd), shell=shell)
+            output = subprocess.check_output(self(cmd), stderr=stderr, shell=shell)
         except FileNotFoundError:
             logger.error("FileNotFoundError:{}".format(self(cmd)))
             return None
