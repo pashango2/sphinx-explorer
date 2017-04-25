@@ -93,15 +93,12 @@ class SystemSettings(OrderedDict):
     def venv_info(self):
         try:
             env = self["Python Interpreter"].get("python")
-            return python_venv.Env.from_str(env)
+            return python_venv.VenvSetting(env)
         except KeyError:
-            return python_venv.Env()
+            return python_venv.VenvSetting()
 
     def search_venv_path_list(self):
-        try:
-            return self["Python Interpreter"].get("venv_search_path", [])
-        except KeyError:
-            return []
+        return self.venv_info().search_venv_path
 
 
 class CategoryFilterModel(QSortFilterProxyModel):
@@ -148,9 +145,6 @@ SYSTEM_SETTINGS = """
 - "#*Python Interpreter"
 -
     - python
-    - venv_search_path:
-        - label: Venv Search Path
-          value_type: TypeDirList
 - "#*Extensions":
     - label: Extensions
 """

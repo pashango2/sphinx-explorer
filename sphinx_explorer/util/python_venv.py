@@ -48,11 +48,12 @@ class Env(object):
     def python_path(self):
         if self.path is None:
             return "python"
-
-        elif self.type == "anaconda":
-            return os.path.join(self.path, "bin", "python")
-        elif self.type == "venv":
-            return os.path.join(self.path, "bin", "python")
+        else:
+            bin_path = "bin" if platform.system() != "Windows" else "Scripts"
+            if self.type == "anaconda":
+                return os.path.join(self.path, bin_path, "python")
+            elif self.type == "venv":
+                return os.path.join(self.path, bin_path, "python")
 
         return None
 
@@ -72,7 +73,7 @@ class Env(object):
             else:
                 path = os.path.join(cwd or "", self.path)
 
-            return [os.path.join(path, _env_path())]
+            return os.path.join(path, _env_path())
 
         raise ValueError(self.type)
 
@@ -88,6 +89,28 @@ class Env(object):
             return Env(*json.loads(s))
         except ValueError:
             return None
+
+
+class VenvSetting(dict):
+    def __init__(self, value=None):
+        super(VenvSetting, self).__init__()
+        value = value or {}
+        self["env"] = value.get("env")
+        self["search_venv_path"] = value.get("search_venv_path", [])
+
+    @property
+    def search_venv_path(self):
+        return self["search_venv_path"]
+
+    def set_search_venv_path(self, path):
+        self["search_venv_path"] = path
+
+    @property
+    def env(self):
+        return self["env"]
+
+    def set_env(self, env):
+        self["env"] = env
 
 
 class PythonVEnv(object):
@@ -114,6 +137,9 @@ class PythonVEnv(object):
 
     def default_env(self):
         return self._envs[self._default_env]
+
+    def default_env_key(self):
+        return self._default_env
 
     def command(self, env=None):
         env = env or self.default_env()
@@ -170,7 +196,7 @@ def search_anaconda():
         conda_path, "info", "-e"
     ]
 
-    val = commander.check_output(" ".join(cmd), shell=True)
+    val = commander.check_output(cmd, shell=True)
     if val:
         result = []
         for line in val.splitlines():

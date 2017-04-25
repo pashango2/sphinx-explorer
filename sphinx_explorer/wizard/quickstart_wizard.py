@@ -32,7 +32,7 @@ class ChoiceTemplatePage(QWizardPage):
         layout.addWidget(self.splitter)
         self.setLayout(layout)
 
-        self.setTitle(self.tr(str("Choice template")))
+        self.setTitle(self.tr("Choice template"))
         self.tree_view_template.setModel(template_model)
         self.tree_view_template.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
@@ -113,7 +113,7 @@ class QuickStartWizard(BaseWizard):
         return self._value_dict.get("path")
 
     def create_final_page(self):
-        page = QuickstartExecCommandPage("finish", self.property_model, self)
+        page = QuickstartExecCommandPage(self.tr("finish"), self.property_model, self)
         page.setFinalPage(True)
         return page
 

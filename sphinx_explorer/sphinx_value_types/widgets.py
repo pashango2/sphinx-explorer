@@ -9,7 +9,8 @@ import os
 
 from sphinx_explorer.property_widget import cog_icon
 from sphinx_explorer.property_widget.widgets import MovableListWidget
-from sphinx_explorer.util.python_venv import check_python_version
+from sphinx_explorer.util.python_venv import check_python_version, VenvSetting
+
 
 
 class ComboButton(QFrame):
@@ -52,11 +53,36 @@ class PythonComboButton(ComboButton):
         self.tool_button.setMenu(self.menu)
         self.tool_button.setPopupMode(QToolButton.InstantPopup)
 
+        self.venv_setting = VenvSetting()
+
+        self.default_index = -1
+
+    def setup(self, value=None):
+        self.venv_setting = VenvSetting(value)
+        idx = self.combo_box.findData(self.venv_setting.env)
+        self.combo_box.setCurrentIndex(idx)
+
+    def set_value(self, venv_setting):
+        # type: (VenvSetting) -> None
+        self.venv_setting = venv_setting
+        idx = self.combo_box.findData(self.venv_setting.env)
+        self.setCurrentIndex(idx)
+
     def _on_add_path(self):
         dlg = PythonEnvDialog(self)
+        dlg.setup(self.venv_setting.search_venv_path)
 
         if dlg.exec_() == QDialog.Accepted:
-            path_list = dlg.dump()
+            self.venv_setting.set_search_venv_path(dlg.dump())
+
+    def setCurrentIndex(self, index):
+        if index == -1:
+            if self.default_index != -1:
+                self.combo_box.setCurrentIndex(index)
+            else:
+                self.combo_box.setCurrentIndex(0)
+        else:
+            self.combo_box.setCurrentIndex(index)
 
 
 class PythonEnvDialog(QDialog):
@@ -91,6 +117,10 @@ class PythonEnvDialog(QDialog):
 
         v = check_python_version(path)
         return path if v else None
+
+    def setup(self, path_list):
+        for path in path_list:
+            self.list_widget.addItem(path)
 
     def dump(self):
         result = []

@@ -102,6 +102,29 @@ class TypePython(TypeChoice):
         self.setup_combo_box(ctrl.combo_box)
         return ctrl
 
+    @staticmethod
+    def set_value(combo, value):
+        # type: (PythonComboButton, dict) -> None
+        combo.set_value(python_venv.VenvSetting(value))
+
+    def value(self, combo):
+        return combo.venv_setting
+
+    # noinspection PyMethodOverriding
+    def data(self, value):
+        if value:
+            return super(TypePython, self).data(value.env)
+        return None
+
+    def filter(self, value):
+        return python_venv.VenvSetting(value)
+    
+    # noinspection PyMethodOverriding
+    def icon(self, value):
+        if value:
+            return super(TypePython, self).icon(value.env)
+        return None
+
     @classmethod
     def create(cls, params):
         combo = TypePython(params)
@@ -113,12 +136,15 @@ class TypePython(TypeChoice):
 
         choices = []
         env_list, default_value = python_venv.sys_env.env_list(venv_list=extend_venv)
-        for key, env in env_list:
+        for i, (key, env) in enumerate(env_list):
             choices.append({
                 "text": str(env),
                 "value": key,
                 "icon": python_venv.ICON_DICT[env.type],
             })
+
+            if default_value == key:
+                combo.default_index = i
 
         if params.get("is_project", False):
             choices.append({

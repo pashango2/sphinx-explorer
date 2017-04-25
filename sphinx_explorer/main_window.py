@@ -100,11 +100,6 @@ class MainWindow(QMainWindow):
         self.project_list_model = ProjectListModel(parent=self)
         self.package_model = PackageModel(self)
 
-        task = PipListTask(commander=commander, parent=self)
-        self.package_mgr_act.setEnabled(False)
-        task.finished.connect(self._on_pip_list_loaded)
-        push_task(task)
-
         # setup file menu
         self.ui.menuFile_F.addSeparator()
         self.ui.menuFile_F.addAction(self.close_act)
@@ -204,6 +199,11 @@ class MainWindow(QMainWindow):
         task = SystemInitTask(self.settings, self)
         task.messaged.connect(self._on_task_message)
         task.finished.connect(self._on_system_init_finished)
+        push_task(task)
+
+        task = PipListTask(commander=commander, parent=self)
+        self.package_mgr_act.setEnabled(False)
+        task.finished.connect(self._on_pip_list_loaded)
         push_task(task)
 
         # setup end
@@ -426,7 +426,7 @@ class MainWindow(QMainWindow):
             if not item.has_html():
                 html_path = item.html_path()
                 if html_path:
-                    self._make("html", item, lambda: webbrowser.open(html_path))
+                    self._make("html", index, lambda: webbrowser.open(html_path))
             else:
                 html_path = item.html_path()
                 if os.path.isfile(html_path):

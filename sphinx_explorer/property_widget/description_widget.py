@@ -23,32 +23,13 @@ class DescriptionWidget(QWebEngineView):
         QWebEngineSettings.globalSettings().setAttribute(QWebEngineSettings.PluginsEnabled, True)
 
         here = os.path.dirname(sys.argv[0])
-        css_path = os.path.join(here, "css", "github-markdown.css")
+        css_path = os.path.join(here, "css", "markdown-dark-material.css")
 
         DescriptionWidget.CssStyle = """
-        <style>
-        {}
-        .markdown-body {{
-            background: #232629;
-            color: #FFFFFF;
-        }}
-
-        .markdown-body .highlight pre,
-        .markdown-body pre {{
-          background-color: #474a4d;
-        }}
-
-        .markdown-body a {{
-          color: #a0d8ef;
-          text-decoration: none;
-        }}
-
-        .markdown-body img {{
-          background-color: #dcdddd;
-        }}
-
-        </style>
-        <body class="markdown-body">
+<style>
+{}
+</style>
+<body class="vscode-dark">
         """.format(open(css_path).read())
 
         DescriptionWidget.SetupFlag = True

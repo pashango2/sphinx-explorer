@@ -104,7 +104,13 @@ class QConsoleWidget(QTextEdit):
 
     def _output(self, line, color=None):
         if six.PY3 and isinstance(line, bytes):
-            line = line.decode(sys.getfilesystemencoding())
+            try:
+                line = line.decode(sys.getfilesystemencoding())
+            except UnicodeDecodeError:
+                try:
+                    line = line.decode("utf-8")
+                except UnicodeDecodeError:
+                    line = ""
 
         self.moveCursor(QTextCursor.End)
 
@@ -117,7 +123,9 @@ class QConsoleWidget(QTextEdit):
 
         self.moveCursor(QTextCursor.End)
 
-    def _on_finished(self, ret_code):
+    # noinspection PyUnusedLocal
+    @Slot(int, QProcess.ExitStatus)
+    def _on_finished(self, ret_code, _exit_status):
         if ret_code == 0:
             if self.callback:
                 self.callback()

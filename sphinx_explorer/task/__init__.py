@@ -5,6 +5,8 @@ from qtpy.QtCore import *
 # from qtpy.QtGui import *
 # from qtpy.QtWidgets import *
 from ..util.python_venv import search_anaconda, search_venv, PythonVEnv
+import logging
+logger = logging.getLogger(__name__)
 
 
 class BaseTask(QObject):
@@ -50,7 +52,14 @@ class Worker(QRunnable):
         self.obj = obj
 
     def run(self):
-        self.obj.run()
+        try:
+            self.obj.run()
+        except:
+            import traceback
+
+            traceback.print_exc()
+            print("kita0")
+            pass
 
 
 def push_task(task):

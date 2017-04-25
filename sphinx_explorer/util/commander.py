@@ -47,6 +47,8 @@ class Commander(object):
 
         if self.system == "Linux":
             return '/bin/bash -c "{}"'.format(cmd_str)
+        else:
+            return cmd_str
 
     def check_exist(self, cmds, default=None):
         which_cmd = "which" if platform.system() != "Windows" else "where"
