@@ -4,20 +4,12 @@ import os
 
 import toml
 
-from sphinx_explorer.generator import apidoc, quickstart
+from sphinx_explorer.generator import quickstart
 
 sys_path = os.path.join(
     os.path.dirname(__file__),
     "..",
 )
-
-
-def test_api_doc(tmpdir):
-    cmd = apidoc.create_command(str(tmpdir), "..", {})
-    os.system(cmd)
-    apidoc.fix_apidoc(str(tmpdir), "..", {}, {})
-    setting = toml.load(os.path.join(str(tmpdir), "setting.toml"))
-    assert setting["build_dir"] in os.listdir(str(tmpdir))
 
 
 def test_quickstart(tmpdir):

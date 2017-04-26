@@ -51,6 +51,9 @@ class TemplateItem(QStandardItem):
     def description(self):
         return self.template.get("description")
 
+    def was_apidoc(self):
+        return self.template.get("apidoc", False)
+
     @property
     def wizard_settings(self):
         return self.template.get("wizard", [])

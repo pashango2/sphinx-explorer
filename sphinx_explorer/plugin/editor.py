@@ -4,7 +4,6 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import os
 import yaml
 from qtpy.QtGui import *
-from sphinx_explorer.util.exec_sphinx import launch
 from typing import Iterator
 from six import string_types
 from collections import OrderedDict
@@ -72,4 +71,4 @@ class Editor(object):
 
         param = self._setting_dict["open_dir"]["param"]
         cmd = param.format(**self._setting_dict)
-        launch(cmd, dir_path)
+        commander.launch(cmd, dir_path)

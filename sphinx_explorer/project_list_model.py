@@ -10,19 +10,20 @@ from qtpy.QtGui import *
 from qtpy.QtWidgets import *
 from six import string_types
 
-from . import icon
+from sphinx_explorer.util import icon
 from .util.QConsoleWidget import QConsoleWidget
-from .util.exec_sphinx import quote, create_cmd
 from .util import python_venv
 from .util.conf_py_parser import Parser
+from .util.commander import quote, commander
 from .property_widget import PropertyWidget, PropertyModel
 from .task import push_task
+import logging
+logger = logging.getLogger(__name__)
 
 
 # noinspection PyArgumentList
 class ProjectListModel(QStandardItemModel):
     projectLoaded = Signal(QModelIndex)
-    autoBuildRequested = Signal(str, QStandardItem)
     loadFinished = Signal()
 
     def __init__(self, parent=None):
@@ -34,7 +35,7 @@ class ProjectListModel(QStandardItemModel):
     def load(self, project_list):
         # type: ([str]) -> None
         for project_name in project_list:
-            if project_name and os.path.isdir(project_name):
+            if project_name:
                 item = self._create_item(project_name)
                 self.appendRow(item)
 
@@ -104,14 +105,13 @@ class ProjectListModel(QStandardItemModel):
             return
 
         item = self.itemFromIndex(index)
-        item.setInfo(settings)
+        item.setSettings(settings)
         if settings.is_valid():
             item.setIcon(icon.load("book"))
             self.projectLoaded.emit(item.index())
         else:
             item.setIcon(icon.load("error"))
-            # TODO: err output
-            print(settings.error_msg)
+            logger.error(settings.error_msg)
 
         if settings.project:
             item.setText("{} ({})".format(settings.project, project_path))
@@ -182,43 +182,16 @@ class ProjectItem(QStandardItem):
             return cmd
         return None
 
-    def auto_build(self, target="html"):
-        cmd = self.auto_build_command(target)
-        model = self.model()
-        if model and cmd:
-            model.autoBuildRequested.emit(cmd, self)
-
-    def apidoc_update(self, output_widget):
-        # type: (QConsoleWidget) -> None
+    def update_apidoc_command(self):
+        # type: () -> (list, string_types)
         module_dir = self.settings.module_dir
         if not module_dir or not self.settings.source_dir:
-            return
+            return None
 
-        project_dir = self.path()
-        source_dir = os.path.join(project_dir, self.settings.source_dir)
-        module_dir = os.path.join(source_dir, module_dir)
-        cmd = self.api_update_cmd(
-            module_dir,
-            source_dir,
-            {}
-        )
+        cmd = self.settings.update_apidoc_command(self.path())
+        return cmd, self.settings.source_dir
 
-        output_widget.exec_command(cmd, cwd=self.settings.source_dir)
-
-    @staticmethod
-    def api_update_cmd(source_dir, output_dir, settings):
-        # type: (string_types, string_types, dict, string_types or None) -> int
-        command = [
-                      "sphinx-apidoc",
-                      source_dir,
-                      "-o", output_dir,
-                      # "-e" if settings.get("separate", True) else "",
-                      "-f",
-                  ] + settings.get("pathnames", [])
-
-        return create_cmd(command)
-
-    def setInfo(self, settings):
+    def setSettings(self, settings):
         # type: (ProjectSettings) -> None
         self.setText(settings.project)
         self.settings = settings
@@ -231,8 +204,8 @@ class ProjectItem(QStandardItem):
         # type: () -> bool
         return self.settings.can_apidoc()
 
-    def venv_info(self):
-        return self.settings.venv_info()
+    def venv_setting(self):
+        return self.settings.venv_setting()
 
 
 class ProjectSettings(object):
@@ -250,33 +223,43 @@ class ProjectSettings(object):
         self._analyze()
 
     @staticmethod
-    def save(project_path, source_dir, build_dir, project, module_dir=None, cmd=None):
+    def create_apidoc_dict(module_dir, separate=False, private_member=False, pathnames=None):
+        if module_dir is None:
+            return None
+
+        d = {"module_dir": module_dir}
+        if separate:
+            d["separate"] = separate
+        if private_member:
+            d["private_member"] = private_member
+        if pathnames:
+            d["pathnames"] = pathnames
+
+        return d
+
+    @staticmethod
+    def save(project_path, source_dir, build_dir, apidoc=None, cmd=None):
         setting_path = os.path.join(project_path, ProjectSettings.SETTING_NAME)
         setting_obj = ProjectSettings.dump(
             source_dir,
             build_dir,
-            project,
-            module_dir,
+            apidoc,
             cmd
         )
         with open(setting_path, "w") as fd:
             toml.dump(setting_obj, fd)
 
     @staticmethod
-    def dump(source_dir, build_dir, project, module_dir=None, cmd=None):
+    def dump(source_dir, build_dir, apidoc=None, cmd=None):
         d = {
             "source_dir": source_dir,
             "build_dir": build_dir,
         }
-        if project:
-            d["project"] = project
         if cmd:
             d["command"] = cmd
 
-        if module_dir:
-            d["apidoc"] = {
-                "module_dir": module_dir,
-            }
+        if apidoc:
+            d["apidoc"] = apidoc
         return d
 
     def store(self):
@@ -345,6 +328,24 @@ class ProjectSettings(object):
         except KeyError:
             return ""
 
+    def update_apidoc_command(self, project_dir):
+        if not self.module_dir:
+            return []
+
+        source_dir = os.path.join(project_dir, self.source_dir)
+        module_dir = os.path.join(source_dir, self.module_dir)
+        apidoc_dict = self.settings.get("apidoc", {})
+
+        command = [
+            "sphinx-apidoc",
+            module_dir,
+            "-o", source_dir,
+            "-e" if apidoc_dict.get("separate", False) else "",
+            "-P" if apidoc_dict.get("private_member", False) else "",
+        ] + apidoc_dict.get("pathnames", [])
+
+        return commander(command)
+
     def can_apidoc(self):
         # type: () -> bool
         try:
@@ -352,15 +353,20 @@ class ProjectSettings(object):
         except KeyError:
             return False
 
-    def venv_info(self):
+    def venv_setting(self):
         try:
             env = self.settings["Python Interpreter"].get("python")
-            return python_venv.Env.from_str(env)
+            if env.get("env"):
+                return python_venv.VenvSetting(env)
+            else:
+                return None
         except KeyError:
             return None
+        except AttributeError:
+            return None
 
-    def set_python(self, env):
-        self.settings.setdefault("Python Interpreter", {})["python"] = env
+    def set_venv_setting(self, venv_setting):
+        self.settings.setdefault("Python Interpreter", {})["python"] = venv_setting
 
 
 class LoadSettingObject(QObject):
@@ -424,12 +430,15 @@ class ProjectSettingDialog(QDialog):
         python_dict["project_path"] = project_item.path()
         self.model.load_settings(settings)
 
+        self.model.set_values({"python": project_item.venv_setting()})
+
         self.property_widget.setModel(self.model)
         self.property_widget.resizeColumnsToContents()
 
     def accept(self):
+        self.property_widget.teardown()
         dump = self.model.dump(flat=True)
-        self.project_item.settings.set_python(dump.get("python"))
+        self.project_item.settings.set_venv_setting(dump.get("python"))
         self.project_item.settings.store()
         super(ProjectSettingDialog, self).accept()
 

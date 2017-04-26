@@ -1,0 +1,46 @@
+title: Read The Docs Template
+
+description: |
+    <img src="../theme/sphinx_rtd_theme.png" width="400" align="center" style="align:center;" />
+
+    ### Spec
+    | Property | Value |
+    | :-- | :-- |
+    | Html Theme | sphinx_rtd_theme |
+    | GitHUB Page | Yes |
+    | View Code | Yes |
+
+    ### Extensions
+    | Extension | Use | Description |
+    | :-- | :-- | :-- |
+    | recommonmark | Yes | CommonMarkdown available |
+    | MathJax | Yes | Latex formula using JavaScript |
+    | nbsphinx | Optional | Can import JupyterNoteBook |
+    | sphinx-fontawesome | Optional | FontAwesome can be used from reSt |
+    | BlockDiag | Optional | generates block-diagram images |
+
+
+wizard:
+    - "#*-Required params"
+    -
+        - project
+        - path
+        - author
+        - version
+        - release
+    - "#* More Extensions"
+    -
+      - ext-fontawesome
+      - ext-nbsphinx
+      - ext-blockdiag
+
+
+default_values:
+    html_theme: sphinx_rtd_theme
+    ext-commonmark: yes
+    ext-viewcode: yes
+    ext-mathjax: yes
+    ext-fontawesome: yes
+    ext-nbsphinx: yes
+    ext-githubpage: yes
+

@@ -128,7 +128,7 @@
   <customwidget>
    <class>PropertyWidget</class>
    <extends>QTableView</extends>
-   <header>sphinx_explorer.property_widget</header>
+   <header>..property_widget</header>
   </customwidget>
  </customwidgets>
  <resources/>

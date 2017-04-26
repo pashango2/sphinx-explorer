@@ -109,12 +109,12 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>24</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile_F">
     <property name="title">
-     <string>File(&amp;F)</string>
+     <string>Fi&amp;le(F)</string>
     </property>
     <addaction name="action_settings"/>
    </widget>
@@ -123,7 +123,6 @@
      <string>Create(&amp;C)</string>
     </property>
     <addaction name="action_wizard"/>
-    <addaction name="action_apidoc"/>
    </widget>
    <addaction name="menuFile_F"/>
    <addaction name="menuCreate_C"/>
@@ -134,7 +133,7 @@
     <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="windowTitle">
-    <string>Outputs</string>
+    <string>O&amp;utputs</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>8</number>
@@ -158,7 +157,6 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action_wizard"/>
-   <addaction name="action_apidoc"/>
    <addaction name="action_settings"/>
   </widget>
   <action name="action_add_document">
@@ -171,7 +169,7 @@
   </action>
   <action name="action_settings">
    <property name="text">
-    <string>Settings...</string>
+    <string>&amp;Settings...</string>
    </property>
    <property name="toolTip">
     <string>Settings</string>
@@ -182,26 +180,18 @@
   </action>
   <action name="action_wizard">
    <property name="text">
-    <string>wizard mode</string>
+    <string>&amp;wizard mode</string>
    </property>
    <property name="toolTip">
     <string>wizard mode</string>
-   </property>
-  </action>
-  <action name="action_apidoc">
-   <property name="text">
-    <string>apidoc</string>
-   </property>
-   <property name="toolTip">
-    <string>apidoc</string>
    </property>
   </action>
   <action name="action_reload">
    <property name="text">
-    <string>リロード</string>
+    <string>reload</string>
    </property>
    <property name="toolTip">
-    <string>リロード</string>
+    <string>reload</string>
    </property>
    <property name="shortcut">
     <string>F5</string>
@@ -245,7 +235,7 @@
   <customwidget>
    <class>QConsoleWidget</class>
    <extends>QTextEdit</extends>
-   <header>.util.QConsoleWidget</header>
+   <header>..util.QConsoleWidget</header>
   </customwidget>
  </customwidgets>
  <resources/>

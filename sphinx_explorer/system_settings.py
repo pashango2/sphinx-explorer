@@ -12,13 +12,14 @@ from qtpy.QtCore import *
 from qtpy.QtWidgets import *
 from qtpy.QtGui import *
 
-from sphinx_explorer.plugin import editor
+# from sphinx_explorer.plugin import editor
 from sphinx_explorer.ui.settings_ui import Ui_Form
-from . import icon
+from sphinx_explorer.util import icon
 from .plugin import extension, editor
 from .property_widget import TypeChoice, PropertyModel
 from .util import python_venv
-from .util.exec_sphinx import show_directory
+from .util.commander import commander
+from sphinx_explorer.sphinx_value_types.pages import PythonInterpreterWidget
 
 logger = logging.getLogger(__name__)
 
@@ -90,18 +91,12 @@ class SystemSettings(OrderedDict):
         # type: () -> QIcon
         return self.editor().icon if self.editor() else QIcon()
 
-    def venv_info(self):
+    def venv_setting(self):
         try:
             env = self["Python Interpreter"].get("python")
-            return python_venv.Env.from_str(env)
+            return python_venv.VenvSetting(env)
         except KeyError:
-            return python_venv.Env()
-
-    def search_venv_path_list(self):
-        try:
-            return self["Python Interpreter"].get("venv_search_path", [])
-        except KeyError:
-            return []
+            return python_venv.VenvSetting()
 
 
 class CategoryFilterModel(QSortFilterProxyModel):
@@ -148,9 +143,6 @@ SYSTEM_SETTINGS = """
 - "#*Python Interpreter"
 -
     - python
-    - venv_search_path:
-        - label: Venv Search Path
-          value_type: TypeDirList
 - "#*Extensions":
     - label: Extensions
 """
@@ -188,15 +180,16 @@ class SystemSettingsDialog(QDialog):
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
             self
         )
-        # noinspection PyUnresolvedReferences
-        self._buttons.accepted.connect(self.accept)
-        # noinspection PyUnresolvedReferences
-        self._buttons.rejected.connect(self.reject)
+
+        self.open_setting_dir_button = QPushButton(self)
+        self.open_setting_dir_button.setText(self.tr("Open Setting Directory"))
 
         self.layout = QVBoxLayout(self)
+        self.h_layout = QHBoxLayout()
+        self.h_layout.addWidget(self.open_setting_dir_button)
+        self.h_layout.addWidget(self._buttons)
         self.layout.addWidget(self.widget)
-        self.layout.addWidget(self._buttons)
-
+        self.layout.addLayout(self.h_layout)
         self.setLayout(self.layout)
 
         self.setWindowTitle(self.tr(str("SystemSettings")))
@@ -207,18 +200,32 @@ class SystemSettingsDialog(QDialog):
         self.category_selection_model = self.ui.tree_view_category.selectionModel()
 
         # setup buttons
-        self.ui.button_open_home_dir.setIcon(icon.load("open_folder"))
-        self.ui.button_open_home_dir.clicked.connect(self.on_button_open_home_dir_clicked)
+        self.open_setting_dir_button.setIcon(icon.load("open_folder"))
+
+        self._connect()
+
+    # noinspection PyUnresolvedReferences
+    def _connect(self):
+        self.open_setting_dir_button.clicked.connect(self.on_button_open_home_dir_clicked)
+        self._buttons.accepted.connect(self.accept)
+        self._buttons.rejected.connect(self.reject)
 
     def on_button_open_home_dir_clicked(self):
         if self.home_dir:
-            show_directory(self.home_dir)
+            commander.show_directory(self.home_dir)
 
     def _on_category_changed(self, current, _):
         item = self.category_model.itemFromIndex(current)
         if item:
             if item.key == "Extensions":
                 self.ui.stacked_widget.setCurrentIndex(1)
+            elif item.key == "Python Interpreter":
+                if self.ui.stacked_widget.count() == 2:
+                    widget = PythonInterpreterWidget(self)
+                    root_item = self.property_model.get(item.tree_key())
+                    widget.setup(self.property_model, root_item.index())
+                    self.ui.stacked_widget.addWidget(widget)
+                self.ui.stacked_widget.setCurrentIndex(2)
             else:
                 self.ui.stacked_widget.setCurrentIndex(0)
                 root_item = self.property_model.get(item.tree_key())

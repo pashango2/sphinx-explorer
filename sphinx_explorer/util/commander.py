@@ -34,6 +34,11 @@ class Commander(object):
         self.py2 = py2
         self.pre_command = [[]]
 
+    def create_pre_commander(self, pre_command=None):
+        new_commander =  Commander(self.system, self.py2)
+        new_commander.pre_command = [pre_command or []]
+        return new_commander
+
     def __call__(self, cmd, cwd=None, python_mode=False):
         new_cmd = []
         for _cmd in self.pre_command + [cmd]:
@@ -43,10 +48,12 @@ class Commander(object):
             new_cmd.append(_cmd)
 
         new_cmd = [x for x in new_cmd if x]
-        cmd_str = " & ".join(new_cmd)
+        cmd_str = " ; ".join(new_cmd)
 
         if self.system == "Linux":
             return '/bin/bash -c "{}"'.format(cmd_str)
+        else:
+            return cmd_str
 
     def check_exist(self, cmds, default=None):
         which_cmd = "which" if platform.system() != "Windows" else "where"
@@ -59,9 +66,9 @@ class Commander(object):
 
         return default
 
-    def check_output(self, cmd, shell=False):
+    def check_output(self, cmd, stderr=None, shell=False):
         try:
-            output = subprocess.check_output(self(cmd), shell=shell)
+            output = subprocess.check_output(self(cmd), stderr=stderr, shell=shell)
         except FileNotFoundError:
             logger.error("FileNotFoundError:{}".format(self(cmd)))
             return None
@@ -149,6 +156,36 @@ class Commander(object):
             # subprocess.Popen(cmd, cwd=cwd, shell=True)
             print(platform.system())
             return None
+
+    def exec_(self, cmd, cwd=None):
+        # type: (string_types, string_types) -> int
+        shell = True
+
+        if platform.system() == "Windows":
+            cmd = self(('cmd.exe /C "' + cmd + '"'))
+            if PY2:
+                cmd = cmd.encode(_encoding())
+                cwd = cwd.encode(_encoding())
+
+            shell = False
+
+        p = subprocess.Popen(
+            cmd,
+            cwd=cwd if cwd else None,
+            shell=shell,
+        )
+        p.wait()
+        return p.returncode
+
+    @staticmethod
+    def make_command(make_cmd, cwd):
+        # type: (string_types, string_types) -> string_types
+        if platform.system() == "Windows":
+            make_bat = os.path.join(cwd, "make.bat")
+            return make_bat + " " + make_cmd
+        else:
+            return "make " + make_cmd
+
 
 
 commander = Commander()

@@ -15,7 +15,7 @@ cmd = [
 result = subprocess.call(cmd)
 
 include_dirs = [
-    "plugin", "script", "settings", "icon", "i18n"
+    "plugin", "settings", "icon", "i18n"
 ]
 
 if result == 0:

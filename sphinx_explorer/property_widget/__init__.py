@@ -14,7 +14,7 @@ from .property_model import PropertyItem, CategoryItem, PropertyModel
 from .property_model import PropertyItemType
 from .description_widget import DescriptionWidget
 from .default_value_dict import DefaultValues
-from .define import set_icon
+from .define import set_icon, cog_icon
 
 if False:
     from typing import Dict, Iterator
@@ -92,9 +92,27 @@ class PropertyWidget(QTableView):
             if not self._first_property_index.isValid():
                 self._first_property_index = self.index(row, 1, self.rootIndex())
 
+            if not item.is_category and item.value_type and item.value_type.is_persistent_editor:
+                value_index = index.sibling(index.row(), 1)
+                self.openPersistentEditor(value_index)
+                ctrl = self.indexWidget(value_index)
+                item.value_type.set_value(ctrl, item.value)
+
         # self.setCurrentIndex(self._first_property_index)
         self.resizeRowsToContents()
         self.resizeColumnToContents(0)
+
+    def teardown(self):
+        for row in range(self._model.rowCount(self.rootIndex())):
+            index = self._model.index(row, 0, self.rootIndex())
+            item = self._model.itemFromIndex(index)
+
+            if not item.is_category and item.value_type and item.value_type.is_persistent_editor:
+                value_index = index.sibling(index.row(), 1)
+                ctrl = self.indexWidget(value_index)
+                item.set_value(item.value_type.value(ctrl))
+
+                self.closePersistentEditor(value_index)
 
     def clear(self):
         self._model.removeRows(0, self._model.rowCount())
@@ -140,10 +158,12 @@ class PropertyWidget(QTableView):
 
     def dump(self, flat=False, exclude_default=False):
         # type: () -> dict
+        self.teardown()
         return self._model.dump(flat=flat, exclude_default=exclude_default)
 
     def dumps(self):
         # type: () -> str
+        self.teardown()
         return json.dumps(self.dump(), indent=4)
 
     def loads(self, params):
@@ -179,7 +199,7 @@ class PropertyWidget(QTableView):
     def description(self, index):
         # type: (QModelIndex) -> str or None
         if not index.isValid():
-            return None
+            return None, None
 
         index = index.sibling(index.row(), 0)
         item = self._model.itemFromIndex(index)

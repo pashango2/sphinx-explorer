@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from .property_widget import TypeBase, register_value_type, TypeChoice
-from .theme_dialog import HtmlThemeWidget
+from sphinx_explorer.property_widget import TypeBase, TypeChoice
+from .widgets import *
+from sphinx_explorer.theme_dialog import HtmlThemeWidget
 # from qtpy.QtCore import *
 # from qtpy.QtGui import *
 from qtpy.QtWidgets import *
-from .util import python_venv
+from sphinx_explorer.util import python_venv
 
 
 # noinspection PyMethodOverriding,PyArgumentList
@@ -77,8 +78,6 @@ class TypeLanguage(TypeBase):
 
 # noinspection PyMethodOverriding
 class TypeHtmlTheme(TypeBase):
-    is_persistent_editor = True
-
     @classmethod
     def control(cls, _, parent):
         return HtmlThemeWidget(parent)
@@ -93,12 +92,42 @@ class TypeHtmlTheme(TypeBase):
 
 
 class TypePython(TypeChoice):
+    is_persistent_editor = True
+
     def __init__(self, value):
         super(TypePython, self).__init__(value)
 
+    def control(self, delegate, parent):
+        ctrl = PythonComboButton(parent)
+        self.setup_combo_box(ctrl.combo_box)
+        return ctrl
+
+    @staticmethod
+    def set_value(combo, value):
+        # type: (PythonComboButton, dict) -> None
+        combo.set_value(python_venv.VenvSetting(value))
+
+    def value(self, combo):
+        return combo.value()
+
+    # noinspection PyMethodOverriding
+    def data(self, value):
+        if value:
+            return super(TypePython, self).data(value.env)
+        return None
+
+    def filter(self, value):
+        return python_venv.VenvSetting(value)
+    
+    # noinspection PyMethodOverriding
+    def icon(self, value):
+        if value:
+            return super(TypePython, self).icon(value.env)
+        return None
+
     @classmethod
     def create(cls, params):
-        combo = TypeChoice.create(params)
+        combo = TypePython(params)
 
         project_path = params.get("project_path")
         extend_venv = []
@@ -106,27 +135,26 @@ class TypePython(TypeChoice):
             extend_venv += python_venv.search_venv(project_path, fullpath=True)
 
         choices = []
-        env_list, default_value = python_venv.sys_env.env_list(venv_list=extend_venv)
-        for key, env in env_list:
+        env_list = python_venv.sys_env.env_list(venv_list=extend_venv)
+        for i, (key, env) in enumerate(env_list):
             choices.append({
                 "text": str(env),
                 "value": key,
-                "icon": python_venv.ICON_DICT[env.type],
+                "icon": env.icon(),
             })
+
+            if python_venv.sys_env.default_key == key:
+                combo.default_index = i
 
         if params.get("is_project", False):
             choices.append({
                 "text": "Use Sphinx Explorer Default",
                 "value": None,
-                "icon": python_venv.ICON_DICT["sys"],
+                "icon": env.icon(),
             })
         combo.setup_choices(choices)
 
         return combo
 
-
-# noinspection PyTypeChecker
-def init():
-    register_value_type(TypeLanguage)
-    register_value_type(TypeHtmlTheme)
-    register_value_type(TypePython)
+    def sizeHint(self):
+        return PythonComboButton().sizeHint()

@@ -27,6 +27,13 @@ HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx-explorer")
 __version__ = 0.9
 
 
+# def setup(app):
+#     translator = QTranslator()
+#     # noinspection PyArgumentList
+#     translator.load("i18n/sphinx_explorer_{}".format(QLocale.system().name()))
+#     app.installTranslator(translator)
+
+
 def main():
     logging.basicConfig()
 
@@ -49,6 +56,9 @@ QLineEdit
     # noinspection PyArgumentList
     translator.load("i18n/sphinx_explorer_{}".format(QLocale.system().name()))
     app.installTranslator(translator)
+
+    # note: failed
+    # setup(app)
 
     sys_dir = os.path.dirname(sys.argv[0])
     window = MainWindow(sys_dir, HOME_DIR)

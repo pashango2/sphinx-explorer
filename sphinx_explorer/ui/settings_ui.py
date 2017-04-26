@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'settings.ui'
+# Form implementation generated from reading ui file '/home/toshiyuki/program/sphinx-explorer/sphinx_explorer/ui/settings.ui'
 #
 # Created by: PyQt5 UI code generator 5.8.2
 #
@@ -15,15 +15,6 @@ class Ui_Form(object):
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.button_open_home_dir = QtWidgets.QToolButton(Form)
-        self.button_open_home_dir.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        self.button_open_home_dir.setObjectName("button_open_home_dir")
-        self.horizontalLayout.addWidget(self.button_open_home_dir)
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem)
-        self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.splitter = QtWidgets.QSplitter(Form)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -58,11 +49,9 @@ class Ui_Form(object):
         self.stacked_widget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
         Form.setTabOrder(self.tree_view_category, self.property_widget)
-        Form.setTabOrder(self.property_widget, self.button_open_home_dir)
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
-        self.button_open_home_dir.setText(_translate("Form", "Open Setting Directory"))
 
 from ..property_widget import PropertyWidget

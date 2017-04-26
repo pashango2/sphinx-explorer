@@ -15,18 +15,16 @@ import toml
 from six import PY2
 
 from sphinx_explorer.ui.main_window_ui import Ui_MainWindow
-from . import icon
+from sphinx_explorer.util import icon
 from . import plugin
 from . import property_widget
 from . import sphinx_value_types
-from .pip_manager import PackageModel, PipListTask
+from .pip_manager import PackageModel
 from .project_list_model import ProjectListModel, ProjectItem, ProjectSettingDialog
 from .system_settings import SystemSettingsDialog, SystemSettings
 from .task import SystemInitTask, push_task
 from .util import python_venv
-from .util.exec_sphinx import command
-from .util.exec_sphinx import launch, make_command
-from .wizard import quickstart_wizard, apidoc_wizard
+from .wizard import quickstart_wizard
 from .package_mgr_dlg import PackageManagerDlg
 from .util.commander import commander
 
@@ -83,43 +81,32 @@ class MainWindow(QMainWindow):
         self.show_act = self._act("open_folder", self.tr("Open Directory"), self._show_directory)
         self.terminal_act = self._act("terminal", self.tr("Open Terminal"), self._open_terminal)
         self.auto_build_act = self._act("reload", self.tr("Auto Build"), self._auto_build)
-        self.apidoc_act = self._act("update", self.tr("Update sphinx-apidoc"), self._apidoc)
+        self.update_apidoc_act = self._act("update", self.tr("Update sphinx-apidoc"), self._update_apidoc)
         self.open_html_act = self._act("chrome", self.tr("Open browser"), self._open_browser)
         self.copy_path_act = self._act("clippy", self.tr("Copy Path"), self._on_copy_path)
         self.project_setting_act = self._act("setting", self.tr("Project Setting"), self._project_setting)
-        self.package_mgr_act = self._act("package", self.tr("Package Manager"), self._package_manager)
 
         self.close_act = self._act(None, self.tr("Exit"), self.close)
         self.make_html_act = self._act(None, self.tr("HTML"), self._on_make_html)
         self.make_epub_act = self._act(None, self.tr("Epub"), self._on_make_epub)
+        self.make_latex_pdf_act = self._act(None, self.tr("LaTex PDF"), self._on_make_latex_pdf)
 
         # setup ui
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        # create models
         self.project_list_model = ProjectListModel(parent=self)
-        self.project_list_model.autoBuildRequested.connect(self.onAutoBuildRequested)
-
-        # package model
         self.package_model = PackageModel(self)
-
-        task = PipListTask(commander=commander, parent=self)
-        self.package_mgr_act.setEnabled(False)
-        task.finished.connect(self._on_pip_list_loaded)
-        push_task(task)
 
         # setup file menu
         self.ui.menuFile_F.addSeparator()
         self.ui.menuFile_F.addAction(self.close_act)
 
-        # setup tool bar
-        self.ui.toolBar.addAction(self.package_mgr_act)
-
         # setup icon
         self.ui.action_add_document.setIcon(icon.load("plus"))
         self.ui.action_settings.setIcon(icon.load("setting"))
         self.ui.action_wizard.setIcon(icon.load("magic"))
-        self.ui.action_apidoc.setIcon(icon.load("book"))
         self.ui.action_move_up.setIcon(icon.load("arrow_up"))
         self.ui.action_move_down.setIcon(icon.load("arrow_down"))
         self.ui.action_delete_document.setIcon(icon.load("remove"))
@@ -130,6 +117,7 @@ class MainWindow(QMainWindow):
         self.ui.button_down.setDefaultAction(self.ui.action_move_down)
         self.ui.button_del.setDefaultAction(self.ui.action_delete_document)
 
+        self.ui.action_delete_document.setShortcut(QKeySequence.Delete)
         self.ui.action_delete_document.setShortcutContext(Qt.WidgetShortcut)
         self.ui.action_move_up.setShortcutContext(Qt.WidgetShortcut)
         self.ui.action_move_down.setShortcutContext(Qt.WidgetShortcut)
@@ -138,11 +126,6 @@ class MainWindow(QMainWindow):
 
         # connect
         self.ui.action_reload.triggered.connect(self.reload)
-
-        # setup quick start menu
-        self.quick_start_menu = QMenu(self)
-        self.quick_start_menu.addAction(self.ui.action_wizard)
-        self.quick_start_menu.addAction(self.ui.action_apidoc)
 
         # setup project tree view
         self.ui.tree_view_projects.addAction(self.ui.action_move_up)
@@ -196,6 +179,7 @@ class MainWindow(QMainWindow):
             down_icon=icon.load("arrow_down"),
             delete_icon=icon.load("remove"),
             cog_icon=icon.load("cog"),
+            open_dir_icon=icon.load("open_folder"),
         )
 
         python_venv.ICON_DICT["sys"] = icon.load("python")
@@ -215,13 +199,6 @@ class MainWindow(QMainWindow):
 
     def _on_task_message(self, msg, timeout=3000):
         self.ui.statusbar.showMessage(msg, timeout)
-
-    @Slot()
-    def _on_pip_list_loaded(self):
-        sender = self.sender()
-        if isinstance(sender, PipListTask):
-            self.package_mgr_act.setEnabled(True)
-            self.package_model.load(sender.packages)
 
     @staticmethod
     def _on_system_init_finished(env):
@@ -259,7 +236,7 @@ class MainWindow(QMainWindow):
         self.open_act.setData(doc_path)
         self.show_act.setData(doc_path)
         self.terminal_act.setData(doc_path)
-        self.apidoc_act.setData(item.index() if can_apidoc else None)
+        self.update_apidoc_act.setData(item.index() if can_apidoc else None)
         self.auto_build_act.setData(item.index())
         self.make_html_act.setData(item.index())
         self.open_html_act.setData(item.index())
@@ -279,13 +256,14 @@ class MainWindow(QMainWindow):
         make_menu = QMenu(self)
         make_menu.addAction(self.make_html_act)
         make_menu.addAction(self.make_epub_act)
+        make_menu.addAction(self.make_latex_pdf_act)
         make_menu.setTitle("Make")
         menu.addMenu(make_menu)
 
         menu.addSeparator()
 
         if can_apidoc:
-            menu.addAction(self.apidoc_act)
+            menu.addAction(self.update_apidoc_act)
 
         menu.addAction(self.open_html_act)
         menu.addAction(self.auto_build_act)
@@ -345,29 +323,32 @@ class MainWindow(QMainWindow):
 
     def _on_make_html(self):
         # type: () -> None
-        index = self.ui.tree_view_projects.currentIndex()
-        if index and index.isValid():
-            item = self.project_list_model.itemFromIndex(index)
-            self._make("html", item)
+        self._make("html", self.ui.tree_view_projects.currentIndex())
 
     def _on_make_epub(self):
         # type: () -> None
-        index = self.ui.tree_view_projects.currentIndex()
-        if index and index.isValid():
-            item = self.project_list_model.itemFromIndex(index)
-            self._make("epub", item)
+        self._make("epub", self.ui.tree_view_projects.currentIndex())
 
-    def _make(self, make_cmd, project_item, callback=None):
+    def _on_make_latex_pdf(self):
+        # type: () -> None
+        self._make("latexpdf", self.ui.tree_view_projects.currentIndex())
+
+    def _make(self, make_cmd, index, callback=None):
+        if index and index.isValid():
+            project_item = self.project_list_model.itemFromIndex(index)
+        else:
+            return
+
         cwd = project_item.path()
-        venv_info = project_item.venv_info() or self.settings.venv_info()
+        venv_setting = project_item.venv_setting() or self.settings.venv_setting()
         venv_cmd = [
-            python_venv.get_path(venv_info, cwd),
-            make_command(make_cmd, cwd)
+            python_venv.activate_command(venv_setting, cwd),
+            commander.make_command(make_cmd, cwd)
         ]
         venv_cmd = [x for x in venv_cmd if x]
 
         self.ui.plain_output.exec_command(
-            command(" & ".join(venv_cmd)),
+            commander(" ; ".join(venv_cmd)),
             cwd,
             clear=True,
             callback=callback
@@ -413,6 +394,19 @@ class MainWindow(QMainWindow):
                 os.path.normpath(item.path())
             )
 
+    def _update_apidoc(self):
+        # type: () -> None
+        index = self.ui.tree_view_projects.currentIndex()
+        if not index.isValid():
+            return
+
+        item = self.project_list_model.itemFromIndex(index)  # type: ProjectItem
+        if item:
+            self.ui.plain_output.clear()
+            cmd, cwd = item.update_apidoc_command()
+            if cmd:
+                self.ui.plain_output.exec_command(cmd, cwd)
+
     def _open_browser(self):
         # type: () -> None
         index = self.ui.tree_view_projects.currentIndex()
@@ -424,7 +418,7 @@ class MainWindow(QMainWindow):
             if not item.has_html():
                 html_path = item.html_path()
                 if html_path:
-                    self._make("html", item, lambda: webbrowser.open(html_path))
+                    self._make("html", index, lambda: webbrowser.open(html_path))
             else:
                 html_path = item.html_path()
                 if os.path.isfile(html_path):
@@ -437,22 +431,6 @@ class MainWindow(QMainWindow):
             # noinspection PyArgumentList
             clipboard = QApplication.clipboard()
             clipboard.setText(path)
-
-    def _apidoc(self):
-        # type: () -> None
-        index = self.sender().data()
-        if not index.isValid():
-            return
-
-        item = self.project_list_model.itemFromIndex(index)  # type: ProjectItem
-        if item:
-            self.ui.plain_output.clear()
-            item.apidoc_update(self.ui.plain_output)
-
-    @Slot(str, QStandardItem)
-    def onAutoBuildRequested(self, cmd, _):
-        # self.ui.plain_output.exec_command(cmd)
-        launch(cmd)
 
     @Slot()
     def on_action_settings_triggered(self):
@@ -476,13 +454,6 @@ class MainWindow(QMainWindow):
             self.settings.default_values,
             self
         )
-        wizard.addDocumentRequested.connect(self.add_document)
-        wizard.exec_()
-
-    @Slot()
-    def on_action_apidoc_triggered(self):
-        # () -> None
-        wizard = apidoc_wizard.create_wizard(self.params_dict, self.settings.default_values, self)
         wizard.addDocumentRequested.connect(self.add_document)
         wizard.exec_()
 
@@ -518,7 +489,7 @@ class MainWindow(QMainWindow):
             result = QMessageBox.question(
                 self,
                 self.windowTitle(),
-                self.tr("Remove Document?"),
+                self.tr("Remove the document from list?"),
                 QMessageBox.Yes | QMessageBox.No,
             )
             if result == QMessageBox.Yes:

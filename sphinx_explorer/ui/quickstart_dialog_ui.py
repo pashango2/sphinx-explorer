@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'quickstart_dialog.ui'
+# Form implementation generated from reading ui file '/home/toshiyuki/program/sphinx-explorer/sphinx_explorer/ui/quickstart_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.8.2
 #
@@ -82,4 +82,4 @@ class Ui_Dialog(object):
         self.action_export.setText(_translate("Dialog", "Export"))
         self.action_export.setToolTip(_translate("Dialog", "Export"))
 
-from sphinx_explorer.property_widget import PropertyWidget
+from ..property_widget import PropertyWidget

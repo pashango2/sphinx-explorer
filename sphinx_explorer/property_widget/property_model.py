@@ -85,17 +85,16 @@ class FlatTableModel(QAbstractProxyModel):
     def dump(self, *args, **kwargs):
         return self.sourceModel().dump(*args, **kwargs)
 
-    # def flags(self, index):
-    #     flags = super(FlatTableModel, self).flags(self.mapToSource(index))
-    #     return flags
-
 
 class PropertyModel(QStandardItemModel):
     PrefixRe = re.compile(r"(^[#*-]*)\s*(.*)")
 
     def __init__(self, parent=None):
         super(PropertyModel, self).__init__(parent)
-        self.setHorizontalHeaderLabels(["Property", "Value"])
+        self.setHorizontalHeaderLabels([
+            self.tr("Property"),
+            self.tr("Value")
+        ])
         self._default_dict = DefaultValues()
         self._use_default = False
         self.required_flag = True
@@ -249,11 +248,11 @@ class PropertyModel(QStandardItemModel):
             return item
         return None
 
-    def get(self, keys):
+    def get(self, keys, root_index=QModelIndex()):
         if isinstance(keys, string_types):
             keys = keys.split(".")
 
-        parent = self.invisibleRootItem()
+        parent = self.itemFromIndex(root_index) if root_index.isValid() else self.invisibleRootItem()
         for key in keys:
             for row in range(parent.rowCount()):
                 item = parent.child(row)    # type: PropertyItem
@@ -264,24 +263,6 @@ class PropertyModel(QStandardItemModel):
                 return None
 
         return parent
-
-    # def default_value(self, key):
-    #     # (string_types) -> any
-    #     return self._default_dict.get(key)
-    #
-    # def set_default_value(self, key, value, update=True):
-    #     # type: (string_types, any, bool) -> None
-    #     if not update and key in self._default_dict:
-    #         return
-    #     self._default_dict.set_default_value(key, value)
-    #
-    # def set_default_dict(self, default_dict):
-    #     # (dict) -> None
-    #     if isinstance(default_dict, DefaultValues):
-    #         self._default_dict = default_dict
-    #     elif isinstance(default_dict, dict):
-    #         self._default_dict = DefaultValues(default_dict)
-    #     self._use_default = bool(default_dict)
 
     def set_values(self, values, root=None):
         root = root or self.invisibleRootItem()
@@ -360,6 +341,14 @@ class PropertyModel(QStandardItemModel):
             index = index.sibling(index.row() + 1, index.column())
             if not index.isValid():
                 break
+
+    def data(self, index, role=Qt.DisplayRole):
+        if index.isValid() and role == Qt.ToolTipRole:
+            if index.column() == 1:
+                index = index.sibling(index.row(), 0)
+                return index.data(role)
+
+        return super(PropertyModel, self).data(index, role)
 
     def dump(self, store_none=False, flat=False, exclude_default=False):
         obj_map = {}
@@ -452,6 +441,7 @@ class PropertyItem(BaseItem):
         self.required = params.get("required", False)
         self.require_input = params.get("require_input", False)
         self.link_format = params.get("link_format")
+        self.replace_space = params.get("replace_space")
         self.params = params
 
         # value type
@@ -536,7 +526,11 @@ class PropertyItem(BaseItem):
                 "_default": default_value,
             }
             for item in self._links:
-                d[item.key] = item.value if item.value else ""
+                value = item.value if item.value else ""
+                if self.replace_space is not None:
+                    value = value.replace(" ", self.replace_space)
+                    value = value.replace("　", self.replace_space)
+                d[item.key] = value
 
             try:
                 cache = self.link.format(**d)

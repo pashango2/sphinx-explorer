@@ -10,6 +10,8 @@ label = "Root path"
 value_type = "TypeDirPath"
 link="{_default}/{project}"
 required = true
+replace_space = "_"
+
 
 description = """
 Root path for documentation.
