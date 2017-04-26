@@ -441,6 +441,7 @@ class PropertyItem(BaseItem):
         self.required = params.get("required", False)
         self.require_input = params.get("require_input", False)
         self.link_format = params.get("link_format")
+        self.replace_space = params.get("replace_space")
         self.params = params
 
         # value type
@@ -525,7 +526,11 @@ class PropertyItem(BaseItem):
                 "_default": default_value,
             }
             for item in self._links:
-                d[item.key] = item.value if item.value else ""
+                value = item.value if item.value else ""
+                if self.replace_space is not None:
+                    value = value.replace(" ", self.replace_space)
+                    value = value.replace("　", self.replace_space)
+                d[item.key] = value
 
             try:
                 cache = self.link.format(**d)

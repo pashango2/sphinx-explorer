@@ -13,10 +13,9 @@ import json
 import fnmatch
 import platform
 import subprocess
-import glob
 from collections import OrderedDict
 from six import string_types
-from .commander import commander, quote
+from .commander import commander
 
 ICON_DICT = {
     "sys": None,
@@ -133,8 +132,6 @@ class PythonVEnv(object):
         pass
 
 
-
-
 class Env(object):
     @staticmethod
     def from_key(key):
@@ -215,9 +212,6 @@ class Env(object):
             return Env(*json.loads(s))
         except ValueError:
             return None
-
-
-
 
 
 sys_env = PythonVEnv()
@@ -310,5 +304,3 @@ def activate_command(venv_setting, cwd=None):
 
     env = Env.from_key(venv_setting.env)
     return env.command(cwd)
-
-
