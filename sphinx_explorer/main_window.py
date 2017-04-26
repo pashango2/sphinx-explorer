@@ -19,7 +19,7 @@ from sphinx_explorer.util import icon
 from . import plugin
 from . import property_widget
 from . import sphinx_value_types
-from .pip_manager import PackageModel, PipListTask
+from .pip_manager import PackageModel
 from .project_list_model import ProjectListModel, ProjectItem, ProjectSettingDialog
 from .system_settings import SystemSettingsDialog, SystemSettings
 from .task import SystemInitTask, push_task
@@ -179,6 +179,7 @@ class MainWindow(QMainWindow):
             down_icon=icon.load("arrow_down"),
             delete_icon=icon.load("remove"),
             cog_icon=icon.load("cog"),
+            open_dir_icon=icon.load("open_folder"),
         )
 
         python_venv.ICON_DICT["sys"] = icon.load("python")

@@ -5,7 +5,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import os
 
 from qtpy.QtCore import *
-# from qtpy.QtGui import *
+from qtpy.QtGui import *
 from qtpy.QtWidgets import *
 from six import string_types
 
@@ -121,6 +121,10 @@ class TypeDirPath(TypeBase):
         if default_value is None:
             return link_value
         return os.path.join(default_value, link_value)
+
+    @classmethod
+    def sizeHint(cls):
+        return QSize(-1, 28)
 
 
 class TypeRelDirPath(TypeDirPath):

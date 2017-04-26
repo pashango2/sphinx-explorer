@@ -147,6 +147,9 @@ class RefButtonWidget(QFrame):
         self.line_edit = QLineEdit(self)
         self.ref_button = QToolButton(self)
         self.ref_button.setText("...")
+        if not define.OPEN_DIR_ICON.isNull():
+            self.ref_button.setIcon(define.OPEN_DIR_ICON)
+
         self.ref_button.setAutoRaise(False)
         self.ref_button.setContentsMargins(0, 0, 0, 0)
 
