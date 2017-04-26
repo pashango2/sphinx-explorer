@@ -78,9 +78,10 @@ class QuickstartExecCommandPage(ExecCommandPage):
 
         template_item = self.wizard().template_item
         was_apidoc = template_item.was_apidoc() if template_item else False
+        mastertoctree = "   modules" if was_apidoc else None
 
         settings = self.dump()
-        quick_start_cmd = quickstart.quickstart_cmd(settings)
+        quick_start_cmd = quickstart.quickstart_cmd(settings, mastertoctree=mastertoctree)
 
         if was_apidoc:
             apidoc_cmd = quickstart.apidoc_cmd(settings)

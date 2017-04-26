@@ -199,7 +199,7 @@ class PropertyWidget(QTableView):
     def description(self, index):
         # type: (QModelIndex) -> str or None
         if not index.isValid():
-            return None
+            return None, None
 
         index = index.sibling(index.row(), 0)
         item = self._model.itemFromIndex(index)

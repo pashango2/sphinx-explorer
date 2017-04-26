@@ -18,7 +18,7 @@ build_dir = '{rbuilddir}'
 """.strip()
 
 
-def quickstart_cmd(d):
+def quickstart_cmd(d, mastertoctree=None):
     # type: (dict) -> string_types
     ignore_params = ["project", "prefix", "path", "version", "release"]
     arrow_extension = [
@@ -45,7 +45,7 @@ def quickstart_cmd(d):
             continue
 
         if key == "html_theme":
-            opts.append("-d " + key + "=" + quote(value))
+            opts.extend(["-d", key + "=" + quote(value)])
             continue
 
         if key.startswith("ext-") and key not in arrow_extension:
@@ -69,6 +69,10 @@ def quickstart_cmd(d):
         cmd += ["-v", d["version"]]
     if d.get("release"):
         cmd += ["-r", d["release"]]
+
+    if mastertoctree:
+        cmd += ["-d", "mastertoctree={}".format(mastertoctree)]
+
     cmd += opts + [d["path"]]
 
     return commander(cmd)
