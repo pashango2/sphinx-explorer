@@ -19,6 +19,7 @@ from .plugin import extension, editor
 from .property_widget import TypeChoice, PropertyModel
 from .util import python_venv
 from .util.commander import commander
+from sphinx_explorer.sphinx_value_types.pages import PythonInterpreterWidget
 
 logger = logging.getLogger(__name__)
 
@@ -213,6 +214,13 @@ class SystemSettingsDialog(QDialog):
         if item:
             if item.key == "Extensions":
                 self.ui.stacked_widget.setCurrentIndex(1)
+            elif item.key == "Python Interpreter":
+                if self.ui.stacked_widget.count() == 2:
+                    widget = PythonInterpreterWidget(self)
+                    root_item = self.property_model.get(item.tree_key())
+                    widget.setup(self.property_model, root_item.index())
+                    self.ui.stacked_widget.addWidget(widget)
+                self.ui.stacked_widget.setCurrentIndex(2)
             else:
                 self.ui.stacked_widget.setCurrentIndex(0)
                 root_item = self.property_model.get(item.tree_key())

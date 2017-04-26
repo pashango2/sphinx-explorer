@@ -85,7 +85,6 @@ class MainWindow(QMainWindow):
         self.open_html_act = self._act("chrome", self.tr("Open browser"), self._open_browser)
         self.copy_path_act = self._act("clippy", self.tr("Copy Path"), self._on_copy_path)
         self.project_setting_act = self._act("setting", self.tr("Project Setting"), self._project_setting)
-        self.package_mgr_act = self._act("package", self.tr("Package Manager"), self._package_manager)
 
         self.close_act = self._act(None, self.tr("Exit"), self.close)
         self.make_html_act = self._act(None, self.tr("HTML"), self._on_make_html)
@@ -103,9 +102,6 @@ class MainWindow(QMainWindow):
         # setup file menu
         self.ui.menuFile_F.addSeparator()
         self.ui.menuFile_F.addAction(self.close_act)
-
-        # setup tool bar
-        self.ui.toolBar.addAction(self.package_mgr_act)
 
         # setup icon
         self.ui.action_add_document.setIcon(icon.load("plus"))
@@ -201,11 +197,6 @@ class MainWindow(QMainWindow):
         task.finished.connect(self._on_system_init_finished)
         push_task(task)
 
-        task = PipListTask(commander=commander, parent=self)
-        self.package_mgr_act.setEnabled(False)
-        task.finished.connect(self._on_pip_list_loaded)
-        push_task(task)
-
         # setup end
         self.setAcceptDrops(True)
         self._setup()
@@ -213,13 +204,6 @@ class MainWindow(QMainWindow):
 
     def _on_task_message(self, msg, timeout=3000):
         self.ui.statusbar.showMessage(msg, timeout)
-
-    @Slot()
-    def _on_pip_list_loaded(self):
-        sender = self.sender()
-        if isinstance(sender, PipListTask):
-            self.package_mgr_act.setEnabled(True)
-            self.package_model.load(sender.packages)
 
     @staticmethod
     def _on_system_init_finished(env):

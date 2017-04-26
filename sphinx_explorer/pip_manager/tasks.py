@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class PipListTask(QObject):
-    finished = Signal()
+    finished = Signal(list)
     PARSE_RE = re.compile(r"([^\s]+)\s+\(([^\s]+)\)")
 
     def __init__(self, commander=Commander(), callback=None, parent=None):
@@ -40,7 +40,7 @@ class PipListTask(QObject):
             for package, version in PipListTask.filter(output):
                 self.packages.append((package, version))
 
-        self.finished.emit()
+        self.finished.emit(self.packages)
 
 
 class PipListOutDateTask(QObject):
