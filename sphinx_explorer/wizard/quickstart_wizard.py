@@ -46,6 +46,7 @@ class ChoiceTemplatePage(QWizardPage):
     def validatePage(self):
         wizard = self.wizard()
         wizard.create_template_page(self.choice())
+        wizard.template_item = self.choice()
         return True
 
     def _on_double_clicked(self, _):
@@ -75,8 +76,18 @@ class QuickstartExecCommandPage(ExecCommandPage):
     def exec_(self):
         super(QuickstartExecCommandPage, self).exec_()
 
+        template_item = self.wizard().template_item
+        was_apidoc = template_item.was_apidoc() if template_item else False
+
         settings = self.dump()
-        cmd = quickstart.quickstart_cmd(settings)
+        quick_start_cmd = quickstart.quickstart_cmd(settings)
+
+        if was_apidoc:
+            apidoc_cmd = quickstart.apidoc_cmd(settings)
+            cmd = [quick_start_cmd, apidoc_cmd]
+        else:
+            cmd = quick_start_cmd
+
         self.exec_command(cmd)
 
     def setModel(self, model):
@@ -84,8 +95,11 @@ class QuickstartExecCommandPage(ExecCommandPage):
 
     def finished(self, return_code):
         if return_code == 0:
+            template_item = self.wizard().template_item
+            was_apidoc = template_item.was_apidoc() if template_item else False
+
             params = self.dump()
-            quickstart.fix(params, self.wizard().default_values, self.cmd)
+            quickstart.fix(params, self.wizard().default_values, self.cmd, was_apidoc)
 
         super(QuickstartExecCommandPage, self).finished(return_code)
 
@@ -104,6 +118,7 @@ class QuickStartWizard(BaseWizard):
         self.page_dict = {}
         self.page_list = []
         self.finish_page = self.create_final_page()
+        self.template_item = None
 
     def setTemplateModel(self, template_model):
         self.setPage(self.START_PAGE, ChoiceTemplatePage(template_model, self))

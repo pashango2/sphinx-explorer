@@ -105,7 +105,7 @@ class ProjectListModel(QStandardItemModel):
             return
 
         item = self.itemFromIndex(index)
-        item.setInfo(settings)
+        item.setSettings(settings)
         if settings.is_valid():
             item.setIcon(icon.load("book"))
             self.projectLoaded.emit(item.index())
@@ -182,37 +182,16 @@ class ProjectItem(QStandardItem):
             return cmd
         return None
 
-    def apidoc_update(self, output_widget):
-        # type: (QConsoleWidget) -> None
+    def update_apidoc_command(self):
+        # type: () -> (list, string_types)
         module_dir = self.settings.module_dir
         if not module_dir or not self.settings.source_dir:
-            return
+            return None
 
-        project_dir = self.path()
-        source_dir = os.path.join(project_dir, self.settings.source_dir)
-        module_dir = os.path.join(source_dir, module_dir)
-        cmd = self.api_update_cmd(
-            module_dir,
-            source_dir,
-            {}
-        )
+        cmd = self.settings.update_apidoc_command(self.path())
+        return cmd, self.settings.source_dir
 
-        output_widget.exec_command(cmd, cwd=self.settings.source_dir)
-
-    @staticmethod
-    def api_update_cmd(source_dir, output_dir, settings):
-        # type: (string_types, string_types, dict, string_types or None) -> int
-        command = [
-                      "sphinx-apidoc",
-                      source_dir,
-                      "-o", output_dir,
-                      # "-e" if settings.get("separate", True) else "",
-                      "-f",
-                  ] + settings.get("pathnames", [])
-
-        return commander(command)
-
-    def setInfo(self, settings):
+    def setSettings(self, settings):
         # type: (ProjectSettings) -> None
         self.setText(settings.project)
         self.settings = settings
@@ -244,33 +223,43 @@ class ProjectSettings(object):
         self._analyze()
 
     @staticmethod
-    def save(project_path, source_dir, build_dir, project, module_dir=None, cmd=None):
+    def create_apidoc_dict(module_dir, separate=False, private_member=False, pathnames=None):
+        if module_dir is None:
+            return None
+
+        d = {"module_dir": module_dir}
+        if separate:
+            d["separate"] = separate
+        if private_member:
+            d["private_member"] = private_member
+        if pathnames:
+            d["pathnames"] = pathnames
+
+        return d
+
+    @staticmethod
+    def save(project_path, source_dir, build_dir, apidoc=None, cmd=None):
         setting_path = os.path.join(project_path, ProjectSettings.SETTING_NAME)
         setting_obj = ProjectSettings.dump(
             source_dir,
             build_dir,
-            project,
-            module_dir,
+            apidoc,
             cmd
         )
         with open(setting_path, "w") as fd:
             toml.dump(setting_obj, fd)
 
     @staticmethod
-    def dump(source_dir, build_dir, project, module_dir=None, cmd=None):
+    def dump(source_dir, build_dir, apidoc=None, cmd=None):
         d = {
             "source_dir": source_dir,
             "build_dir": build_dir,
         }
-        if project:
-            d["project"] = project
         if cmd:
             d["command"] = cmd
 
-        if module_dir:
-            d["apidoc"] = {
-                "module_dir": module_dir,
-            }
+        if apidoc:
+            d["apidoc"] = apidoc
         return d
 
     def store(self):
@@ -338,6 +327,24 @@ class ProjectSettings(object):
             return self.settings["apidoc"].get("module_dir")
         except KeyError:
             return ""
+
+    def update_apidoc_command(self, project_dir):
+        if not self.module_dir:
+            return []
+
+        source_dir = os.path.join(project_dir, self.source_dir)
+        module_dir = os.path.join(source_dir, self.module_dir)
+        apidoc_dict = self.settings.get("apidoc", {})
+
+        command = [
+            "sphinx-apidoc",
+            module_dir,
+            "-o", source_dir,
+            "-e" if apidoc_dict.get("separate", False) else "",
+            "-P" if apidoc_dict.get("private_member", False) else "",
+        ] + apidoc_dict.get("pathnames", [])
+
+        return commander(command)
 
     def can_apidoc(self):
         # type: () -> bool

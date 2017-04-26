@@ -24,7 +24,7 @@ from .project_list_model import ProjectListModel, ProjectItem, ProjectSettingDia
 from .system_settings import SystemSettingsDialog, SystemSettings
 from .task import SystemInitTask, push_task
 from .util import python_venv
-from .wizard import quickstart_wizard, apidoc_wizard
+from .wizard import quickstart_wizard
 from .package_mgr_dlg import PackageManagerDlg
 from .util.commander import commander
 
@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
         self.show_act = self._act("open_folder", self.tr("Open Directory"), self._show_directory)
         self.terminal_act = self._act("terminal", self.tr("Open Terminal"), self._open_terminal)
         self.auto_build_act = self._act("reload", self.tr("Auto Build"), self._auto_build)
-        self.apidoc_act = self._act("update", self.tr("Update sphinx-apidoc"), self._apidoc)
+        self.update_apidoc_act = self._act("update", self.tr("Update sphinx-apidoc"), self._update_apidoc)
         self.open_html_act = self._act("chrome", self.tr("Open browser"), self._open_browser)
         self.copy_path_act = self._act("clippy", self.tr("Copy Path"), self._on_copy_path)
         self.project_setting_act = self._act("setting", self.tr("Project Setting"), self._project_setting)
@@ -107,7 +107,6 @@ class MainWindow(QMainWindow):
         self.ui.action_add_document.setIcon(icon.load("plus"))
         self.ui.action_settings.setIcon(icon.load("setting"))
         self.ui.action_wizard.setIcon(icon.load("magic"))
-        self.ui.action_apidoc.setIcon(icon.load("book"))
         self.ui.action_move_up.setIcon(icon.load("arrow_up"))
         self.ui.action_move_down.setIcon(icon.load("arrow_down"))
         self.ui.action_delete_document.setIcon(icon.load("remove"))
@@ -127,11 +126,6 @@ class MainWindow(QMainWindow):
 
         # connect
         self.ui.action_reload.triggered.connect(self.reload)
-
-        # setup quick start menu
-        self.quick_start_menu = QMenu(self)
-        self.quick_start_menu.addAction(self.ui.action_wizard)
-        self.quick_start_menu.addAction(self.ui.action_apidoc)
 
         # setup project tree view
         self.ui.tree_view_projects.addAction(self.ui.action_move_up)
@@ -241,7 +235,7 @@ class MainWindow(QMainWindow):
         self.open_act.setData(doc_path)
         self.show_act.setData(doc_path)
         self.terminal_act.setData(doc_path)
-        self.apidoc_act.setData(item.index() if can_apidoc else None)
+        self.update_apidoc_act.setData(item.index() if can_apidoc else None)
         self.auto_build_act.setData(item.index())
         self.make_html_act.setData(item.index())
         self.open_html_act.setData(item.index())
@@ -268,7 +262,7 @@ class MainWindow(QMainWindow):
         menu.addSeparator()
 
         if can_apidoc:
-            menu.addAction(self.apidoc_act)
+            menu.addAction(self.update_apidoc_act)
 
         menu.addAction(self.open_html_act)
         menu.addAction(self.auto_build_act)
@@ -399,6 +393,19 @@ class MainWindow(QMainWindow):
                 os.path.normpath(item.path())
             )
 
+    def _update_apidoc(self):
+        # type: () -> None
+        index = self.ui.tree_view_projects.currentIndex()
+        if not index.isValid():
+            return
+
+        item = self.project_list_model.itemFromIndex(index)  # type: ProjectItem
+        if item:
+            self.ui.plain_output.clear()
+            cmd, cwd = item.update_apidoc_command()
+            if cmd:
+                self.ui.plain_output.exec_command(cmd, cwd)
+
     def _open_browser(self):
         # type: () -> None
         index = self.ui.tree_view_projects.currentIndex()
@@ -424,17 +431,6 @@ class MainWindow(QMainWindow):
             clipboard = QApplication.clipboard()
             clipboard.setText(path)
 
-    def _apidoc(self):
-        # type: () -> None
-        index = self.sender().data()
-        if not index.isValid():
-            return
-
-        item = self.project_list_model.itemFromIndex(index)  # type: ProjectItem
-        if item:
-            self.ui.plain_output.clear()
-            item.apidoc_update(self.ui.plain_output)
-
     @Slot()
     def on_action_settings_triggered(self):
         dlg = SystemSettingsDialog(self)
@@ -457,13 +453,6 @@ class MainWindow(QMainWindow):
             self.settings.default_values,
             self
         )
-        wizard.addDocumentRequested.connect(self.add_document)
-        wizard.exec_()
-
-    @Slot()
-    def on_action_apidoc_triggered(self):
-        # () -> None
-        wizard = apidoc_wizard.create_wizard(self.params_dict, self.settings.default_values, self)
         wizard.addDocumentRequested.connect(self.add_document)
         wizard.exec_()
 

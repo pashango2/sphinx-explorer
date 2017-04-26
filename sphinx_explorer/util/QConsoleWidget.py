@@ -20,6 +20,8 @@ class QConsoleWidget(QTextEdit):
     finished = Signal(int)
 
     COMMAND_COLOR = QColor("#706caa")
+    FINISH_COLOR = QColor("#38b48b")
+    ERROR_COLOR = QColor("#eb6ea5")
 
     # noinspection PyUnresolvedReferences
     def __init__(self, parent=None):
@@ -81,6 +83,20 @@ class QConsoleWidget(QTextEdit):
                 cwd = cwd.encode(sys.getfilesystemencoding())
             self._process.setWorkingDirectory(cwd)
 
+        if isinstance(cmd, (list, tuple)):
+            self.queue = cmd
+        else:
+            self.queue = [cmd]
+
+        self.callback = callback
+
+        self.push_cmd()
+
+    def push_cmd(self):
+        if not self.queue:
+            return
+
+        cmd = self.queue.pop(0)
         if six.PY2:
             cmd = cmd.encode(sys.getfilesystemencoding())
             output_cmd = b"> " + cmd + b"\n"
@@ -88,7 +104,6 @@ class QConsoleWidget(QTextEdit):
             output_cmd = "> " + cmd + "\n"
 
         self._output(output_cmd, self.COMMAND_COLOR)
-        self.callback = callback
         self._process.start(cmd)
 
     @Slot()
@@ -127,8 +142,17 @@ class QConsoleWidget(QTextEdit):
     @Slot(int, QProcess.ExitStatus)
     def _on_finished(self, ret_code, _exit_status):
         if ret_code == 0:
-            if self.callback:
-                self.callback()
+            if self.queue:
+                self.push_cmd()
+                return
+            else:
+                if self.callback:
+                    self.callback()
+
+        self._output(
+            "\nProcess finished with exit code {}".format(ret_code),
+            self.FINISH_COLOR if ret_code == 0 else self.ERROR_COLOR
+        )
 
         self.finished.emit(ret_code)
 
