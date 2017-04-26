@@ -185,7 +185,7 @@ class SystemSettingsDialog(QDialog):
         self.open_setting_dir_button.setText(self.tr("Open Setting Directory"))
 
         self.layout = QVBoxLayout(self)
-        self.h_layout = QHBoxLayout(self)
+        self.h_layout = QHBoxLayout()
         self.h_layout.addWidget(self.open_setting_dir_button)
         self.h_layout.addWidget(self._buttons)
         self.layout.addWidget(self.widget)
