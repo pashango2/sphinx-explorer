@@ -108,7 +108,7 @@ class TypePython(TypeChoice):
         combo.set_value(python_venv.VenvSetting(value))
 
     def value(self, combo):
-        return combo.venv_setting
+        return combo.value()
 
     # noinspection PyMethodOverriding
     def data(self, value):
@@ -135,22 +135,22 @@ class TypePython(TypeChoice):
             extend_venv += python_venv.search_venv(project_path, fullpath=True)
 
         choices = []
-        env_list, default_value = python_venv.sys_env.env_list(venv_list=extend_venv)
+        env_list = python_venv.sys_env.env_list(venv_list=extend_venv)
         for i, (key, env) in enumerate(env_list):
             choices.append({
                 "text": str(env),
                 "value": key,
-                "icon": python_venv.ICON_DICT[env.type],
+                "icon": env.icon(),
             })
 
-            if default_value == key:
+            if python_venv.sys_env.default_key == key:
                 combo.default_index = i
 
         if params.get("is_project", False):
             choices.append({
                 "text": "Use Sphinx Explorer Default",
                 "value": None,
-                "icon": python_venv.ICON_DICT["sys"],
+                "icon": env.icon(),
             })
         combo.setup_choices(choices)
 

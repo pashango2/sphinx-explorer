@@ -225,8 +225,8 @@ class ProjectItem(QStandardItem):
         # type: () -> bool
         return self.settings.can_apidoc()
 
-    def venv_info(self):
-        return self.settings.venv_info()
+    def venv_setting(self):
+        return self.settings.venv_setting()
 
 
 class ProjectSettings(object):
@@ -346,15 +346,15 @@ class ProjectSettings(object):
         except KeyError:
             return False
 
-    def venv_info(self):
+    def venv_setting(self):
         try:
             env = self.settings["Python Interpreter"].get("python")
-            return python_venv.Env.from_str(env)
+            return python_venv.VenvSetting(env)
         except KeyError:
             return None
 
-    def set_python(self, env):
-        self.settings.setdefault("Python Interpreter", {})["python"] = env
+    def set_venv_setting(self, venv_setting):
+        self.settings.setdefault("Python Interpreter", {})["python"] = venv_setting
 
 
 class LoadSettingObject(QObject):
@@ -418,13 +418,15 @@ class ProjectSettingDialog(QDialog):
         python_dict["project_path"] = project_item.path()
         self.model.load_settings(settings)
 
+        self.model.set_values({"python": project_item.venv_setting()})
+
         self.property_widget.setModel(self.model)
         self.property_widget.resizeColumnsToContents()
 
     def accept(self):
         self.property_widget.teardown()
         dump = self.model.dump(flat=True)
-        self.project_item.settings.set_python(dump.get("python"))
+        self.project_item.settings.set_venv_setting(dump.get("python"))
         self.project_item.settings.store()
         super(ProjectSettingDialog, self).accept()
 

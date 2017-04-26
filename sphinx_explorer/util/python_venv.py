@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+"""
+This module manages Python's Virtual Environment.
+
+* check python version
+* search venv
+"""
 import os
 import re
 import json
@@ -26,78 +32,53 @@ LINUX_CONDA_SEARCH_PATH = [
 PYTHON_VERSION_RE = re.compile(r"Python ([^\s]*).*?")
 
 
-class Env(object):
-    def __init__(self, env_type=None, name=None, path=None, version=None):
-        self.type = env_type
-        self.name = name
-        self.path = path
-        self.version = version
+class VenvSetting(dict):
+    def __init__(self, value=None):
+        super(VenvSetting, self).__init__()
+        value = value or {}
+        self["env"] = value.get("env")
+        self["search_venv_path"] = value.get("search_venv_path", [])
 
-    def __str__(self):
-        # type: () -> string_types
-        if self.path is None:
-            if self.version:
-                return "{} ({})".format(self.version, self.name)
-            else:
-                return self.name
+    @property
+    def search_venv_path(self):
+        return self["search_venv_path"]
 
-        if self.version:
-            return "{} ({})".format(self.version, self.path)
-        else:
-            return "{} ({})".format(self.name, self.path)
+    def set_search_venv_path(self, path):
+        self["search_venv_path"] = path
 
-    def python_path(self):
-        if self.path is None:
-            return "python"
-        else:
-            bin_path = "bin" if platform.system() != "Windows" else "Scripts"
-            if self.type == "anaconda":
-                return os.path.join(self.path, bin_path, "python")
-            elif self.type == "venv":
-                return os.path.join(self.path, bin_path, "python")
+    @property
+    def env(self):
+        return self["env"]
 
-        return None
-
-    def command(self, cwd=None):
-        if self.type is None or self.type == "sys":
-            return []
-
-        if self.type == "anaconda":
-            if platform.system() == "Linux":
-                activate = os.path.join(self.path, "bin", "activate")
-                return " ".join(["source " + activate + " " + self.name])
-            else:
-                return "activate " + self.name
-        elif self.type == "venv":
-            if os.path.isabs(self.path):
-                path = self.path
-            else:
-                path = os.path.join(cwd or "", self.path)
-
-            return os.path.join(path, _env_path())
-
-        raise ValueError(self.type)
-
-    def to_str(self):
-        return json.dumps([self.type, self.name, self.path])
-
-    @staticmethod
-    def from_str(s):
-        if s == "System":
-            return Env()
-
-        try:
-            return Env(*json.loads(s))
-        except ValueError:
-            return None
+    def set_env(self, env):
+        self["env"] = env
 
 
 class PythonVEnv(object):
+    @staticmethod
+    def create_system_python_env(venv_setting=None):
+        # type: (VenvSetting) -> PythonVEnv
+        """
+        create system python envs.
+        """
+        conda_env = search_anaconda()
+
+        venv_setting = venv_setting or VenvSetting()
+        venv_list = []
+        for path in venv_setting.search_venv_path:
+            venv_list.extend(search_venv(path, fullpath=True))
+
+        env = PythonVEnv(conda_env, venv_list)
+        env.check_version()
+
+        return env
+
     def __init__(self, conda_env=None, venv_list=None):
         self._envs = OrderedDict()
         env = Env()
-        self._envs[env.to_str()] = env
-        self._default_env = env.to_str()
+        self._envs[env.key()] = env
+        self._default_env = env.key()
+        self.default_key = env.key()
         self._loading = False
 
         if conda_env:
@@ -111,8 +92,12 @@ class PythonVEnv(object):
 
         if venv_list:
             for env in venv_list:
-                key = env.to_str()
+                key = env.key()
                 self._envs[key] = env
+
+    def get(self, key):
+        # type: (str) -> Env
+        return self._envs.get(key, self._envs[self.default_key])
 
     def default_env(self):
         return self._envs[self._default_env]
@@ -130,15 +115,15 @@ class PythonVEnv(object):
 
         if venv_list:
             for env in venv_list:
-                result.append((env.to_str(), env))
+                result.append((env.key(), env))
 
         for key, env in self._envs.items():
             result.append((key, env))
 
-        return result, self._default_env
+        return result
 
     def check_version(self):
-        env_list, _ = self.env_list()
+        env_list = self.env_list()
         for key, env in env_list:
             python_path = env.python_path()
             if python_path:
@@ -146,6 +131,93 @@ class PythonVEnv(object):
 
     def set_anaconda_env(self, env):
         pass
+
+
+
+
+class Env(object):
+    @staticmethod
+    def from_key(key):
+        if key is None:
+            return Env()
+        return Env(*key.split(","))
+
+    def __init__(self, env_type=None, name=None, path=None, version=None):
+        self._type = env_type
+        self.name = name
+        self.path = path
+        self.version = version
+
+    def key(self):
+        if self._type is None:
+            return ""
+
+        v = [(x or "") for x in [self._type, self.name, self.path, self.version]]
+        return ",".join(v)
+
+    def icon(self):
+        return ICON_DICT.get(self._type or "sys")
+
+    def type(self):
+        return self._type or "sys"
+
+    def __str__(self):
+        # type: () -> string_types
+        if self._type is None:
+            return "System Python"
+
+        if self.version:
+            return "{} ({})".format(self.version, self.path)
+        else:
+            return "{} ({})".format(self.name, self.path)
+
+    def python_path(self):
+        if self.path is None:
+            return "python"
+        else:
+            bin_path = "bin" if platform.system() != "Windows" else "Scripts"
+            if self._type == "anaconda":
+                return os.path.join(self.path, bin_path, "python")
+            elif self._type == "venv":
+                return os.path.join(self.path, bin_path, "python")
+
+        return None
+
+    def command(self, cwd=None):
+        if self.type() == "sys":
+            return []
+
+        if self.type() == "anaconda":
+            if platform.system() == "Linux":
+                activate = os.path.join(self.path, "bin", "activate")
+                return " ".join(["source " + activate + " " + self.name])
+            else:
+                return "activate " + self.name
+        elif self.type() == "venv":
+            if os.path.isabs(self.path):
+                path = self.path
+            else:
+                path = os.path.join(cwd or "", self.path)
+
+            return os.path.join(path, _env_path())
+
+        raise ValueError(self.type())
+
+    def to_str(self):
+        return json.dumps([self._type, self.name, self.path])
+
+    @staticmethod
+    def from_str(s):
+        if s == "System":
+            return Env()
+
+        try:
+            return Env(*json.loads(s))
+        except ValueError:
+            return None
+
+
+
 
 
 sys_env = PythonVEnv()
@@ -231,30 +303,12 @@ def parse_python_version(text):
     return None
 
 
-def get_path(venv_info, cwd=None):
-    if venv_info is None:
-        return []
+def activate_command(venv_setting, cwd=None):
+    # type: (VenvSetting, str) -> str
+    if venv_setting is None:
+        return ""
 
-    return venv_info.command(cwd)
+    env = Env.from_key(venv_setting.env)
+    return env.command(cwd)
 
 
-class VenvSetting(dict):
-    def __init__(self, value=None):
-        super(VenvSetting, self).__init__()
-        value = value or {}
-        self["env"] = value.get("env")
-        self["search_venv_path"] = value.get("search_venv_path", [])
-
-    @property
-    def search_venv_path(self):
-        return self["search_venv_path"]
-
-    def set_search_venv_path(self, path):
-        self["search_venv_path"] = path
-
-    @property
-    def env(self):
-        return self["env"]
-
-    def set_env(self, env):
-        self["env"] = env

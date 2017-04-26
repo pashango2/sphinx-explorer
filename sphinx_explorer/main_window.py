@@ -361,9 +361,9 @@ class MainWindow(QMainWindow):
             return
 
         cwd = project_item.path()
-        venv_info = project_item.venv_info() or self.settings.venv_info()
+        venv_setting = project_item.venv_setting() or self.settings.venv_setting()
         venv_cmd = [
-            python_venv.get_path(venv_info, cwd),
+            python_venv.activate_command(venv_setting, cwd),
             commander.make_command(make_cmd, cwd)
         ]
         venv_cmd = [x for x in venv_cmd if x]

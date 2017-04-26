@@ -68,6 +68,12 @@ class PythonComboButton(ComboButton):
         idx = self.combo_box.findData(self.venv_setting.env)
         self.setCurrentIndex(idx)
 
+    def value(self):
+        return VenvSetting({
+            "env": self.itemData(self.currentIndex()),
+            "search_venv_path": self.venv_setting.search_venv_path,
+        })
+
     def _on_add_path(self):
         dlg = PythonEnvDialog(self)
         dlg.setup(self.venv_setting.search_venv_path)

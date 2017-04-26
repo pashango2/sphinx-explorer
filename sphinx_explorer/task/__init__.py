@@ -29,20 +29,10 @@ class SystemInitTask(BaseTask):
         self.settings = settings
 
     def run(self):
-        self.message("Checking Anaconda...")
-        conda_env = search_anaconda()
+        self.message("Checking Python Venv...")
+        env = PythonVEnv.create_system_python_env(self.settings.venv_setting())
 
-        self.message("Checking System Python...")
-        venv_list = []
-        for path in self.settings.search_venv_path_list():
-            venv_list.extend(search_venv(path, fullpath=True))
-
-        env = PythonVEnv(conda_env, venv_list)
-        self.message("Check Version")
-        env.check_version()
-
-        self.message("System Check Finished")
-
+        self.message("Checking Python Venv Finished")
         self.finished.emit(env)
 
 
@@ -56,10 +46,7 @@ class Worker(QRunnable):
             self.obj.run()
         except:
             import traceback
-
             traceback.print_exc()
-            print("kita0")
-            pass
 
 
 def push_task(task):

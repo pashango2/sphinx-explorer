@@ -90,15 +90,15 @@ class SystemSettings(OrderedDict):
         # type: () -> QIcon
         return self.editor().icon if self.editor() else QIcon()
 
-    def venv_info(self):
+    def venv_setting(self):
         try:
             env = self["Python Interpreter"].get("python")
             return python_venv.VenvSetting(env)
         except KeyError:
             return python_venv.VenvSetting()
 
-    def search_venv_path_list(self):
-        return self.venv_info().search_venv_path
+    # def search_venv_path_list(self):
+    #     return self.venv_info().search_venv_path
 
 
 class CategoryFilterModel(QSortFilterProxyModel):
