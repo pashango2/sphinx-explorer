@@ -32,7 +32,7 @@ def load_plugin(sys_dir):
     for file_path in _walk_files(editor_dir, "*.yml"):
         editor.load_plugin(file_path)
 
-    wizard_dir = os.path.join(sys_dir, "plugin", "wizard")
+    wizard_dir = os.path.join(sys_dir, "plugin", "template")
     for file_path in _walk_files(wizard_dir, "*.yml"):
         template_model.load_plugin(file_path)
 
