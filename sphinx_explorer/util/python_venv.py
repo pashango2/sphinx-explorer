@@ -7,6 +7,7 @@ import json
 import fnmatch
 import platform
 import subprocess
+import glob
 from collections import OrderedDict
 from six import string_types
 from .commander import commander, quote
@@ -17,10 +18,10 @@ ICON_DICT = {
     "venv": None,
 }
 
-CONDA_LINUX_SEARCH_PATH = {
+LINUX_CONDA_SEARCH_PATH = [
     (os.path.expanduser('~'), "anaconda*"),
     (os.path.expanduser('~'), "miniconda*"),
-}
+]
 
 PYTHON_VERSION_RE = re.compile(r"Python ([^\s]*).*?")
 
@@ -91,32 +92,10 @@ class Env(object):
             return None
 
 
-class VenvSetting(dict):
-    def __init__(self, value=None):
-        super(VenvSetting, self).__init__()
-        value = value or {}
-        self["env"] = value.get("env")
-        self["search_venv_path"] = value.get("search_venv_path", [])
-
-    @property
-    def search_venv_path(self):
-        return self["search_venv_path"]
-
-    def set_search_venv_path(self, path):
-        self["search_venv_path"] = path
-
-    @property
-    def env(self):
-        return self["env"]
-
-    def set_env(self, env):
-        self["env"] = env
-
-
 class PythonVEnv(object):
     def __init__(self, conda_env=None, venv_list=None):
         self._envs = OrderedDict()
-        env = Env("sys", "System Default", None)
+        env = Env()
         self._envs[env.to_str()] = env
         self._default_env = env.to_str()
         self._loading = False
@@ -182,7 +161,7 @@ def search_anaconda():
 
     if platform.system() == "Linux":
         break_flag = False
-        for search_path, pattern in CONDA_LINUX_SEARCH_PATH:
+        for search_path, pattern in LINUX_CONDA_SEARCH_PATH:
             for path in fnmatch.filter(list(os.listdir(search_path)), pattern):
                 conda_path = os.path.join(search_path, path, "bin", "conda")
                 break_flag = True
@@ -224,13 +203,14 @@ def search_venv(cwd, fullpath=False):
     # find venv
     result = []
 
-    env = _env_path()
-    for x in os.listdir(cwd):
-        if os.path.isdir(os.path.join(cwd, x)):
-            activate_path = os.path.join(cwd, x, env)
-            if os.path.exists(activate_path):
-                path = os.path.join(cwd, x) if fullpath else x
-                result.append(Env("venv", x, path))
+    if os.path.isdir(cwd):
+        env = _env_path()
+        for x in os.listdir(cwd):
+            if os.path.isdir(os.path.join(cwd, x)):
+                activate_path = os.path.join(cwd, x, env)
+                if os.path.exists(activate_path):
+                    path = os.path.join(cwd, x) if fullpath else x
+                    result.append(Env("venv", x, path))
 
     return result
 
@@ -257,3 +237,24 @@ def get_path(venv_info, cwd=None):
 
     return venv_info.command(cwd)
 
+
+class VenvSetting(dict):
+    def __init__(self, value=None):
+        super(VenvSetting, self).__init__()
+        value = value or {}
+        self["env"] = value.get("env")
+        self["search_venv_path"] = value.get("search_venv_path", [])
+
+    @property
+    def search_venv_path(self):
+        return self["search_venv_path"]
+
+    def set_search_venv_path(self, path):
+        self["search_venv_path"] = path
+
+    @property
+    def env(self):
+        return self["env"]
+
+    def set_env(self, env):
+        self["env"] = env
