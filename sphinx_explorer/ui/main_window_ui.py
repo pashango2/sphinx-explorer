@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'main_window.ui'
+# Form implementation generated from reading ui file '/home/toshiyuki/program/sphinx-explorer/sphinx_explorer/ui/main_window.ui'
 #
 # Created by: PyQt5 UI code generator 5.8.2
 #
@@ -55,7 +55,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 24))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 23))
         self.menubar.setObjectName("menubar")
         self.menuFile_F = QtWidgets.QMenu(self.menubar)
         self.menuFile_F.setObjectName("menuFile_F")
@@ -87,8 +87,6 @@ class Ui_MainWindow(object):
         self.action_settings.setObjectName("action_settings")
         self.action_wizard = QtWidgets.QAction(MainWindow)
         self.action_wizard.setObjectName("action_wizard")
-        self.action_apidoc = QtWidgets.QAction(MainWindow)
-        self.action_apidoc.setObjectName("action_apidoc")
         self.action_reload = QtWidgets.QAction(MainWindow)
         self.action_reload.setObjectName("action_reload")
         self.action_move_up = QtWidgets.QAction(MainWindow)
@@ -99,11 +97,9 @@ class Ui_MainWindow(object):
         self.action_delete_document.setObjectName("action_delete_document")
         self.menuFile_F.addAction(self.action_settings)
         self.menuCreate_C.addAction(self.action_wizard)
-        self.menuCreate_C.addAction(self.action_apidoc)
         self.menubar.addAction(self.menuFile_F.menuAction())
         self.menubar.addAction(self.menuCreate_C.menuAction())
         self.toolBar.addAction(self.action_wizard)
-        self.toolBar.addAction(self.action_apidoc)
         self.toolBar.addAction(self.action_settings)
 
         self.retranslateUi(MainWindow)
@@ -116,21 +112,19 @@ class Ui_MainWindow(object):
         self.button_up.setText(_translate("MainWindow", "..."))
         self.button_down.setText(_translate("MainWindow", "..."))
         self.button_del.setText(_translate("MainWindow", "..."))
-        self.menuFile_F.setTitle(_translate("MainWindow", "File(&F)"))
+        self.menuFile_F.setTitle(_translate("MainWindow", "Fi&le(F)"))
         self.menuCreate_C.setTitle(_translate("MainWindow", "Create(&C)"))
-        self.dock_outputs.setWindowTitle(_translate("MainWindow", "Outputs"))
+        self.dock_outputs.setWindowTitle(_translate("MainWindow", "O&utputs"))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))
         self.action_add_document.setText(_translate("MainWindow", "Add Document"))
         self.action_add_document.setToolTip(_translate("MainWindow", "Add Document"))
-        self.action_settings.setText(_translate("MainWindow", "Settings..."))
+        self.action_settings.setText(_translate("MainWindow", "&Settings..."))
         self.action_settings.setToolTip(_translate("MainWindow", "Settings"))
         self.action_settings.setShortcut(_translate("MainWindow", "Ctrl+Shift+S"))
-        self.action_wizard.setText(_translate("MainWindow", "wizard mode"))
+        self.action_wizard.setText(_translate("MainWindow", "&wizard mode"))
         self.action_wizard.setToolTip(_translate("MainWindow", "wizard mode"))
-        self.action_apidoc.setText(_translate("MainWindow", "apidoc"))
-        self.action_apidoc.setToolTip(_translate("MainWindow", "apidoc"))
-        self.action_reload.setText(_translate("MainWindow", "リロード"))
-        self.action_reload.setToolTip(_translate("MainWindow", "リロード"))
+        self.action_reload.setText(_translate("MainWindow", "reload"))
+        self.action_reload.setToolTip(_translate("MainWindow", "reload"))
         self.action_reload.setShortcut(_translate("MainWindow", "F5"))
         self.action_move_up.setText(_translate("MainWindow", "Move up"))
         self.action_move_up.setToolTip(_translate("MainWindow", "Move up"))

@@ -12,7 +12,7 @@ from qtpy.QtCore import *
 from qtpy.QtWidgets import *
 from qtpy.QtGui import *
 
-from sphinx_explorer.plugin import editor
+# from sphinx_explorer.plugin import editor
 from sphinx_explorer.ui.settings_ui import Ui_Form
 from sphinx_explorer.util import icon
 from .plugin import extension, editor
@@ -98,9 +98,6 @@ class SystemSettings(OrderedDict):
         except KeyError:
             return python_venv.VenvSetting()
 
-    # def search_venv_path_list(self):
-    #     return self.venv_info().search_venv_path
-
 
 class CategoryFilterModel(QSortFilterProxyModel):
     def filterAcceptsRow(self, source_row, source_parent):
@@ -183,15 +180,16 @@ class SystemSettingsDialog(QDialog):
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
             self
         )
-        # noinspection PyUnresolvedReferences
-        self._buttons.accepted.connect(self.accept)
-        # noinspection PyUnresolvedReferences
-        self._buttons.rejected.connect(self.reject)
+
+        self.open_setting_dir_button = QPushButton(self)
+        self.open_setting_dir_button.setText(self.tr("Open Setting Directory"))
 
         self.layout = QVBoxLayout(self)
+        self.h_layout = QHBoxLayout(self)
+        self.h_layout.addWidget(self.open_setting_dir_button)
+        self.h_layout.addWidget(self._buttons)
         self.layout.addWidget(self.widget)
-        self.layout.addWidget(self._buttons)
-
+        self.layout.addLayout(self.h_layout)
         self.setLayout(self.layout)
 
         self.setWindowTitle(self.tr(str("SystemSettings")))
@@ -202,8 +200,15 @@ class SystemSettingsDialog(QDialog):
         self.category_selection_model = self.ui.tree_view_category.selectionModel()
 
         # setup buttons
-        self.ui.button_open_home_dir.setIcon(icon.load("open_folder"))
-        self.ui.button_open_home_dir.clicked.connect(self.on_button_open_home_dir_clicked)
+        self.open_setting_dir_button.setIcon(icon.load("open_folder"))
+
+        self._connect()
+
+    # noinspection PyUnresolvedReferences
+    def _connect(self):
+        self.open_setting_dir_button.clicked.connect(self.on_button_open_home_dir_clicked)
+        self._buttons.accepted.connect(self.accept)
+        self._buttons.rejected.connect(self.reject)
 
     def on_button_open_home_dir_clicked(self):
         if self.home_dir:
