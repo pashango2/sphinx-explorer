@@ -34,6 +34,11 @@ class Commander(object):
         self.py2 = py2
         self.pre_command = [[]]
 
+    def create_pre_commander(self, pre_command=None):
+        new_commander =  Commander(self.system, self.py2)
+        new_commander.pre_command = [pre_command or []]
+        return new_commander
+
     def __call__(self, cmd, cwd=None, python_mode=False):
         new_cmd = []
         for _cmd in self.pre_command + [cmd]:
@@ -43,7 +48,7 @@ class Commander(object):
             new_cmd.append(_cmd)
 
         new_cmd = [x for x in new_cmd if x]
-        cmd_str = " & ".join(new_cmd)
+        cmd_str = " ; ".join(new_cmd)
 
         if self.system == "Linux":
             return '/bin/bash -c "{}"'.format(cmd_str)

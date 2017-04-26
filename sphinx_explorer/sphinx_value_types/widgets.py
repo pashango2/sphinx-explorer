@@ -12,7 +12,6 @@ from sphinx_explorer.property_widget.widgets import MovableListWidget
 from sphinx_explorer.util.python_venv import check_python_version, VenvSetting
 
 
-
 class ComboButton(QFrame):
     def __init__(self, parent=None):
         super(ComboButton, self).__init__(parent)

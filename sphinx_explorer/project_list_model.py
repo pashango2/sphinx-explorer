@@ -356,8 +356,13 @@ class ProjectSettings(object):
     def venv_setting(self):
         try:
             env = self.settings["Python Interpreter"].get("python")
-            return python_venv.VenvSetting(env)
+            if env.get("env"):
+                return python_venv.VenvSetting(env)
+            else:
+                return None
         except KeyError:
+            return None
+        except AttributeError:
             return None
 
     def set_venv_setting(self, venv_setting):

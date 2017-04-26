@@ -347,7 +347,7 @@ class MainWindow(QMainWindow):
         venv_cmd = [x for x in venv_cmd if x]
 
         self.ui.plain_output.exec_command(
-            commander(" & ".join(venv_cmd)),
+            commander(" ; ".join(venv_cmd)),
             cwd,
             clear=True,
             callback=callback

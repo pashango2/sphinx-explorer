@@ -248,11 +248,11 @@ class PropertyModel(QStandardItemModel):
             return item
         return None
 
-    def get(self, keys):
+    def get(self, keys, root_index=QModelIndex()):
         if isinstance(keys, string_types):
             keys = keys.split(".")
 
-        parent = self.invisibleRootItem()
+        parent = self.itemFromIndex(root_index) if root_index.isValid() else self.invisibleRootItem()
         for key in keys:
             for row in range(parent.rowCount()):
                 item = parent.child(row)    # type: PropertyItem

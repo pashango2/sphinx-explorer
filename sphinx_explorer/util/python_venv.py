@@ -83,7 +83,7 @@ class PythonVEnv(object):
         if conda_env:
             for name, default, path in conda_env:
                 env = Env("anaconda", name, path)
-                key = env.to_str()
+                key = env.key()
                 self._envs[key] = env
 
                 if default:
@@ -186,8 +186,8 @@ class Env(object):
 
         if self.type() == "anaconda":
             if platform.system() == "Linux":
-                activate = os.path.join(self.path, "bin", "activate")
-                return " ".join(["source " + activate + " " + self.name])
+                # activate = os.path.join(self.path, "bin", "activate")
+                return " ".join(["source activate " + self.name])
             else:
                 return "activate " + self.name
         elif self.type() == "venv":
