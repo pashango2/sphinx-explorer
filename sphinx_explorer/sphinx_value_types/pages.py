@@ -8,7 +8,8 @@ from qtpy.QtWidgets import *
 from sphinx_explorer.property_widget import PropertyModel
 from sphinx_explorer.util import python_venv
 from sphinx_explorer.util.commander import commander
-from ..pip_manager import PackageModel, PipListTask
+from sphinx_explorer.pip_manager import PipListOutDateTask, PipInstallTask
+from .widgets import SphinxPackageModel
 from ..task import push_task
 
 
@@ -36,14 +37,28 @@ class PythonInterpreterWidget(QWidget):
         super(PythonInterpreterWidget, self).__init__(parent)
         self.property_model = None
         self.root_index = QModelIndex()
+        self._selection_model = None
 
         self.package_tree_view = QTreeView(self)
         self.package_tree_view.setRootIsDecorated(False)
+        self.package_tree_view.setSelectionMode(QAbstractItemView.ExtendedSelection)
+
+        self.install_button = QPushButton(self)
+        self.update_button = QPushButton(self)
+
+        self.install_button.setText(self.tr("Install"))
+        self.update_button.setText(self.tr("Update"))
+
+        self.button_layout = QHBoxLayout()
+        self.button_layout.setAlignment(Qt.AlignLeft)
+        self.button_layout.addWidget(self.install_button)
+        self.button_layout.addWidget(self.update_button)
 
         self.v_layout = QVBoxLayout(self)
         self.layout = QFormLayout()
         self.v_layout.addLayout(self.layout)
         self.v_layout.addWidget(self.package_tree_view)
+        self.v_layout.addLayout(self.button_layout)
 
         self.setLayout(self.v_layout)
 
@@ -52,6 +67,9 @@ class PythonInterpreterWidget(QWidget):
 
         self.loading_label = LoadingLabel(self.package_tree_view)
         self.loading_label.hide()
+
+        self.install_button.clicked.connect(self._install)
+        self.update_button.clicked.connect(self._update)
 
     def setup(self, property_model, root_index):
         # type: (PropertyModel, QModelIndex) -> None
@@ -70,6 +88,83 @@ class PythonInterpreterWidget(QWidget):
 
         self._on_interpreter_changed(combo.currentIndex())
 
+    def _start_loading(self):
+        self.loading_label.show()
+        self.install_button.setEnabled(False)
+        self.update_button.setEnabled(False)
+
+    def _end_loading(self):
+        self.loading_label.hide()
+        self.install_button.setEnabled(False)
+        self.update_button.setEnabled(False)
+
+    def _install(self):
+        install_list, _ = self._item_filter(
+            self.package_tree_view.model(),
+            self.package_tree_view.selectedIndexes()
+        )
+        if install_list:
+            packages = [x.package for x in install_list]
+
+            self._start_loading()
+            task = PipInstallTask(packages)
+            task.finished.connect(self._on_install_finished)
+            push_task(task)
+
+    def _update(self):
+        _, update_list = self._item_filter(
+            self.package_tree_view.model(),
+            self.package_tree_view.selectedIndexes()
+        )
+        if update_list:
+            packages = [x.package for x in update_list]
+
+            self._start_loading()
+            task = PipInstallTask(packages, update_flag=True)
+            task.finished.connect(self._on_install_finished)
+            push_task(task)
+
+    def _on_install_finished(self, result):
+        self._end_loading()
+
+    def _setup_model(self, model):
+        if self._selection_model:
+            self._selection_model.selectionChanged.disconnect(self._on_selection_changed)
+
+        self.package_tree_view.setModel(model)
+        self.package_tree_view.resizeColumnToContents(0)
+
+        self._selection_model = self.package_tree_view.selectionModel()
+        self._selection_model.selectionChanged.connect(self._on_selection_changed)
+
+    def _on_selection_changed(self, selected, _):
+        if not self._selection_model:
+            return
+
+        model = self._selection_model.model()
+        install_list, update_list = self._item_filter(model, selected.indexes())
+
+        self.install_button.setEnabled(bool(install_list))
+        self.update_button.setEnabled(bool(update_list))
+
+    @staticmethod
+    def _item_filter(model, indexes):
+        install_list = []
+        update_list = []
+
+        for index in indexes:
+            if index.column() != 0:
+                continue
+
+            item = model.itemFromIndex(index)
+            if item:
+                if item.version is None:
+                    install_list.append(item)
+                elif item.latest is not None:
+                    update_list.append(item)
+
+        return install_list, update_list
+
     @Slot(int)
     def _on_interpreter_changed(self, _):
         item = self.property_model.get("python", self.root_index)
@@ -79,18 +174,17 @@ class PythonInterpreterWidget(QWidget):
         activate_command = python_venv.activate_command(venv_setting)
         pre_commander = commander.create_pre_commander(activate_command)
 
-        self.loading_label.show()
-        task = PipListTask(pre_commander)
+        self._start_loading()
+        task = PipListOutDateTask(pre_commander)
         task.finished.connect(self._on_package_load_finished)
         push_task(task)
 
     @Slot(list)
     def _on_package_load_finished(self, packages):
-        model = PackageModel(self)
+        model = SphinxPackageModel(self)
         model.load(packages)
-        self.package_tree_view.setModel(model)
-        self.package_tree_view.resizeColumnToContents(0)
-        self.loading_label.hide()
+        self._setup_model(model)
+        self._end_loading()
 
     def teardown(self):
         pass

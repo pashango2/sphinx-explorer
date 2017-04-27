@@ -90,6 +90,18 @@ class Commander(object):
             logger.error("UnicodeDecodeError:{}".format(output))
             return None
 
+    def call(self, cmd, stderr=None, shell=False):
+        try:
+            code = subprocess.call(self(cmd), stderr=stderr, shell=shell)
+        except FileNotFoundError:
+            logger.error("FileNotFoundError:{}".format(self(cmd)))
+            return False
+        except subprocess.CalledProcessError:
+            logger.error("Call Error:{}".format(self(cmd)))
+            return False
+
+        return code == 0
+
     def open_terminal(self, path):
         # type: (string_types) -> None
         cwd = os.path.normpath(path)

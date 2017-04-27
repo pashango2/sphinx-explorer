@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class PackageModel(QStandardItemModel):
     COLOR_OK = QColor("#3b7960")
-    COLOR_NOT_INSTALL = QColor("#c9171e")
+    COLOR_NOT_INSTALL = QColor("#640125")
 
     def __init__(self, parent=None):
         super(PackageModel, self).__init__(parent)
@@ -21,6 +21,7 @@ class PackageModel(QStandardItemModel):
         self.setHorizontalHeaderLabels([
             self.tr("Package"),
             self.tr("Version"),
+            self.tr("Latest"),
         ])
 
     def clear(self):
@@ -30,18 +31,18 @@ class PackageModel(QStandardItemModel):
 
     def load(self, packages):
         self.removeRows(0, self.rowCount())
-        for package, version in packages:
-            self.add_package(package, version)
+        for package, version, latest in packages:
+            self.add_package(package, version, latest)
         self._is_loaded = True
 
     @staticmethod
-    def _name_filter(name):
+    def package_name_filter(name):
         return name.lower().replace(".", "-")
 
-    def add_package(self, package, version, row=-1):
-        package = self._name_filter(package)
+    def add_package(self, package, version, latest, row=-1):
+        package = self.package_name_filter(package)
 
-        item = PackageItem(package, version)
+        item = PackageItem(package, version, latest)
         self._package_dict[package] = item
 
         if version:
@@ -49,10 +50,11 @@ class PackageModel(QStandardItemModel):
         else:
             item.setBackground(self.COLOR_NOT_INSTALL)
 
+        items = [item, QStandardItem(), QStandardItem()]
         if row < 0:
-            self.appendRow([item, QStandardItem()])
+            self.appendRow(items)
         else:
-            self.insertRow(row, [item, QStandardItem()])
+            self.insertRow(row, items)
 
     def load_out_date(self, out_date_packages):
         for package, version, latest, _ in out_date_packages:
@@ -61,7 +63,7 @@ class PackageModel(QStandardItemModel):
                 item.latest = latest
 
     def create_filter_model(self, filter_packages, parent=None):
-        filter_packages = [self._name_filter(x) for x in filter_packages]
+        filter_packages = [self.package_name_filter(x) for x in filter_packages]
 
         for package in filter_packages:
             if package not in self._package_dict:
@@ -81,6 +83,9 @@ class PackageModel(QStandardItemModel):
                 if column == 1:
                     item = self.itemFromIndex(index)    # type: PackageItem
                     return item.version
+                elif column == 2:
+                    item = self.itemFromIndex(index)    # type: PackageItem
+                    return item.latest or item.version
 
         return super(PackageModel, self).data(index, role)
 

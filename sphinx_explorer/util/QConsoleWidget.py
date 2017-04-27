@@ -115,7 +115,7 @@ class QConsoleWidget(QTextEdit):
         self._output(line)
 
         line = self._process.readAllStandardError().data()
-        self._output(line, Qt.red)
+        self._output(line, self.ERROR_COLOR)
 
     def _output(self, line, color=None):
         if six.PY3 and isinstance(line, bytes):
@@ -133,6 +133,7 @@ class QConsoleWidget(QTextEdit):
         char_format = QTextCharFormat()
         if color:
             char_format.setForeground(QBrush(color))
+
         cursor.setCharFormat(char_format)
         cursor.insertText(line)
 

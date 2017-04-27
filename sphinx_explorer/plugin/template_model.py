@@ -41,7 +41,7 @@ class TemplateItem(QStandardItem):
     def __init__(self, name, template, root_path):
         super(TemplateItem, self).__init__(name)
         self.template = template
-        self.root_path = root_path
+        self.root_path = os.path.abspath(root_path)
 
     @property
     def default_values(self):

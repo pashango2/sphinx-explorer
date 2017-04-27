@@ -1,6 +1,5 @@
 packages: [
     "recommonmark",
-    "commonmark",
 ]
 
 conf_py:
