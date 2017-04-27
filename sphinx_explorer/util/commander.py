@@ -39,16 +39,24 @@ class Commander(object):
         new_commander.pre_command = [pre_command or []]
         return new_commander
 
-    def __call__(self, cmd, cwd=None, python_mode=False):
+    def __call__(self, cmd=None, cwd=None, python_mode=False, cmds=None):
         new_cmd = []
-        for _cmd in self.pre_command + [cmd]:
+        _cmds = [cmd] if cmd else []
+        _cmds += cmds or []
+        for _cmd in self.pre_command + _cmds:
             if isinstance(cmd, (list, tuple)):
                 _cmd = [quote(x) for x in _cmd]
                 _cmd = " ".join(_cmd)
             new_cmd.append(_cmd)
 
         new_cmd = [x for x in new_cmd if x]
-        cmd_str = " ; ".join(new_cmd)
+
+        if self.system == "Windows":
+            cmd_joiner = " & "
+        else:
+            cmd_joiner = " ; "
+
+        cmd_str = cmd_joiner.join(new_cmd)
 
         if self.system == "Linux":
             return '/bin/bash -c "{}"'.format(cmd_str)
