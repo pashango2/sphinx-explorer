@@ -10,6 +10,14 @@
     </message>
 </context>
 <context>
+    <name>ChoiceTemplatePage</name>
+    <message>
+        <location filename="../sphinx_explorer/wizard/quickstart_wizard.py" line="35"/>
+        <source>Choice template</source>
+        <translation>テンプレートの選択</translation>
+    </message>
+</context>
+<context>
     <name>Dialog</name>
     <message>
         <location filename="../sphinx_explorer/ui/theme_dialog_ui.py" line="49"/>
@@ -45,7 +53,7 @@
 <context>
     <name>Form</name>
     <message>
-        <location filename="../sphinx_explorer/ui/settings_ui.py" line="65"/>
+        <location filename="../sphinx_explorer/ui/settings_ui.py" line="55"/>
         <source>Form</source>
         <translation>フォーム</translation>
     </message>
@@ -57,13 +65,13 @@
     <message>
         <location filename="../sphinx_explorer/ui/settings_ui.py" line="66"/>
         <source>Open Setting Directory</source>
-        <translation>設定ディレクトリを開く</translation>
+        <translation type="obsolete">設定ディレクトリを開く</translation>
     </message>
 </context>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="114"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="110"/>
         <source>Sphinx Explorer</source>
         <translation>Sphinx Explorer</translation>
     </message>
@@ -78,162 +86,157 @@
         <translation type="obsolete">設定</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="118"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="114"/>
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
         <location filename="../sphinx_explorer/ui/main_window_ui.py" line="119"/>
         <source>File(&amp;F)</source>
-        <translation>ファイル(&amp;F)</translation>
+        <translation type="obsolete">ファイル(&amp;F)</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="120"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="116"/>
         <source>Create(&amp;C)</source>
         <translation>作成(&amp;C)</translation>
     </message>
     <message>
         <location filename="../sphinx_explorer/ui/main_window_ui.py" line="121"/>
         <source>Outputs</source>
-        <translation>出力</translation>
+        <translation type="obsolete">出力</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="124"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="120"/>
         <source>Add Document</source>
         <translation>ドキュメントの追加</translation>
     </message>
     <message>
         <location filename="../sphinx_explorer/ui/main_window_ui.py" line="125"/>
         <source>Settings...</source>
-        <translation>設定...</translation>
+        <translation type="obsolete">設定...</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="126"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="122"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="129"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="125"/>
         <source>wizard mode</source>
         <translation>ウィザードモード</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="136"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="130"/>
         <source>Move up</source>
         <translation>上へ</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="139"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="133"/>
         <source>Move down</source>
         <translation>下へ</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="142"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="136"/>
         <source>Delete document</source>
         <translation>ドキュメントの削除</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="143"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="137"/>
         <source>Del</source>
         <translation>削除</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/main_window.py" line="92"/>
+        <location filename="../sphinx_explorer/main_window.py" line="89"/>
         <source>Exit</source>
         <translation>終了</translation>
     </message>
     <message>
-        <location filename="main_window_ui.py" line="137"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="127"/>
         <source>reload</source>
-        <translation type="obsolete">リロード</translation>
+        <translation>リロード</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/main_window.py" line="82"/>
+        <location filename="../sphinx_explorer/main_window.py" line="80"/>
         <source>Open Editor</source>
         <translation>エディタで開く</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/main_window.py" line="83"/>
+        <location filename="../sphinx_explorer/main_window.py" line="81"/>
         <source>Open Directory</source>
         <translation>ディレクトリを開く</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/main_window.py" line="84"/>
+        <location filename="../sphinx_explorer/main_window.py" line="82"/>
         <source>Open Terminal</source>
         <translation>端末で開く</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/main_window.py" line="87"/>
+        <location filename="../sphinx_explorer/main_window.py" line="85"/>
         <source>Open browser</source>
         <translation>ブラウザで開く</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/main_window.py" line="85"/>
+        <location filename="../sphinx_explorer/main_window.py" line="83"/>
         <source>Auto Build</source>
         <translation>自動ビルド</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/main_window.py" line="86"/>
+        <location filename="../sphinx_explorer/main_window.py" line="84"/>
         <source>Update sphinx-apidoc</source>
         <translation>sphinx-apidocの更新</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="127"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="123"/>
         <source>Ctrl+Shift+S</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="131"/>
-        <source>apidoc</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="134"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="128"/>
         <source>F5</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="137"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="131"/>
         <source>Ctrl+Up</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="140"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="134"/>
         <source>Ctrl+Down</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/main_window.py" line="88"/>
+        <location filename="../sphinx_explorer/main_window.py" line="86"/>
         <source>Copy Path</source>
         <translation>パスをコピー</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/main_window.py" line="89"/>
+        <location filename="../sphinx_explorer/main_window.py" line="87"/>
         <source>Project Setting</source>
         <translation>プロジェクト設定</translation>
     </message>
     <message>
         <location filename="../sphinx_explorer/main_window.py" line="90"/>
         <source>Package Manager</source>
-        <translation>パッケージ管理</translation>
+        <translation type="obsolete">パッケージ管理</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/main_window.py" line="93"/>
+        <location filename="../sphinx_explorer/main_window.py" line="90"/>
         <source>HTML</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/main_window.py" line="94"/>
+        <location filename="../sphinx_explorer/main_window.py" line="91"/>
         <source>Epub</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="122"/>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="118"/>
         <source>toolBar</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/main_window.py" line="502"/>
+        <location filename="../sphinx_explorer/main_window.py" line="472"/>
         <source>Add document</source>
         <translation>ドキュメントの追加</translation>
     </message>
@@ -243,14 +246,34 @@
         <translation type="obsolete">ドキュメントをリストから削除しますか？</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/main_window.py" line="519"/>
+        <location filename="../sphinx_explorer/main_window.py" line="489"/>
         <source>Remove the document from list?</source>
         <translation>リストからドキュメントを削除しますか？</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="133"/>
-        <source>リロード</source>
+        <location filename="../sphinx_explorer/main_window.py" line="92"/>
+        <source>LaTex PDF</source>
         <translation></translation>
+    </message>
+    <message>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="115"/>
+        <source>Fi&amp;le(F)</source>
+        <translation>ファイル(&amp;F)</translation>
+    </message>
+    <message>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="117"/>
+        <source>O&amp;utputs</source>
+        <translation>出力(&amp;O)</translation>
+    </message>
+    <message>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="121"/>
+        <source>&amp;Settings...</source>
+        <translation>設定</translation>
+    </message>
+    <message>
+        <location filename="../sphinx_explorer/ui/main_window_ui.py" line="124"/>
+        <source>&amp;wizard mode</source>
+        <translation>ウィザードモード</translation>
     </message>
 </context>
 <context>
@@ -277,7 +300,7 @@
 <context>
     <name>ProjectListModel</name>
     <message>
-        <location filename="../sphinx_explorer/project_list_model.py" line="30"/>
+        <location filename="../sphinx_explorer/project_list_model.py" line="31"/>
         <source>Project List</source>
         <translation>プロジェクト一覧</translation>
     </message>
@@ -285,14 +308,22 @@
 <context>
     <name>PropertyModel</name>
     <message>
-        <location filename="../sphinx_explorer/property_widget/property_model.py" line="98"/>
+        <location filename="../sphinx_explorer/property_widget/property_model.py" line="94"/>
         <source>Property</source>
         <translation>プロパティ</translation>
     </message>
     <message>
-        <location filename="../sphinx_explorer/property_widget/property_model.py" line="98"/>
+        <location filename="../sphinx_explorer/property_widget/property_model.py" line="94"/>
         <source>Value</source>
         <translation>値</translation>
+    </message>
+</context>
+<context>
+    <name>PythonEnvDialog</name>
+    <message>
+        <location filename="../sphinx_explorer/sphinx_value_types/widgets.py" line="122"/>
+        <source>Select Python Exe</source>
+        <translation>Python.exeの選択</translation>
     </message>
 </context>
 <context>
@@ -395,6 +426,22 @@
         <location filename="sphinx_explorer/i18n.py" line="22"/>
         <source>Add Bookmark</source>
         <translation type="obsolete">ブックマークの追加</translation>
+    </message>
+</context>
+<context>
+    <name>QuickStartWizard</name>
+    <message>
+        <location filename="../sphinx_explorer/wizard/quickstart_wizard.py" line="132"/>
+        <source>finish</source>
+        <translation>終了</translation>
+    </message>
+</context>
+<context>
+    <name>SystemSettingsDialog</name>
+    <message>
+        <location filename="../sphinx_explorer/system_settings.py" line="186"/>
+        <source>Open Setting Directory</source>
+        <translation>設定ディレクトリを開く</translation>
     </message>
 </context>
 <context>
