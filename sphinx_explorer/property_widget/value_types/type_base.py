@@ -5,7 +5,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import os
 
 from qtpy.QtCore import *
-from qtpy.QtGui import *
+# from qtpy.QtGui import *
 from qtpy.QtWidgets import *
 from six import string_types
 
@@ -214,5 +214,3 @@ class TypeChoice(TypeBase):
             return self._data_dict[value]["icon"] if value in self._data_dict else None
         except KeyError:
             return None
-
-

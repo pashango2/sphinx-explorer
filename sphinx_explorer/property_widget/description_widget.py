@@ -63,6 +63,7 @@ class DescriptionWidget(QWebEngineView):
         html = self.CssStyle + mdo.convert("\n".join(md)) + "</body>"
 
         if search_path:
+            # noinspection PyTypeChecker
             base_url = QUrl.fromLocalFile(os.path.join(search_path, "index.html"))
             self.setHtml(html, base_url)
         else:

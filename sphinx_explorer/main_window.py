@@ -468,7 +468,7 @@ class MainWindow(QMainWindow):
         # () -> None
         default_path = os.path.join(self.setting_dir, "..")
 
-        # noinspection PyCallByClass
+        # noinspection PyCallByClass,PyTypeChecker
         doc_dir = QFileDialog.getExistingDirectory(
             self,
             self.tr("Add document"),

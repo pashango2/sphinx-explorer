@@ -12,6 +12,7 @@ from sphinx_explorer.property_widget.widgets import MovableListWidget
 from sphinx_explorer.util.python_venv import check_python_version, VenvSetting
 
 
+# noinspection PyArgumentList
 class ComboButton(QFrame):
     def __init__(self, parent=None):
         super(ComboButton, self).__init__(parent)
@@ -41,10 +42,12 @@ class ComboButton(QFrame):
         return self.combo_box.itemData(*args)
 
 
+# noinspection PyArgumentList
 class PythonComboButton(ComboButton):
     def __init__(self, parent=None):
         super(PythonComboButton, self).__init__(parent)
 
+        # noinspection PyArgumentList
         self.add_path_act = QAction("Add Path", self, triggered=self._on_add_path)
         self.menu = QMenu(self)
         self.menu.addAction(self.add_path_act)
@@ -90,7 +93,9 @@ class PythonComboButton(ComboButton):
             self.combo_box.setCurrentIndex(index)
 
 
+# noinspection PyArgumentList
 class PythonEnvDialog(QDialog):
+    # noinspection PyUnresolvedReferences
     def __init__(self, parent=None):
         super(PythonEnvDialog, self).__init__(parent)
 
@@ -135,6 +140,3 @@ class PythonEnvDialog(QDialog):
             result.append(item.text())
 
         return result
-
-
-

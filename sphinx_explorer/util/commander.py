@@ -7,8 +7,8 @@ import subprocess
 import platform
 from six import PY2, string_types
 import logging
-logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
 
@@ -35,7 +35,7 @@ class Commander(object):
         self.pre_command = [[]]
 
     def create_pre_commander(self, pre_command=None):
-        new_commander =  Commander(self.system, self.py2)
+        new_commander = Commander(self.system, self.py2)
         new_commander.pre_command = [pre_command or []]
         return new_commander
 
@@ -193,7 +193,6 @@ class Commander(object):
             return make_bat + " " + make_cmd
         else:
             return "make " + make_cmd
-
 
 
 commander = Commander()

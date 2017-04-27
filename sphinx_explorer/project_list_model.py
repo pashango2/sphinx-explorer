@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 
+import logging
 import os
+
 import toml
 import yaml
 from qtpy.QtCore import *
@@ -11,13 +13,11 @@ from qtpy.QtWidgets import *
 from six import string_types
 
 from sphinx_explorer.util import icon
-from .util.QConsoleWidget import QConsoleWidget
-from .util import python_venv
-from .util.conf_py_parser import Parser
-from .util.commander import quote, commander
 from .property_widget import PropertyWidget, PropertyModel
 from .task import push_task
-import logging
+from .util import python_venv
+from .util.commander import quote, commander
+from .util.conf_py_parser import Parser
 logger = logging.getLogger(__name__)
 
 

@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from qtpy.QtCore import *
 # from qtpy.QtGui import *
 # from qtpy.QtWidgets import *
-from ..util.python_venv import search_anaconda, search_venv, PythonVEnv
+from ..util.python_venv import PythonVEnv
 import logging
 logger = logging.getLogger(__name__)
 
@@ -42,6 +42,7 @@ class Worker(QRunnable):
         self.obj = obj
 
     def run(self):
+        # noinspection PyBroadException
         try:
             self.obj.run()
         except:

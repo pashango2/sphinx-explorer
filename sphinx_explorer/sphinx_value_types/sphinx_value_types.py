@@ -150,7 +150,6 @@ class TypePython(TypeChoice):
             choices.append({
                 "text": "Use Sphinx Explorer Default",
                 "value": None,
-                "icon": env.icon(),
             })
         combo.setup_choices(choices)
 
