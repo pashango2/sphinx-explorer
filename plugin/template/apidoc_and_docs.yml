@@ -15,7 +15,7 @@ wizard:
         - version
         - release
 
-    - "#*-Api Document Setting"
+    - "#*Api Document Setting"
     -
         - apidoc-separate
         - apidoc-private
