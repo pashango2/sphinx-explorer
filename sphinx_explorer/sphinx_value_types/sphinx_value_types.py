@@ -132,7 +132,7 @@ class TypePython(TypeChoice):
         project_path = params.get("project_path")
         extend_venv = []
         if project_path:
-            extend_venv += python_venv.search_venv(project_path, fullpath=True)
+            extend_venv += python_venv.search_venv(project_path, project_path)
 
         choices = []
         env_list = python_venv.sys_env.env_list(venv_list=extend_venv)

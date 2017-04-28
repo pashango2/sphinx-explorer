@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+
 """
 This module manages Python's Virtual Environment.
 
@@ -20,7 +21,6 @@ from .package_model import *
 
 if platform.system() == "Windows":
     import winreg
-
 
 ICON_DICT = {
     "sys": None,
@@ -77,7 +77,7 @@ class PythonVEnv(object):
         venv_setting = venv_setting or VenvSetting()
         venv_list = []
         for path in venv_setting.search_venv_path:
-            venv_list.extend(search_venv(path, fullpath=True))
+            venv_list.extend(search_venv(path))
 
         env = PythonVEnv(conda_env, venv_list)
         env.check_version()
@@ -208,7 +208,8 @@ class Env(object):
             else:
                 path = os.path.join(cwd or "", self.path)
 
-            return os.path.join(path, _env_path())
+            path, _ = os.path.split(path)
+            return os.path.join(path, _activate_cmd())
 
         raise ValueError(self.type())
 
@@ -270,11 +271,25 @@ def search_anaconda():
     return []
 
 
-def _env_path():
+def _activate_path():
     if platform.system() == "Windows":
         return os.path.join("Scripts", "activate.bat")
     else:
         return os.path.join("bin", "activate")
+
+
+def _activate_cmd():
+    if platform.system() == "Windows":
+        return "activate.bat"
+    else:
+        return "activate"
+
+
+def _exe_path():
+    if platform.system() == "Windows":
+        return os.path.join("Scripts", "python.exe")
+    else:
+        return os.path.join("bin", "python")
 
 
 def get_system_default_python():
@@ -327,18 +342,25 @@ def search_system_python():
     return path_list
 
 
-def search_venv(cwd, fullpath=False):
+def search_venv(path, cwd=None):
     # find venv
     result = []
 
-    if os.path.isdir(cwd):
-        env = _env_path()
-        for x in os.listdir(cwd):
-            if os.path.isdir(os.path.join(cwd, x)):
-                activate_path = os.path.join(cwd, x, env)
-                if os.path.exists(activate_path):
-                    path = os.path.join(cwd, x) if fullpath else x
-                    result.append(Env("venv", x, path))
+    if os.path.isdir(path):
+        for x in os.listdir(path):
+            if os.path.isdir(os.path.join(path, x)):
+                activate_path = os.path.join(path, x, _activate_path())
+                exe_path = os.path.join(path, x, _exe_path())
+                if os.path.isfile(activate_path) and os.path.isfile(exe_path):
+                    version = check_python_version(exe_path)
+                    if cwd:
+                        exe_path = os.path.relpath(exe_path, cwd)
+                    result.append(Env("venv", x, exe_path, version))
+    elif os.path.isfile(path):
+        version = check_python_version(path)
+        if cwd:
+            path = os.path.relpath(path, cwd)
+        result.append(Env("venv", path, path, version))
 
     return result
 
@@ -366,4 +388,3 @@ def activate_command(venv_setting, cwd=None):
 
     env = Env.from_key(venv_setting.env)
     return env.activate_command(cwd)
-
