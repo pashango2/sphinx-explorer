@@ -47,8 +47,7 @@ class DescriptionWidget(BASE_CLASS):
 <style>
 
 body{
-    margin-left: 20px;
-    margin-top: 50px;
+    margin: 10px;
 }
 a{
     color:#4080d0;

@@ -26,6 +26,7 @@ from .system_settings import SystemSettingsDialog, SystemSettings
 from .task import SystemInitTask, push_task
 from .util.commander import commander
 from .wizard import quickstart_wizard
+from . import about
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -447,6 +448,18 @@ class MainWindow(QMainWindow):
         dlg.setup(self.setting_dir, self.settings, self.params_dict)
         if dlg.exec_() == QDialog.Accepted:
             dlg.update_settings(self.settings)
+
+    @Slot()
+    def on_action_about_qt_triggered(self):
+        QMessageBox.aboutQt(self, self.tr("About Qt"))
+
+    @Slot()
+    def on_action_about_triggered(self):
+        QMessageBox.about(
+            self,
+            self.tr("About Sphinx Explorer"),
+            about.message
+        )
 
     @Slot(QModelIndex)
     def onProjectLoaded(self, index):

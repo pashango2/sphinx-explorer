@@ -21,17 +21,9 @@ import qtpy
 import qdarkstyle
 from .main_window import MainWindow
 import logging
+from .about import __version__
 
 HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx-explorer")
-
-__version__ = 0.9
-
-
-# def setup(app):
-#     translator = QTranslator()
-#     # noinspection PyArgumentList
-#     translator.load("i18n/sphinx_explorer_{}".format(QLocale.system().name()))
-#     app.installTranslator(translator)
 
 
 def main():
