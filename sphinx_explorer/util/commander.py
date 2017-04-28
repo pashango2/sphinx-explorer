@@ -92,6 +92,7 @@ class Commander(object):
 
     def call(self, cmd, stderr=None, shell=False):
         try:
+            print(self(cmd))
             code = subprocess.call(self(cmd), stderr=stderr, shell=shell)
         except FileNotFoundError:
             logger.error("FileNotFoundError:{}".format(self(cmd)))

@@ -180,7 +180,7 @@ class Env(object):
 
         return None
 
-    def command(self, cwd=None):
+    def activate_command(self, cwd=None):
         if self.type() == "sys":
             return []
 
@@ -303,4 +303,5 @@ def activate_command(venv_setting, cwd=None):
         return ""
 
     env = Env.from_key(venv_setting.env)
-    return env.command(cwd)
+    return env.activate_command(cwd)
+

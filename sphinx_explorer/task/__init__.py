@@ -5,6 +5,8 @@ from qtpy.QtCore import *
 # from qtpy.QtGui import *
 # from qtpy.QtWidgets import *
 from ..util.python_venv import PythonVEnv
+from ..util.commander import commander
+from ..pip_manager import PipListOutDateTask
 import logging
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,9 @@ class BaseTask(QObject):
 
 
 class SystemInitTask(BaseTask):
+    checkPythonEnvFinished = Signal(PythonVEnv)
+    checkPythonPackageFinished = Signal(str, list)
+
     finished = Signal(PythonVEnv)
 
     def __init__(self, settings, parent=None):
@@ -33,7 +38,20 @@ class SystemInitTask(BaseTask):
         env = PythonVEnv.create_system_python_env(self.settings.venv_setting())
 
         self.message("Checking Python Venv Finished")
-        self.finished.emit(env)
+        self.checkPythonEnvFinished.emit(env)
+
+        self.message("Checking Python Packages...")
+
+        for key, e in env.env_list():
+            cmd = e.activate_command()
+            activate_commander = commander.create_pre_commander(cmd)
+
+            task = PipListOutDateTask(commander=activate_commander)
+            task.run()
+
+            self.checkPythonPackageFinished.emit(e.python_path(), task.packages)
+
+        self.message("Check Python Package Finished")
 
 
 class Worker(QRunnable):

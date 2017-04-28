@@ -27,6 +27,7 @@ from .util import python_venv
 from .wizard import quickstart_wizard
 from .package_mgr_dlg import PackageManagerDlg
 from .util.commander import commander
+from . import pip_manager
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -189,7 +190,8 @@ class MainWindow(QMainWindow):
         # system init task
         task = SystemInitTask(self.settings, self)
         task.messaged.connect(self._on_task_message)
-        task.finished.connect(self._on_system_init_finished)
+        task.checkPythonEnvFinished.connect(self._on_check_python_env_finished)
+        task.checkPythonPackageFinished.connect(self._on_check_python_package_finished)
         push_task(task)
 
         # setup end
@@ -201,8 +203,13 @@ class MainWindow(QMainWindow):
         self.ui.statusbar.showMessage(msg, timeout)
 
     @staticmethod
-    def _on_system_init_finished(env):
+    def _on_check_python_env_finished(env):
         python_venv.setup(env)
+
+    def _on_check_python_package_finished(self, python_path, packages):
+        model = pip_manager.get_model(python_path)
+        model.load(packages)
+        print("finish")
 
     def _setup(self):
         self.project_list_model.load(self.settings.projects)

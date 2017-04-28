@@ -31,7 +31,6 @@ class PipInstallTask(QObject):
             ret = self.commander.call("pip install -q {} {}".format(update_flag, package), shell=True)
             if not ret:
                 logger.warning("pip failed.")
-
             result = ret and result
 
         self.finished.emit(result)

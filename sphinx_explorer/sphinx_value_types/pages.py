@@ -9,6 +9,7 @@ from sphinx_explorer.property_widget import PropertyModel
 from sphinx_explorer.util import python_venv
 from sphinx_explorer.util.commander import commander
 from sphinx_explorer.pip_manager import PipListOutDateTask, PipInstallTask
+from sphinx_explorer import pip_manager
 from .widgets import SphinxPackageModel
 from ..task import push_task
 
@@ -68,6 +69,10 @@ class PythonInterpreterWidget(QWidget):
         self.loading_label = LoadingLabel(self.package_tree_view)
         self.loading_label.hide()
 
+        self._connect()
+
+    # noinspection PyUnresolvedReferences
+    def _connect(self):
         self.install_button.clicked.connect(self._install)
         self.update_button.clicked.connect(self._update)
 
@@ -98,6 +103,11 @@ class PythonInterpreterWidget(QWidget):
         self.install_button.setEnabled(False)
         self.update_button.setEnabled(False)
 
+    def _commander(self):
+        venv_setting = self.python_combo.value()
+        activate_command = python_venv.activate_command(venv_setting)
+        return commander.create_pre_commander(activate_command)
+
     def _install(self):
         install_list, _ = self._item_filter(
             self.package_tree_view.model(),
@@ -107,7 +117,7 @@ class PythonInterpreterWidget(QWidget):
             packages = [x.package for x in install_list]
 
             self._start_loading()
-            task = PipInstallTask(packages)
+            task = PipInstallTask(packages, commander=self._commander())
             task.finished.connect(self._on_install_finished)
             push_task(task)
 
@@ -170,14 +180,14 @@ class PythonInterpreterWidget(QWidget):
         item = self.property_model.get("python", self.root_index)
         item.value_item.set_value(self.python_combo.value())
 
+        # self._start_loading()
+        # task = PipListOutDateTask(commander=self._commander())
+        # task.finished.connect(self._on_package_load_finished)
+        # push_task(task)
         venv_setting = self.python_combo.value()
-        activate_command = python_venv.activate_command(venv_setting)
-        pre_commander = commander.create_pre_commander(activate_command)
+        ven
 
-        self._start_loading()
-        task = PipListOutDateTask(pre_commander)
-        task.finished.connect(self._on_package_load_finished)
-        push_task(task)
+        model = pip_manager.get_model()
 
     @Slot(list)
     def _on_package_load_finished(self, packages):
