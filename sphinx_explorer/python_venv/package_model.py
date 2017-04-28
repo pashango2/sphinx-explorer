@@ -1,23 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from .tasks import *
-# from qtpy.QtCore import *
-# from qtpy.QtWidgets import *
+
 from qtpy.QtGui import *
+from sphinx_explorer.python_venv.tasks import *
 
 import logging
 logger = logging.getLogger(__name__)
 
 
 class PackageModel(QStandardItemModel):
-    COLOR_OK = QColor("#3b7960")
-    COLOR_NOT_INSTALL = QColor("#640125")
-
-    def __init__(self, python_path, parent=None):
+    def __init__(self, parent=None):
         super(PackageModel, self).__init__(parent)
         self._package_dict = {}
-        self.python_path = python_path
         self._is_loaded = False
         self.setHorizontalHeaderLabels([
             self.tr("Package"),
@@ -37,6 +32,14 @@ class PackageModel(QStandardItemModel):
         self._is_loaded = False
         super(PackageModel, self).clear()
 
+    def find(self, package_name):
+        # type: (str) -> Optional[PackageItem]
+        # noinspection PyArgumentList
+        items = self.findItems(package_name)
+        if items:
+            return items[0]
+        return None
+
     @staticmethod
     def package_name_filter(name):
         return name.lower().replace(".", "-")
@@ -46,11 +49,6 @@ class PackageModel(QStandardItemModel):
 
         item = PackageItem(package, version, latest)
         self._package_dict[package] = item
-
-        if version:
-            item.setBackground(self.COLOR_OK)
-        else:
-            item.setBackground(self.COLOR_NOT_INSTALL)
 
         items = [item, QStandardItem(), QStandardItem()]
         if row < 0:
@@ -69,7 +67,6 @@ class PackageModel(QStandardItemModel):
 
         for package in filter_packages:
             if package not in self._package_dict:
-                print(package, self._package_dict.keys())
                 self.add_package(package, None, 0)
 
         return PackageFilterModel(self, filter_packages, parent)
@@ -84,7 +81,7 @@ class PackageModel(QStandardItemModel):
             if role == Qt.DisplayRole:
                 if column == 1:
                     item = self.itemFromIndex(index)    # type: PackageItem
-                    return item.version
+                    return item.version if not item.installing else "Installing..."
                 elif column == 2:
                     item = self.itemFromIndex(index)    # type: PackageItem
                     return item.latest or item.version
@@ -93,12 +90,24 @@ class PackageModel(QStandardItemModel):
 
 
 class PackageItem(QStandardItem):
+    COLOR_OK = QColor("#3b7960")
+    COLOR_NOT_INSTALL = QColor("#640125")
+
     def __init__(self, package, version, latest=None, pack_type=None):
         super(PackageItem, self).__init__(package)
         self.package = package
         self.version = version
         self.latest = latest
         self.pack_type = pack_type
+        self.installing = False
+
+        self.update_color()
+
+    def update_color(self):
+        if self.version:
+            self.setBackground(self.COLOR_OK)
+        else:
+            self.setBackground(self.COLOR_NOT_INSTALL)
 
 
 class PackageFilterModel(QSortFilterProxyModel):

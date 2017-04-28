@@ -5,7 +5,7 @@ from qtpy.QtCore import *
 # from qtpy.QtWidgets import *
 import re
 import logging
-from ..util.commander import Commander
+from sphinx_explorer.util.commander import Commander
 logger = logging.getLogger(__name__)
 
 
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class PipInstallTask(QObject):
-    finished = Signal(bool)
+    finished = Signal(bool, str, str)
 
     def __init__(self, packages, update_flag=False, commander=Commander(), callback=None, parent=None):
         super(PipInstallTask, self).__init__(parent)
@@ -25,15 +25,30 @@ class PipInstallTask(QObject):
         self.update_flag = update_flag
 
     def run(self):
-        result = True
         for package in self.packages:
             update_flag = "-U" if self.update_flag else ""
-            ret = self.commander.call("pip install -q {} {}".format(update_flag, package), shell=True)
-            if not ret:
+            result = self.commander.call("pip install -q {} {}".format(update_flag, package), shell=True)
+            if not result:
                 logger.warning("pip failed.")
-            result = ret and result
 
-        self.finished.emit(result)
+            package_info = self.commander.check_output("pip show {}".format(package), shell=True)
+            version = self.get_version(package_info)
+
+            self.finished.emit(True, package, version)
+
+    @staticmethod
+    def get_version(msg):
+        if not msg:
+            return None
+
+        for line in msg.splitlines():
+            if line.startswith("Version: "):
+                version = line[len("Version: "):].strip()
+                break
+        else:
+            version = None
+
+        return version
 
 
 class PipListTask(QObject):
@@ -52,7 +67,7 @@ class PipListTask(QObject):
             g = PipListTask.PARSE_RE.match(line)
             if g:
                 package, version = g.groups()
-                yield package, version
+                yield package, version, None
 
     def run(self):
         self._run()
@@ -63,8 +78,8 @@ class PipListTask(QObject):
         if not output:
             logger.warning("pip failed.")
         else:
-            for package, version in PipListTask.filter(output):
-                self.packages.append((package, version, None))
+            for package, version, latest in PipListTask.filter(output):
+                self.packages.append((package, version, latest))
 
 
 class PipListOutDateTask(PipListTask):

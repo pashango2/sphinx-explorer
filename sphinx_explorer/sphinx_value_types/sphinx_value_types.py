@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from sphinx_explorer.property_widget import TypeBase, TypeChoice
-from .widgets import *
-from sphinx_explorer.theme_dialog import HtmlThemeWidget
-# from qtpy.QtCore import *
-# from qtpy.QtGui import *
+
 from qtpy.QtWidgets import *
-from sphinx_explorer.util import python_venv
+
+from sphinx_explorer import python_venv
+from sphinx_explorer.property_widget import TypeBase, TypeChoice
+from sphinx_explorer.theme_dialog import HtmlThemeWidget
+from .widgets import *
 
 
 # noinspection PyMethodOverriding,PyArgumentList

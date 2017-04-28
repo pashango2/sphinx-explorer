@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from sphinx_explorer.util import python_venv
+
+from sphinx_explorer import python_venv
 
 
 # def test_pyenv():

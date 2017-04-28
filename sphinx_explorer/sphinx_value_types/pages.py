@@ -5,13 +5,13 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from qtpy.QtCore import *
 from qtpy.QtWidgets import *
 
+from sphinx_explorer.python_venv import PipInstallTask
 from sphinx_explorer.property_widget import PropertyModel
-from sphinx_explorer.util import python_venv
+from sphinx_explorer import python_venv
 from sphinx_explorer.util.commander import commander
-from sphinx_explorer.pip_manager import PipListOutDateTask, PipInstallTask
-from sphinx_explorer import pip_manager
-from .widgets import SphinxPackageModel
 from ..task import push_task
+from .. import package_mgr
+from ..package_mgr import SphinxPackageModel
 
 
 class LoadingLabel(QLabel):
@@ -102,6 +102,7 @@ class PythonInterpreterWidget(QWidget):
         self.loading_label.hide()
         self.install_button.setEnabled(False)
         self.update_button.setEnabled(False)
+        self.package_tree_view.resizeColumnToContents(0)
 
     def _commander(self):
         venv_setting = self.python_combo.value()
@@ -114,12 +115,10 @@ class PythonInterpreterWidget(QWidget):
             self.package_tree_view.selectedIndexes()
         )
         if install_list:
-            packages = [x.package for x in install_list]
-
-            self._start_loading()
-            task = PipInstallTask(packages, commander=self._commander())
-            task.finished.connect(self._on_install_finished)
-            push_task(task)
+            for package_item in install_list:
+                model = package_item.model()    # type: SphinxPackageModel
+                if model:
+                    model.install(package_item)
 
     def _update(self):
         _, update_list = self._item_filter(
@@ -137,12 +136,20 @@ class PythonInterpreterWidget(QWidget):
     def _on_install_finished(self, result):
         self._end_loading()
 
+    def _on_loading_state_changed(self, was_loaded):
+        if was_loaded:
+            self._end_loading()
+        else:
+            self._start_loading()
+
     def _setup_model(self, model):
         if self._selection_model:
             self._selection_model.selectionChanged.disconnect(self._on_selection_changed)
 
         self.package_tree_view.setModel(model)
-        self.package_tree_view.resizeColumnToContents(0)
+
+        model.loadingStateChanged.connect(self._on_loading_state_changed)
+        self._on_loading_state_changed(model.was_loaded)
 
         self._selection_model = self.package_tree_view.selectionModel()
         self._selection_model.selectionChanged.connect(self._on_selection_changed)
@@ -185,16 +192,10 @@ class PythonInterpreterWidget(QWidget):
         # task.finished.connect(self._on_package_load_finished)
         # push_task(task)
         venv_setting = self.python_combo.value()
-        ven
+        # ven
 
-        model = pip_manager.get_model()
-
-    @Slot(list)
-    def _on_package_load_finished(self, packages):
-        model = SphinxPackageModel(self)
-        model.load(packages)
+        model = package_mgr.get_model(venv_setting.python_env())
         self._setup_model(model)
-        self._end_loading()
 
     def teardown(self):
         pass

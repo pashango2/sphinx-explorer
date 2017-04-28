@@ -1,33 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from qtpy.QtCore import *
-# noinspection PyUnresolvedReferences
-from qtpy.QtGui import *
-from qtpy.QtWidgets import *
 
 import ctypes
 import os
 import platform
 import webbrowser
 from collections import OrderedDict
+
 import toml
+from qtpy.QtCore import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 from six import PY2
 
+from sphinx_explorer import python_venv
 from sphinx_explorer.ui.main_window_ui import Ui_MainWindow
 from sphinx_explorer.util import icon
 from . import plugin
 from . import property_widget
 from . import sphinx_value_types
-from .pip_manager import PackageModel
+from . import package_mgr
 from .project_list_model import ProjectListModel, ProjectItem, ProjectSettingDialog
 from .system_settings import SystemSettingsDialog, SystemSettings
 from .task import SystemInitTask, push_task
-from .util import python_venv
-from .wizard import quickstart_wizard
-from .package_mgr_dlg import PackageManagerDlg
 from .util.commander import commander
-from . import pip_manager
+from .wizard import quickstart_wizard
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -98,7 +96,6 @@ class MainWindow(QMainWindow):
 
         # create models
         self.project_list_model = ProjectListModel(parent=self)
-        self.package_model = PackageModel(self)
 
         # setup file menu
         self.ui.menuFile_F.addSeparator()
@@ -206,10 +203,9 @@ class MainWindow(QMainWindow):
     def _on_check_python_env_finished(env):
         python_venv.setup(env)
 
-    def _on_check_python_package_finished(self, python_path, packages):
-        model = pip_manager.get_model(python_path)
+    def _on_check_python_package_finished(self, python_env, packages):
+        model = package_mgr.get_model(python_env)
         model.load(packages)
-        print("finish")
 
     def _setup(self):
         self.project_list_model.load(self.settings.projects)
@@ -367,10 +363,6 @@ class MainWindow(QMainWindow):
         if item:
             dlg = ProjectSettingDialog(item, self)
             dlg.exec_()
-
-    def _package_manager(self):
-        dlg = PackageManagerDlg(self.package_model, self)
-        dlg.exec_()
 
     def _on_project_changed(self, current, _):
         # type: (QModelIndex, QModelIndex) -> None

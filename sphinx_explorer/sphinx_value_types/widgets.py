@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-# from qtpy.QtCore import *
-# from qtpy.QtGui import *
-from qtpy.QtWidgets import *
 
 import os
 
+from qtpy.QtWidgets import *
+
 from sphinx_explorer.property_widget import cog_icon
 from sphinx_explorer.property_widget.widgets import MovableListWidget
-from sphinx_explorer.util.python_venv import check_python_version, VenvSetting
-from sphinx_explorer.pip_manager import PackageModel
-from sphinx_explorer.plugin import extension
+from sphinx_explorer.python_venv import check_python_version, VenvSetting
 
 
 # noinspection PyArgumentList
@@ -142,34 +139,5 @@ class PythonEnvDialog(QDialog):
             result.append(item.text())
 
         return result
-
-
-class SphinxPackageModel(PackageModel):
-    def __init__(self, parent=None):
-        super(SphinxPackageModel, self).__init__(parent)
-
-    def load(self, packages):
-        # type: ([tuple[str, str]]) -> None
-        new_packages = []
-        dependent_packages = [PackageModel.package_name_filter(x) for x in extension.dependent_packages()]
-        dependent_packages += ["sphinx", "sphinx-rtd-theme"]
-        package_names = []
-
-        for package, version, latest in packages:
-            package = PackageModel.package_name_filter(package)
-            if package.startswith("sphinx-") or package.startswith("sphinxcontrib-") or \
-               package in dependent_packages:
-                new_packages.append((package, version, latest))
-                package_names.append(package)
-
-        # not dependent
-        for non_installed_package in (set(dependent_packages) - set(package_names)):
-            new_packages.append((non_installed_package, None, None))
-
-        super(SphinxPackageModel, self).load(new_packages)
-
-
-
-
 
 

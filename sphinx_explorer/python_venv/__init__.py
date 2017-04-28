@@ -8,14 +8,16 @@ This module manages Python's Virtual Environment.
 * search venv
 """
 import os
-import re
 import json
 import fnmatch
 import platform
 import subprocess
 from collections import OrderedDict
 from six import string_types
-from .commander import commander
+from sphinx_explorer.util.commander import commander
+from .tasks import *
+from .package_model import *
+
 
 ICON_DICT = {
     "sys": None,
@@ -51,6 +53,13 @@ class VenvSetting(dict):
 
     def set_env(self, env):
         self["env"] = env
+
+    def python_path(self):
+        e = Env.from_key(self.env)
+        return e.python_path()
+
+    def python_env(self):
+        return Env.from_key(self.env)
 
 
 class PythonVEnv(object):

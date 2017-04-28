@@ -292,7 +292,7 @@ def test_link_format():
 
 
 def test_wizard():
-    wizard_path = os.path.join(here, "..", "plugin", "wizard")
+    wizard_path = os.path.join(here, "..", "plugin", "template")
     assert os.path.exists(wizard_path)
 
     params_path = os.path.join(here, "..", "settings")

@@ -92,7 +92,6 @@ class Commander(object):
 
     def call(self, cmd, stderr=None, shell=False):
         try:
-            print(self(cmd))
             code = subprocess.call(self(cmd), stderr=stderr, shell=shell)
         except FileNotFoundError:
             logger.error("FileNotFoundError:{}".format(self(cmd)))
@@ -175,7 +174,7 @@ class Commander(object):
         else:
             # cmd = command(cmd)
             # subprocess.Popen(cmd, cwd=cwd, shell=True)
-            print(platform.system())
+            logger.error("Non Impliment")
             return None
 
     def exec_(self, cmd, cwd=None):
