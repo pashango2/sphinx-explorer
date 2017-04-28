@@ -60,6 +60,7 @@ class Commander(object):
 
         if self.system == "Linux":
             return '/bin/bash -c "{}"'.format(cmd_str)
+            # return cmd_str
         else:
             return cmd_str
 
@@ -80,7 +81,7 @@ class Commander(object):
         else:
             which_cmd = "which"
 
-        result = self.check_output("{} {}".format(which_cmd, cmd))
+        result = self.check_output("{} {}".format(which_cmd, cmd), shell=True)
         if result:
             for line in result.splitlines():
                 return line

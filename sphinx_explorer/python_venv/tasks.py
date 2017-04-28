@@ -87,6 +87,9 @@ class PipListOutDateTask(PipListTask):
 
     @staticmethod
     def outdate_filter(output):
+        if not output:
+            return
+
         for line in output.splitlines():
             g = PipListOutDateTask.OUTDATE_PARSE_RE.match(line)
             if g:

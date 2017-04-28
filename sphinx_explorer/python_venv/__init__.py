@@ -13,6 +13,7 @@ import json
 import fnmatch
 import platform
 import subprocess
+import glob
 from collections import OrderedDict
 from six import string_types
 from sphinx_explorer.util.commander import commander
@@ -72,6 +73,7 @@ class PythonVEnv(object):
         """
         create system python envs.
         """
+        system_env = search_system_python()
         conda_env = search_anaconda()
 
         venv_setting = venv_setting or VenvSetting()
@@ -79,18 +81,20 @@ class PythonVEnv(object):
         for path in venv_setting.search_venv_path:
             venv_list.extend(search_venv(path))
 
-        env = PythonVEnv(conda_env, venv_list)
+        env = PythonVEnv(system_env, conda_env, venv_list)
         env.check_version()
 
         return env
 
-    def __init__(self, conda_env=None, venv_list=None):
+    def __init__(self, system_env=None, conda_env=None, venv_list=None):
         self._envs = OrderedDict()
-        env = Env()
-        self._envs[env.key()] = env
-        self._default_env = env.key()
-        self.default_key = env.key()
         self._loading = False
+        self.default_key = None
+
+        if system_env:
+            for env in system_env:
+                key = env.key()
+                self._envs[key] = env
 
         if conda_env:
             for name, default, path in conda_env:
@@ -99,22 +103,28 @@ class PythonVEnv(object):
                 self._envs[key] = env
 
                 if default:
-                    self._default_env = key
+                    self.default_key = key
 
         if venv_list:
             for env in venv_list:
                 key = env.key()
                 self._envs[key] = env
 
+        if not self._envs:
+            env = Env()
+            self._envs[env.key()] = env
+            self.default_key = env.key()
+        else:
+            if self.default_key is None:
+                for key, env in self._envs.keys():
+                    self.default_key = key
+
     def get(self, key):
         # type: (str) -> Env
         return self._envs.get(key, self._envs[self.default_key])
 
     def default_env(self):
-        return self._envs[self._default_env]
-
-    def default_env_key(self):
-        return self._default_env
+        return self._envs[self.default_key]
 
     def command(self, env=None):
         env = env or self.default_env()
@@ -139,9 +149,6 @@ class PythonVEnv(object):
             python_path = env.python_path()
             if python_path:
                 env.version = check_python_version(python_path)
-
-    def set_anaconda_env(self, env):
-        pass
 
 
 class Env(object):
@@ -336,10 +343,20 @@ def search_system_python():
                 if value_type == winreg.REG_SZ:
                     path_list.add(os.path.join(value, "python.exe"))
     else:
-        python_path = commander.which("python")
-        path_list = {python_path}
+        path_list = set()
+        for python_path in glob.glob("/usr/bin/python*"):
+            if os.path.islink(python_path):
+                continue
+            path_list.add(python_path)
 
-    return path_list
+    env_list = []
+    for python_path in path_list:
+        version = check_python_version(python_path)
+        if version:
+            env = Env("sys", path=python_path, version=version)
+            env_list.append(env)
+
+    return env_list
 
 
 def search_venv(path, cwd=None):
