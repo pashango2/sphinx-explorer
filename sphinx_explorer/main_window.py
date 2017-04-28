@@ -89,6 +89,7 @@ class MainWindow(QMainWindow):
         self.make_html_act = self._act(None, self.tr("HTML"), self._on_make_html)
         self.make_epub_act = self._act(None, self.tr("Epub"), self._on_make_epub)
         self.make_latex_pdf_act = self._act(None, self.tr("LaTex PDF"), self._on_make_latex_pdf)
+        self.make_clean_act = self._act(None, self.tr("Clean"), self._on_make_clean)
 
         # setup ui
         self.ui = Ui_MainWindow()
@@ -261,6 +262,9 @@ class MainWindow(QMainWindow):
         make_menu.addAction(self.make_html_act)
         make_menu.addAction(self.make_epub_act)
         make_menu.addAction(self.make_latex_pdf_act)
+        make_menu.addSeparator()
+        make_menu.addAction(self.make_clean_act)
+
         make_menu.setTitle("Make")
         menu.addMenu(make_menu)
 
@@ -337,6 +341,10 @@ class MainWindow(QMainWindow):
     def _on_make_latex_pdf(self):
         # type: () -> None
         self._make("latexpdf", self.ui.tree_view_projects.currentIndex())
+
+    def _on_make_clean(self):
+        # type: () -> None
+        self._make("clean", self.ui.tree_view_projects.currentIndex())
 
     def _make(self, make_cmd, index, callback=None):
         if index and index.isValid():

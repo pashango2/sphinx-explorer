@@ -74,6 +74,18 @@ class Commander(object):
 
         return default
 
+    def which(self, cmd):
+        if self.system == "Windows":
+            which_cmd = "where"
+        else:
+            which_cmd = "which"
+
+        result = self.check_output("{} {}".format(which_cmd, cmd))
+        if result:
+            for line in result.splitlines():
+                return line
+        return None
+
     def check_output(self, cmd, stderr=None, shell=False):
         try:
             output = subprocess.check_output(self(cmd), stderr=stderr, shell=shell)

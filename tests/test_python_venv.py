@@ -18,6 +18,11 @@ from sphinx_explorer import python_venv
 #     assert str(env) == "py34(./py34)"
 #     assert str(python_venv.Env.from_str(env.to_str())) == "py34(./py34)"
 
+def test_search_system_python():
+    v = python_venv.search_system_python()
+    print(v)
+    print(python_venv.get_system_default_python())
+
 
 def test_search_anconda():
     v = python_venv.search_anaconda()

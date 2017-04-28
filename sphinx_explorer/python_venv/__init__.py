@@ -18,6 +18,9 @@ from sphinx_explorer.util.commander import commander
 from .tasks import *
 from .package_model import *
 
+if platform.system() == "Windows":
+    import winreg
+
 
 ICON_DICT = {
     "sys": None,
@@ -272,6 +275,56 @@ def _env_path():
         return os.path.join("Scripts", "activate.bat")
     else:
         return os.path.join("bin", "activate")
+
+
+def get_system_default_python():
+    return commander.which("python")
+
+
+def search_system_python():
+    if platform.system() == "Windows":
+        search_keys = [
+            (winreg.HKEY_CURRENT_USER, r"Software\Python\PythonCore"),
+            (winreg.HKEY_LOCAL_MACHINE, r"Software\Python\PythonCore"),
+            (winreg.HKEY_LOCAL_MACHINE, r"Software\Wow6432Node\Python\PythonCore"),
+        ]
+
+        path_list = set()
+        for key, sub_key in search_keys:
+            i = 0
+            try:
+                _key = winreg.OpenKey(key, sub_key)
+            except OSError:
+                continue
+
+            # get version
+            while True:
+                try:
+                    version = winreg.EnumKey(_key, i)
+                except OSError:
+                    break
+                i += 1
+
+                try:
+                    path_key = winreg.OpenKey(
+                        key,
+                        sub_key + "\\" + version + "\\InstallPath"
+                    )
+                except OSError:
+                    continue
+
+                try:
+                    _, value, value_type = winreg.EnumValue(path_key, 0)
+                except OSError:
+                    continue
+
+                if value_type == winreg.REG_SZ:
+                    path_list.add(os.path.join(value, "python.exe"))
+    else:
+        python_path = commander.which("python")
+        path_list = {python_path}
+
+    return path_list
 
 
 def search_venv(cwd, fullpath=False):
