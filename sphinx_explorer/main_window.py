@@ -203,7 +203,8 @@ class MainWindow(QMainWindow):
     def _on_check_python_env_finished(env):
         python_venv.setup(env)
 
-    def _on_check_python_package_finished(self, python_env, packages):
+    @staticmethod
+    def _on_check_python_package_finished(python_env, packages):
         model = package_mgr.get_model(python_env)
         model.load(packages)
 
@@ -281,6 +282,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, evt):
         self._save()
         self.ui.plain_output.terminate()
+        QThreadPool.globalInstance().waitForDone(0)
         super(MainWindow, self).closeEvent(evt)
 
     def event(self, evt):
@@ -484,7 +486,7 @@ class MainWindow(QMainWindow):
         indexes = [x for x in indexes if x.column() == 0]
 
         if indexes:
-            # noinspection PyCallByClass
+            # noinspection PyCallByClass,PyTypeChecker
             result = QMessageBox.question(
                 self,
                 self.windowTitle(),
