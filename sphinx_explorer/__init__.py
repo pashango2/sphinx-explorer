@@ -22,6 +22,8 @@ import qdarkstyle
 from .main_window import MainWindow
 import logging
 from .about import __version__
+# noinspection PyUnresolvedReferences
+import mdx_gfm
 
 HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx-explorer")
 
