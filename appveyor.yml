@@ -29,5 +29,5 @@ after_test:
     - "%PYTHON%\\Scripts\\pyinstaller sphinx-explorer.spec"
     
 artifacts:
-  - path: sphinx-explorer_*.zip
+  - path: dist/sphinx-explorer
 
