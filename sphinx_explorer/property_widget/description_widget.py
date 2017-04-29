@@ -128,4 +128,3 @@ td {
                 self.setSearchPaths([search_path])
 
             self.setHtml(html)
-

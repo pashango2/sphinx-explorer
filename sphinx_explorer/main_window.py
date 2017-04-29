@@ -7,6 +7,7 @@ import os
 import platform
 import webbrowser
 from collections import OrderedDict
+import logging
 
 import toml
 from qtpy.QtCore import *
@@ -95,6 +96,11 @@ class MainWindow(QMainWindow):
         # setup ui
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+        # setup logger
+        self.gui_logger = GuiLogger(self)
+        self.gui_logger.edit = self.ui.text_edit_error
+        logging.getLogger().addHandler(self.gui_logger)
 
         # create models
         self.project_list_model = ProjectListModel(parent=self)
@@ -197,6 +203,11 @@ class MainWindow(QMainWindow):
         self.setAcceptDrops(True)
         self._setup()
         self.ui.tree_view_projects.setFocus()
+
+    @Slot(str)
+    def output_error(self, err_msg):
+        self.ui.text_edit_error.append(err_msg)
+        self.ui.output_tab_widget.setCurrentIndex(1)
 
     def _on_task_message(self, msg, timeout=3000):
         self.ui.statusbar.showMessage(msg, timeout)
@@ -451,10 +462,12 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def on_action_about_qt_triggered(self):
+        # noinspection PyCallByClass
         QMessageBox.aboutQt(self, self.tr("About Qt"))
 
     @Slot()
     def on_action_about_triggered(self):
+        # noinspection PyCallByClass
         QMessageBox.about(
             self,
             self.tr("About Sphinx Explorer"),
@@ -582,3 +595,12 @@ class MainWindow(QMainWindow):
             item = self.project_list_model.rowItem(index)
             menu = self._create_context_menu(item, path)
             menu.exec_(self.ui.tree_view_projects.viewport().mapToGlobal(pos))
+
+
+class GuiLogger(logging.Handler):
+    def __init__(self, main_window):
+        super(GuiLogger, self).__init__()
+        self.main_window = main_window
+
+    def emit(self, record):
+        self.main_window.output_error(self.format(record))

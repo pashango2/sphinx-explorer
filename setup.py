@@ -6,7 +6,7 @@ requires = [
     'sphinx>=1.5',
     'pyqt5',
     'qdarkstyle',
-    'ptpy'
+    'qtpy',
     'toml',
     'typing',
     'pyYaml',

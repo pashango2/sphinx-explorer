@@ -149,7 +149,34 @@
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QConsoleWidget" name="plain_output"/>
+      <widget class="QTabWidget" name="output_tab_widget">
+       <property name="tabPosition">
+        <enum>QTabWidget::South</enum>
+       </property>
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="Output">
+        <attribute name="title">
+         <string>Output</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="QConsoleWidget" name="plain_output"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="Error">
+        <attribute name="title">
+         <string>Error</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <item>
+          <widget class="QTextEdit" name="text_edit_error"/>
+         </item>
+        </layout>
+       </widget>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -245,7 +272,7 @@
   </action>
   <action name="action_about">
    <property name="text">
-    <string>About Sphinx Explorer...</string>
+    <string>&amp;About Sphinx Explorer...</string>
    </property>
    <property name="toolTip">
     <string>About Sphinx Explorer</string>
@@ -253,7 +280,7 @@
   </action>
   <action name="action_about_qt">
    <property name="text">
-    <string>About Qt...</string>
+    <string>About &amp;Qt...</string>
    </property>
    <property name="toolTip">
     <string>About Qt...</string>
