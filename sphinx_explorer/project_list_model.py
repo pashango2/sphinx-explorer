@@ -176,10 +176,18 @@ class ProjectItem(QStandardItem):
     def auto_build_command(self, target="html"):
         model = self.model()
         if model:
-            cmd = "sphinx-autobuild -p 0 -s 1 --open-browser {} {}".format(
-                quote(self.settings.source_dir),
-                quote(os.path.join(self.settings.build_dir, target)),
-            )
+            cmd = [
+                "sphinx-autobuild",
+                "-p", "0",
+                "--delay", "1",
+                "--open-browser",
+                "--ignore", ".git/*",
+                "--ignore", "*.bak",
+                "--ignore", "~*.*",
+                "--ignore", "___jb_*___",
+                self.settings.source_dir,
+                os.path.join(self.settings.build_dir, target),
+            ]
             return cmd
         return None
 

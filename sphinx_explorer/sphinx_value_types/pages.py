@@ -187,12 +187,7 @@ class PythonInterpreterWidget(QWidget):
         item = self.property_model.get("python", self.root_index)
         item.value_item.set_value(self.python_combo.value())
 
-        # self._start_loading()
-        # task = PipListOutDateTask(commander=self._commander())
-        # task.finished.connect(self._on_package_load_finished)
-        # push_task(task)
         venv_setting = self.python_combo.value()
-        # ven
 
         model = package_mgr.get_model(venv_setting.python_env())
         self._setup_model(model)

@@ -7,7 +7,7 @@ import logging
 from qtpy.QtCore import *
 
 from sphinx_explorer.python_venv import PythonVEnv
-from ..python_venv import PipListOutDateTask, Env
+from ..python_venv import PipListTask, Env
 from ..util.commander import commander
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ class SystemInitTask(BaseTask):
             cmd = e.activate_command()
             activate_commander = commander.create_pre_commander(cmd)
 
-            task = PipListOutDateTask(commander=activate_commander)
+            task = PipListTask(commander=activate_commander)
             task.run()
 
             self.checkPythonPackageFinished.emit(e, task.packages)

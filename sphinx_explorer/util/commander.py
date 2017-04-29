@@ -39,7 +39,7 @@ class Commander(object):
         new_commander.pre_command = [pre_command or []]
         return new_commander
 
-    def __call__(self, cmd=None, cwd=None, python_mode=False, cmds=None):
+    def __call__(self, cmd=None, cwd=None, bash=True, cmds=None):
         new_cmd = []
         _cmds = [cmd] if cmd else []
         _cmds += cmds or []
@@ -58,9 +58,9 @@ class Commander(object):
 
         cmd_str = cmd_joiner.join(new_cmd)
 
-        if self.system == "Linux":
+        if self.system == "Linux" and bash:
+            # cmd_str = cmd_str.replace('"', '\\"').replace("'", "\\'")
             return '/bin/bash -c "{}"'.format(cmd_str)
-            # return cmd_str
         else:
             return cmd_str
 
@@ -182,7 +182,7 @@ class Commander(object):
                 creationflags=subprocess.CREATE_NEW_CONSOLE,
             )
         elif platform.system() == "Linux":
-            cmd = 'gnome-terminal -e "{}"'.format(cmd)
+            cmd = 'gnome-terminal -e "{}"'.format(self(cmd, bash=False))
             return subprocess.Popen(cmd, cwd=cwd, shell=True)
         else:
             # cmd = command(cmd)

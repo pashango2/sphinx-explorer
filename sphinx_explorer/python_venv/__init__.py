@@ -196,6 +196,8 @@ class Env(object):
                 return os.path.join(self.path, bin_path, "python")
             elif self._type == "venv":
                 return os.path.join(self.path, bin_path, "python")
+            elif self._type == "sys":
+                return self.path
 
         return None
 
