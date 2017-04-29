@@ -133,7 +133,7 @@ class PythonInterpreterWidget(QWidget):
             task.finished.connect(self._on_install_finished)
             push_task(task)
 
-    def _on_install_finished(self, result):
+    def _on_install_finished(self, _):
         self._end_loading()
 
     def _on_loading_state_changed(self, was_loaded):

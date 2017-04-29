@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 package_dict = {}
 g_parent = None
 
+if False:
+    from typing import Tuple
+
 
 def init(parent):
     global g_parent
@@ -48,7 +51,7 @@ class SphinxPackageModel(PackageModel):
         self.commander = commander.create_pre_commander(activate_command)
 
     def load(self, packages):
-        # type: ([tuple[str, str]]) -> None
+        # type: ([Tuple[str, str]]) -> None
         new_packages = []
         dependent_packages = [PackageModel.package_name_filter(x) for x in extension.dependent_packages()]
         dependent_packages += ["sphinx", "sphinx-rtd-theme"]
@@ -82,7 +85,7 @@ class SphinxPackageModel(PackageModel):
         task.finished.connect(self._on_install_finished)
         push_task(task)
 
-    def _on_install_finished(self, result, package_name, version):
+    def _on_install_finished(self, _, package_name, version):
         package_item = self.find(package_name)
         if package_item is None:
             logger.warning("{} is not found".format(package_name))

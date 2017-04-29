@@ -4,6 +4,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 from qtpy.QtGui import *
 from qtpy.QtCore import *
 import os
+# noinspection PyPackageRequirements
 import yaml
 from six import string_types
 

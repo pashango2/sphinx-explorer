@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 
-from qtpy.QtWidgets import *
+# from qtpy.QtWidgets import *
 
 from sphinx_explorer import python_venv
 from sphinx_explorer.property_widget import TypeBase, TypeChoice

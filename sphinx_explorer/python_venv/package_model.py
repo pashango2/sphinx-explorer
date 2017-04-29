@@ -8,6 +8,9 @@ from sphinx_explorer.python_venv.tasks import *
 import logging
 logger = logging.getLogger(__name__)
 
+if False:
+    from typing import Optional
+
 
 class PackageModel(QStandardItemModel):
     def __init__(self, parent=None):

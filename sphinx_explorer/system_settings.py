@@ -8,6 +8,7 @@ import os
 from collections import OrderedDict
 
 import toml
+# noinspection PyPackageRequirements
 import yaml
 from qtpy.QtCore import *
 from qtpy.QtGui import *

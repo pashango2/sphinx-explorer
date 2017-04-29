@@ -6,6 +6,7 @@ import logging
 import os
 
 import toml
+# noinspection PyPackageRequirements
 import yaml
 from qtpy.QtCore import *
 from qtpy.QtGui import *
