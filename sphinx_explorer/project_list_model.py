@@ -17,7 +17,7 @@ from sphinx_explorer import python_venv
 from sphinx_explorer.util import icon
 from .property_widget import PropertyWidget, PropertyModel
 from .task import push_task
-from .util.commander import quote, commander
+from .util.commander import commander
 from .util.conf_py_parser import Parser
 logger = logging.getLogger(__name__)
 

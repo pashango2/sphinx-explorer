@@ -469,7 +469,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def on_action_about_qt_triggered(self):
-        # noinspection PyCallByClass
+        # noinspection PyCallByClass,PyTypeChecker
         QMessageBox.aboutQt(self, self.tr("About Qt"))
 
     @Slot()
