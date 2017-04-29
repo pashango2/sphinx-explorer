@@ -7,7 +7,7 @@ import logging
 from qtpy.QtCore import *
 
 from sphinx_explorer.python_venv import PythonVEnv
-from ..python_venv import PipListTask, Env
+from ..python_venv import PipListTask, PipListOutDateTask, Env
 from ..util.commander import commander
 
 logger = logging.getLogger(__name__)
@@ -27,6 +27,7 @@ class BaseTask(QObject):
 class SystemInitTask(BaseTask):
     checkPythonEnvFinished = Signal(PythonVEnv)
     checkPythonPackageFinished = Signal(Env, list)
+    checkLatestPackageFinished = Signal(Env, list)
 
     finished = Signal(PythonVEnv)
 
@@ -43,17 +44,22 @@ class SystemInitTask(BaseTask):
         self.checkPythonEnvFinished.emit(env)
 
         self.message("Checking Python Packages...", 0)
-
         for key, e in env.env_list():
-            cmd = e.activate_command()
-            activate_commander = commander.create_pre_commander(cmd)
+            activate_commander = commander.create_pre_commander(e.activate_command())
 
             task = PipListTask(commander=activate_commander)
             task.run()
-
             self.checkPythonPackageFinished.emit(e, task.packages)
-
         self.message("Check Python Package Finished")
+
+        self.message("Checking Latest Python Packages...", 0)
+        for key, e in env.env_list():
+            activate_commander = commander.create_pre_commander(e.activate_command())
+
+            task = PipListOutDateTask(commander=activate_commander)
+            task.run()
+            self.checkLatestPackageFinished.emit(e, task.packages)
+        self.message("Check Latest Python Package Finished")
 
 
 class Worker(QRunnable):

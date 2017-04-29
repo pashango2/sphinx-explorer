@@ -197,6 +197,8 @@ class MainWindow(QMainWindow):
         task.messaged.connect(self._on_task_message)
         task.checkPythonEnvFinished.connect(self._on_check_python_env_finished)
         task.checkPythonPackageFinished.connect(self._on_check_python_package_finished)
+        task.checkLatestPackageFinished.connect(self._on_check_latest_package_finished)
+
         push_task(task)
 
         # setup end
@@ -220,6 +222,11 @@ class MainWindow(QMainWindow):
     def _on_check_python_package_finished(python_env, packages):
         model = package_mgr.get_model(python_env)
         model.load(packages)
+
+    @staticmethod
+    def _on_check_latest_package_finished(python_env, packages):
+        model = package_mgr.get_model(python_env)
+        model.update(packages)
 
     def _setup(self):
         self.project_list_model.load(self.settings.projects)

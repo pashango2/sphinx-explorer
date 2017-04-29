@@ -51,7 +51,7 @@ class SphinxPackageModel(PackageModel):
         self.commander = commander.create_pre_commander(activate_command)
 
     def load(self, packages):
-        # type: ([Tuple[str, str]]) -> None
+        # type: ([Tuple[str, str, str]]) -> None
         new_packages = []
         dependent_packages = [PackageModel.package_name_filter(x) for x in extension.dependent_packages()]
         dependent_packages += ["sphinx", "sphinx-rtd-theme"]
@@ -72,6 +72,19 @@ class SphinxPackageModel(PackageModel):
         self.was_loaded = True
 
         self.loadingStateChanged.emit(self.was_loaded)
+
+    def update(self, packages):
+        # type: ([Tuple[str, str, str]]) -> None
+        for package, version, latest in packages:
+            package_item = self.find(package)
+            if package_item:
+                package_item.version = version
+                package_item.latest = latest
+
+                index = package_item.index()
+                right_index = index.sibling(index.row(), self.rowCount() - 1)
+                # noinspection PyUnresolvedReferences
+                self.dataChanged.emit(index, right_index)
 
     def install(self, package_item):
         # type: (PackageItem) -> None
@@ -97,4 +110,5 @@ class SphinxPackageModel(PackageModel):
 
         index = package_item.index()
         right_index = index.sibling(index.row(), self.rowCount() - 1)
+        # noinspection PyUnresolvedReferences
         self.dataChanged.emit(index, right_index)

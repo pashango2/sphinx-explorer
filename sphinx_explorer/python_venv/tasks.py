@@ -100,8 +100,6 @@ class PipListOutDateTask(PipListTask):
                 yield package, version, latest, pack_type
 
     def run(self):
-        self._run()
-
         # noinspection PyBroadException
         try:
             output = self.commander.check_output("pip list -o --format=columns", shell=True)
@@ -111,15 +109,8 @@ class PipListOutDateTask(PipListTask):
             self.finished.emit(self.packages)
             return
 
-        outdate_package_dict = {}
-        for package, version, latest, pack_type in self.outdate_filter(output):
-            outdate_package_dict[package] = latest
-
-        new_package = []
-        for package, version, _ in self.packages:
-            latest = outdate_package_dict.get(package, None)
-            new_package.append((package, version, latest))
-        self.packages = new_package
+        for package, version, latest, _ in self.outdate_filter(output):
+            self.packages.append((package, version, latest))
 
         self.finished.emit(self.packages)
 
