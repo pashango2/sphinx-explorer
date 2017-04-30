@@ -31,6 +31,9 @@ class MyNodeVisitor(ast.NodeVisitor):
     def visit_Assign(self, node):
         # type: (ast.Assign) -> ast.Assign
         if len(node.targets) == 1:
+            if isinstance(node.targets[0], ast.Subscript):
+                return node
+
             left_name = node.targets[0].id
 
             if left_name in self.replace_dict:

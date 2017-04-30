@@ -58,11 +58,9 @@ def test_venv():
     env = python_venv.PythonVEnv(venv_list=[py34, py35])
     env_list = env.env_list()
 
-    assert env_list[0][0] == ""
-    assert str(env_list[0][1]) == "System Python"
-    assert env_list[1][0] == "venv,py34,py34_path,3.4"
-    assert str(env_list[1][1]) == "3.4 (py34_path)"
-    assert env_list[2][0] == "venv,py35,py35_path,3.5"
-    assert str(env_list[2][1]) == "3.5 (py35_path)"
+    assert env_list[0][0] == "venv,py34,py34_path,3.4"
+    assert str(env_list[0][1]) == "3.4 (py34_path)"
+    assert env_list[1][0] == "venv,py35,py35_path,3.5"
+    assert str(env_list[1][1]) == "3.5 (py35_path)"
 
 

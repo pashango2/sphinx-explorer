@@ -292,10 +292,10 @@ def test_link_format():
 
 
 def test_wizard():
-    wizard_path = os.path.join(here, "..", "plugin", "template")
+    wizard_path = os.path.join(here, "..", "..", "plugin", "template")
     assert os.path.exists(wizard_path)
 
-    params_path = os.path.join(here, "..", "settings")
+    params_path = os.path.join(here, "..", "..", "settings")
     assert os.path.exists(params_path)
 
     quickstart = os.path.join(wizard_path, "quickstart.yml")
