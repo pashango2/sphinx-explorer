@@ -1,28 +1,12 @@
 title: Quickstart
 
 description: |
-    This is standard "sphinx-quickstart" mode.
-
-    The sphinx-quickstart script generates a Sphinx documentation set. It is called like this:
-
-    ```
-    $ sphinx-quickstart [options] [projectdir]
-    ```
-
-    where projectdir is the Sphinx documentation set directory in which you want to place. If you omit projectdir, files are generated into current directory by default.
-
-    The sphinx-quickstart script has several options:
-
-    -q, --quiet
-    Quiet mode that will skips interactive wizard to specify options. This option requires -p, -a and -v options.
-
-    -h, --help, --version¶
-    Display usage summary or Sphinx version.
+    Standard Quickstart.
 
 
 
 wizard:
-    - "#*Required params"
+    - "#*-Required params"
     -
         - "*project"
         - path

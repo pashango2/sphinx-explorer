@@ -90,6 +90,10 @@ class TypeHtmlTheme(TypeBase):
     def value(cls, control):
         return control.text()
 
+    @classmethod
+    def sizeHint(cls):
+        return HtmlThemeWidget().sizeHint()
+
 
 class TypePython(TypeChoice):
     is_persistent_editor = True
