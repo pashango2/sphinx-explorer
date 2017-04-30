@@ -450,4 +450,3 @@ class ProjectSettingDialog(QDialog):
         self.project_item.settings.set_venv_setting(dump.get("python"))
         self.project_item.settings.store()
         super(ProjectSettingDialog, self).accept()
-

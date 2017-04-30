@@ -97,13 +97,9 @@ class PythonVEnv(object):
                 self._envs[key] = env
 
         if conda_env:
-            for name, default, path in conda_env:
-                env = Env("anaconda", name, path)
+            for env in conda_env:
                 key = env.key()
                 self._envs[key] = env
-
-                if default:
-                    self.default_key = key
 
         if venv_list:
             for env in venv_list:
@@ -116,8 +112,9 @@ class PythonVEnv(object):
             self.default_key = env.key()
         else:
             if self.default_key is None:
-                for key, env in self._envs.keys():
+                for key in self._envs.keys():
                     self.default_key = key
+                    break
 
     def get(self, key):
         # type: (str) -> Env
@@ -156,7 +153,8 @@ class Env(object):
     def from_key(key):
         if key is None:
             return Env()
-        return Env(*key.split(","))
+        keys = key.split(",")
+        return Env(*keys)
 
     def __init__(self, env_type=None, name=None, path=None, version=None):
         self._type = env_type
@@ -263,9 +261,9 @@ def search_anaconda():
         conda_path, "info", "-e"
     ]
 
+    result = []
     val = commander.check_output(cmd, shell=True)
     if val:
-        result = []
         for line in val.splitlines():
             if line and line[0] == "#":
                 continue
@@ -274,10 +272,9 @@ def search_anaconda():
             if g:
                 name, default, path = g.groups()
                 if name:
-                    result.append((name, "*" in default, path))
+                    result.append(Env("anaconda", name, path))
 
-        return result
-    return []
+    return result
 
 
 def _activate_path():
@@ -353,6 +350,10 @@ def search_system_python():
 
     env_list = []
     for python_path in path_list:
+        # for pythonX.Xm
+        if python_path[-1] == "m":
+            continue
+
         version = check_python_version(python_path)
         if version:
             env = Env("sys", path=python_path, version=version)
@@ -362,7 +363,7 @@ def search_system_python():
 
 
 def search_venv(path, cwd=None):
-    # find venv
+    # find virtual env
     result = []
 
     if os.path.isdir(path):
