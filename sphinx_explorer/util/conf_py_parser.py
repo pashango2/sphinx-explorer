@@ -112,7 +112,7 @@ def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths
         parser.add_sys_path(insert_paths)
 
         for key in extensions:
-            if key.startswith("ext-"):
+            if key.startswith("ext-") and params.get(key, False):
                 ext = extension.get(key)    # type: Extension
                 if ext:
                     parser.append(ext.generate_py_script(params, settings))

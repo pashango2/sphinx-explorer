@@ -206,7 +206,12 @@ class BaseWizard(QWizard):
         super(BaseWizard, self).__init__(parent)
         self._value_dict = {}
         self.params_dict = params_dict
-        self.default_values = DefaultValues(default_values)
+        _default_values = {}
+        for key, value in params_dict.items():
+            if "default" in value:
+                _default_values[key] = value.get("default")
+        _default_values.update(default_values)
+        self.default_values = DefaultValues(_default_values)
         self.property_model = PropertyModel(self)
 
     def setup(self, setting_dict, params_dict, default_dict=None):
