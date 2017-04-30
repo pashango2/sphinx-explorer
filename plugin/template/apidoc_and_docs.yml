@@ -1,8 +1,23 @@
-title: ApiDoc And Document Template
+title: Api Document Template
 apidoc: Yes
 
 description: |
     This is Api Document Template.
+
+    ### Spec
+    | Property | Value |
+    | :-- | :-- |
+    | Html Theme | sphinx_rtd_theme |
+    | GitHUB Page | Yes |
+    | View Code | Yes |
+
+    ### Extensions
+    | Extension | Use | Description |
+    | :-- | :-- | :-- |
+    | recommonmark | Optional | CommonMarkdown available |
+    | nbsphinx | Optional | Can import JupyterNoteBook |
+    | sphinx-fontawesome | Optional | FontAwesome can be used from reSt |
+    | BlockDiag | Optional | generates block-diagram images |
 
 
 wizard:
@@ -20,6 +35,11 @@ wizard:
         - apidoc-separate
         - apidoc-private
 
+    - "#* More Extensions"
+    -
+      - ext-fontawesome
+      - ext-nbsphinx
+      - ext-blockdiag
 
 default_values:
     html_theme: sphinx_rtd_theme
@@ -28,3 +48,4 @@ default_values:
     ext-viewcode: yes
     ext-githubpage: yes
     ext-coverage: yes
+    ext-fontawesome: yes

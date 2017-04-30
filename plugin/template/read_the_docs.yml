@@ -13,7 +13,7 @@ description: |
     ### Extensions
     | Extension | Use | Description |
     | :-- | :-- | :-- |
-    | recommonmark | Yes | CommonMarkdown available |
+    | recommonmark | Optional | CommonMarkdown available |
     | MathJax | Yes | Latex formula using JavaScript |
     | nbsphinx | Optional | Can import JupyterNoteBook |
     | sphinx-fontawesome | Optional | FontAwesome can be used from reSt |
@@ -30,6 +30,7 @@ wizard:
         - release
     - "#* More Extensions"
     -
+      - ext-commonmark
       - ext-fontawesome
       - ext-nbsphinx
       - ext-blockdiag
@@ -40,7 +41,7 @@ default_values:
     ext-commonmark: yes
     ext-viewcode: yes
     ext-mathjax: yes
-    ext-fontawesome: yes
     ext-nbsphinx: yes
     ext-githubpage: yes
+    ext-fontawesome: yes
 
