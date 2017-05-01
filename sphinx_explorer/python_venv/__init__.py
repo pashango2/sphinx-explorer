@@ -257,22 +257,23 @@ def search_anaconda():
         else:
             return []
 
-    cmd = [
-        conda_path, "info", "-e"
-    ]
-
     result = []
-    val = commander.check_output(cmd, shell=True)
-    if val:
-        for line in val.splitlines():
-            if line and line[0] == "#":
-                continue
+    if commander.check_exist([conda_path]):
+        cmd = [
+            conda_path, "info", "-e"
+        ]
 
-            g = re.match(r"([^\s]*)([\s*]*)(.*?)$", line)
-            if g:
-                name, default, path = g.groups()
-                if name:
-                    result.append(Env("anaconda", name, path))
+        val = commander.check_output(cmd, shell=True)
+        if val:
+            for line in val.splitlines():
+                if line and line[0] == "#":
+                    continue
+
+                g = re.match(r"([^\s]*)([\s*]*)(.*?)$", line)
+                if g:
+                    name, default, path = g.groups()
+                    if name:
+                        result.append(Env("anaconda", name, path))
 
     return result
 

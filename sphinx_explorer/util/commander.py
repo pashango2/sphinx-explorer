@@ -64,16 +64,21 @@ class Commander(object):
         else:
             return cmd_str
 
-    def check_exist(self, cmds, default=None):
+    def check_exist(self, cmds):
         which_cmd = "which" if platform.system() != "Windows" else "where"
         for cmd in cmds:
             # noinspection PyBroadException
-            output = self.check_output([which_cmd, cmd], shell=True)
+            try:
+                output = subprocess.check_output(self([which_cmd, cmd]), stderr=None, shell=True)
+            except FileNotFoundError:
+                return False
+            except subprocess.CalledProcessError:
+                return False
 
             if output:
-                return cmd
+                return True
 
-        return default
+        return False
 
     def which(self, cmd):
         if self.system == "Windows":
