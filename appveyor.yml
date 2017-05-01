@@ -29,5 +29,5 @@ after_test:
     - "%PYTHON%\\Scripts\\pyinstaller --onefile sphinx-explorer.pyw"
     
 artifacts:
-  - path: dist/sphinx-explorer
+  - path: dist
 
