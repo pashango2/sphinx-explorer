@@ -135,6 +135,7 @@ def fix(d, settings, _, apidoc_flag=False):
         project_path,
         source_dir,
         build_dir,
+        d.get("project", os.path.basename(project_path)),
         apidoc=apidoc_dict,
     )
 

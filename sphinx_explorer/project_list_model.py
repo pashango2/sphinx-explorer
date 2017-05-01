@@ -18,7 +18,6 @@ from sphinx_explorer.util import icon
 from .property_widget import PropertyWidget, PropertyModel
 from .task import push_task
 from .util.commander import commander
-from .util.conf_py_parser import Parser
 logger = logging.getLogger(__name__)
 
 
@@ -247,33 +246,27 @@ class ProjectSettings(object):
         return d
 
     @staticmethod
-    def save(project_path, source_dir, build_dir, apidoc=None, cmd=None):
+    def save(project_path, source_dir, build_dir, project, apidoc=None, cmd=None):
         setting_path = os.path.join(project_path, ProjectSettings.SETTING_NAME)
-        setting_obj = ProjectSettings.dump(
-            source_dir,
-            build_dir,
-            apidoc,
-            cmd
-        )
-        with open(setting_path, "w") as fd:
-            toml.dump(setting_obj, fd)
 
-    @staticmethod
-    def dump(source_dir, build_dir, apidoc=None, cmd=None):
-        d = {
+        setting_obj = {
             "source_dir": source_dir,
             "build_dir": build_dir,
+            "project": project,
         }
         if cmd:
-            d["command"] = cmd
+            setting_obj["command"] = cmd
 
         if apidoc:
-            d["apidoc"] = apidoc
-        return d
+            setting_obj["apidoc"] = apidoc
+
+        with open(setting_path, "w") as fd:
+            toml.dump(setting_obj, fd)
 
     def store(self):
         save_path = os.path.join(self.path, self.SETTING_NAME)
         with open(save_path, "w") as fd:
+            self.settings["project"] = self.project
             toml.dump(self.settings, fd)
 
     def _analyze(self):
@@ -391,10 +384,10 @@ class LoadSettingObject(QObject):
     def run(self):
         settings = ProjectSettings(self.doc_path)
 
-        if settings.conf_py_path:
-            parser = Parser(settings.conf_py_path)
-            settings.project = parser.params().get("project", "")
-
+        # if settings.conf_py_path:
+        #     parser = Parser(settings.conf_py_path)
+        #     settings.project = parser.params().get("project", "")
+        #     settings.store()
         self.finished.emit(settings, self.project_path)
 
 

@@ -56,10 +56,15 @@ class MyNodeVisitor(ast.NodeVisitor):
 class Parser(object):
     def __init__(self, conf_path):
         self._source = []
-        for line in codecs.open(conf_path, "r", CONF_PY_ENCODING).readlines():
-            self._source.append(line)
+        self._params = {}
 
-        self._tree = ast.parse(open(conf_path, "r").read())
+        try:
+            for line in codecs.open(conf_path, "r", CONF_PY_ENCODING).readlines():
+                self._source.append(line)
+
+            self._tree = ast.parse(open(conf_path, "r").read())
+        except:
+            pass
 
     def add_sys_path(self, path_list):
         if not path_list:
@@ -94,9 +99,17 @@ class Parser(object):
         return "".join(self._source)
 
     def params(self):
-        parser = MyNodeVisitor(self._source)
-        parser.visit(self._tree)
-        return parser.params()
+        if self._params:
+            return self._params
+        else:
+            try:
+                parser = MyNodeVisitor(self._source)
+                parser.visit(self._tree)
+                self._params = parser.params()
+
+                return parser.params()
+            except:
+                return {}
 
     @property
     def lines(self):
