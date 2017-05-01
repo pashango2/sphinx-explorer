@@ -26,7 +26,7 @@ install:
 build: off
 
 after_test:
-    - "%PYTHON%\\Scripts\\pyinstaller -F sphinx-explorer.spec"
+    - "%PYTHON%\\Scripts\\pyinstaller --onefile sphinx-explorer.spec"
     
 artifacts:
   - path: dist/sphinx-explorer
