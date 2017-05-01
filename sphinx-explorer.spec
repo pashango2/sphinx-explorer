@@ -38,10 +38,10 @@ exe = EXE(pyz,
           icon='sphinx.ico'
 )
 
-# coll = COLLECT(exe,
-#                a.binaries,
-#                a.zipfiles,
-#                a.datas,
-#                strip=False,
-#                upx=True,
-#                name='sphinx-explorer')
+coll = COLLECT(exe,
+               a.binaries,
+               a.zipfiles,
+               a.datas,
+               strip=False,
+               upx=True,
+               name='sphinx-explorer')
