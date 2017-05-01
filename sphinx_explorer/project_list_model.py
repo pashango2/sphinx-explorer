@@ -7,15 +7,13 @@ import os
 
 import toml
 # noinspection PyPackageRequirements
-import yaml
 from qtpy.QtCore import *
 from qtpy.QtGui import *
-from qtpy.QtWidgets import *
+# from qtpy.QtWidgets import *
 from six import string_types
 
 from sphinx_explorer import python_venv
 from sphinx_explorer.util import icon
-from .property_widget import PropertyWidget, PropertyModel
 from .task import push_task
 from .util.commander import commander
 logger = logging.getLogger(__name__)
@@ -390,56 +388,3 @@ class LoadSettingObject(QObject):
         #     settings.store()
         self.finished.emit(settings, self.project_path)
 
-
-ProjectDialogSettings = """
-- "#Python Interpreter"
-- python:
-    - value_type: TypePython
-      label: Python Interpreter,
-      is_project: true,
-"""
-
-
-# noinspection PyArgumentList
-class ProjectSettingDialog(QDialog):
-    # noinspection PyUnresolvedReferences
-    def __init__(self, project_item, parent=None):
-        super(ProjectSettingDialog, self).__init__(parent)
-        self.project_item = project_item
-
-        self.layout = QVBoxLayout(self)
-        # self.property_widget = PropertyWidget(parent=self)
-        self.property_widget = PropertyWidget(self)
-        self.model = PropertyModel(self)
-
-        self.button_box = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-            parent=self
-        )
-
-        self.layout.addWidget(self.property_widget)
-        self.layout.addWidget(self.button_box)
-
-        self.setLayout(self.layout)
-        self.setWindowTitle(self.tr(str("Project Settings")))
-        self.resize(1000, 600)
-
-        self.button_box.accepted.connect(self.accept)
-        self.button_box.rejected.connect(self.reject)
-
-        settings = yaml.load(ProjectDialogSettings)
-        python_dict = settings[1]["python"][0]
-        python_dict["project_path"] = project_item.path()
-        self.model.load_settings(settings)
-
-        self.model.set_values({"python": project_item.venv_setting()})
-
-        self.property_widget.setModel(self.model)
-        self.property_widget.resizeColumnsToContents()
-
-    def accept(self):
-        self.property_widget.teardown()
-        dump = self.model.dump(flat=True)
-        self.project_item.settings.set_venv_setting(dump.get("python"))
-        self.project_item.settings.store()
-        super(ProjectSettingDialog, self).accept()

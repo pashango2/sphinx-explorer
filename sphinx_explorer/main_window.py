@@ -22,7 +22,8 @@ from . import plugin
 from . import property_widget
 from . import sphinx_value_types
 from . import package_mgr
-from .project_list_model import ProjectListModel, ProjectItem, ProjectSettingDialog
+from .project_list_model import ProjectListModel, ProjectItem
+from .dialogs import ProjectSettingDialog
 from .system_settings import SystemSettingsDialog, SystemSettings
 from .task import SystemInitTask, push_task
 from .util.commander import commander
@@ -390,7 +391,7 @@ class MainWindow(QMainWindow):
         current = self.ui.tree_view_projects.currentIndex()
         item = self.project_list_model.itemFromIndex(current)
         if item:
-            dlg = ProjectSettingDialog(item, self)
+            dlg = ProjectSettingDialog(self.params_dict, item, self)
             dlg.exec_()
 
     def _on_project_changed(self, current, _):
