@@ -131,9 +131,9 @@ class CategoryFilterModel(QSortFilterProxyModel):
 
 SYSTEM_SETTINGS = """
 - "#*Editor":
-    - label: Editor
+    label: Editor
 - "#*Default Values":
-    - label: Default Values
+    label: Default Values
 -
     - path
     - author
@@ -145,7 +145,7 @@ SYSTEM_SETTINGS = """
 -
     - python
 - "#*Extensions":
-    - label: Extensions
+    label: Extensions
 """
 
 

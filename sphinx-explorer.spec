@@ -4,27 +4,16 @@ block_cipher = None
 
 
 a = Analysis(['sphinx-explorer.pyw'],
-             pathex=['./sphinx-explorer'],
+             pathex=['C:\\Users\\056-kusakabe-n\\AppData\\Local\\Programs\\Python\\Python35\\Lib\\site-packages\\PyQt5\\Qt\\bin', 'C:\\Users\\056-kusakabe-n\\Documents\\sphinx-explorer'],
              binaries=[],
-             datas=[
-                ("./css/*", "css"),
-                ("./i18n/*", "i18n"),
-                ("./icon/*", "icon"),
-                ("./plugin/editor/*", "plugin/editor"),
-                ("./plugin/extension/*", "plugin/extension"),
-                ("./plugin/template/*", "plugin/template"),
-                ("./plugin/theme/*", "plugin/theme"),
-                ("./settings/*", "settings"),
-             ],
-             hiddenimports=["qtpy.*", "pyqt5.*", "toml.*"],
+             datas=[],
+             hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher)
-
-
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
@@ -34,10 +23,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=False,
-          icon='sphinx.ico'
-)
-
+          console=True , icon='sphinx.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,

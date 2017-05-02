@@ -9,7 +9,7 @@ import markdown
 from qtpy.QtCore import *
 from qtpy.QtGui import *
 
-USE_WEB_ENGINE = False
+USE_WEB_ENGINE = True
 
 if USE_WEB_ENGINE:
     from qtpy.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings

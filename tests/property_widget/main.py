@@ -1,44 +1,41 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-import sys
-from sphinx_explorer import python_venv
-from qtpy.QtTest import *
-from qtpy.QtWidgets import *
 from qtpy.QtCore import *
+# from qtpy.QtGui import *
+from qtpy.QtWidgets import *
+import sys
 import yaml
-from sphinx_explorer.property_widget import PropertyWidget, PropertyModel
+from tests.property_widget.di import pytest_funcarg__params_dict
+from sphinx_explorer.property_widget.frames.tree_dialog_frame import TreeDialog
 
 app = QApplication(sys.argv)
 
-
-def pytest_funcarg__mysetup(request):
-    model = PropertyModel()
-    settings = """
-- "# categoryA"
+SYSTEM_SETTINGS = """
+- "#*Editor":
+    - label: Editor
+- "#*Default Values":
+    - label: Default Values
 -
-    - a
-    - b
-    - c
-- "# categoryB"
+    - path
+    - author
+    - language
+    - html_theme
+    - sep
+
+- "#*Python Interpreter"
 -
-    - d
-    - e
-    - f
-    """.strip()
+    - python
+- "#*Extensions":
+    - label: Extensions
+-
+    - "#*test"
+"""
 
-    setting_obj = yaml.load(settings)
-    model.load_settings(setting_obj)
+settings = yaml.load(SYSTEM_SETTINGS)
+params_dict = pytest_funcarg__params_dict(None)
 
-
-def test_property_widget():
-    widget = PropertyWidget()
-    widget.show()
-
-    app.exec_()
-
-    QTest.mouseClick(widget, Qt.LeftButton)
-
-
-
-test_property_widget()
+dialog = TreeDialog()
+dialog.property_model.load_settings(settings, params_dict)
+dialog.show()
+app.exec_()

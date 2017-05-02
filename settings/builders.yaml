@@ -1,0 +1,24 @@
+builders:
+  - HTML
+  -
+    cmd: html
+    previe_file:
+      - index.html
+  - "LaTex PDF"
+    -
+    cmd: latexpdf
+    previe_file:
+      - {}.pdf
+  - EPub
+  -
+    cmd: epubl
+    preview_file:
+      - "{}.epub"
+      - index.xhtml
+    params:
+      - epub_cover:
+          value_type: TypeList
+      - epub_writing_mode:
+          value_type: TypeChoice
+          choices: ["horizontal", "vertical"]
+          default: "horizontal"

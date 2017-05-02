@@ -1,36 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
+import os
 import sys
 from sphinx_explorer import python_venv
 from qtpy.QtTest import *
 from qtpy.QtWidgets import *
 from qtpy.QtCore import *
 import yaml
+import toml
 from sphinx_explorer.property_widget import PropertyWidget, PropertyModel
 
+from .di import *
+
 app = QApplication(sys.argv)
-
-
-def pytest_funcarg__simple_model(request):
-    model = PropertyModel()
-    settings = """
-- "# categoryA"
--
-    - a
-    - b
-    - c
-- "# categoryB"
--
-    - d
-    - e
-    - f
-    """.strip()
-
-    setting_obj = yaml.load(settings)
-    model.load_settings(setting_obj)
-
-    return model
 
 
 def test_property_widget(simple_model):

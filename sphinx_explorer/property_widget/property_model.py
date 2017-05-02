@@ -102,6 +102,9 @@ class PropertyModel(QStandardItemModel):
         self._use_default = False
         self.required_flag = True
 
+    def __getattr__(self, key):
+        return self.get(key)
+
     def create_table_model(self, root_index, parent):
         return FlatTableModel(self, root_index, parent)
 
@@ -110,7 +113,7 @@ class PropertyModel(QStandardItemModel):
         for setting in settings:
             if isinstance(setting, dict) and setting:
                 key = list(setting.keys())[0]
-                setting_param = setting.get(key, [{}])[0]
+                setting_param = setting.get(key, [{}])
             elif isinstance(setting, (list, tuple)):
                 assert last_item is not None
                 self._load_settings(setting, last_item, params_dict, default_values)
@@ -443,7 +446,6 @@ class PropertyItem(BaseItem):
         self.description_path = params.get("description_path", ".")
         self.required = params.get("required", False)
         self.require_input = params.get("require_input", False)
-        self.link_format = params.get("link_format")
         self.replace_space = params.get("replace_space")
         self.params = params
 

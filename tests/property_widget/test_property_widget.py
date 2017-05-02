@@ -98,10 +98,10 @@ def test_load_settings2():
     model.clear()
     settings = """
 - a:
-    - default_value: default
-      link: b
+    default_value: default
+    link: b
 - b:
-    - value: value
+    value: value
 - c
         """.strip()
 
@@ -151,16 +151,16 @@ def test_load_settings():
     settings = [
         "#category",
         {
-            "a": [{
+            "a": {
                 "label": "Document",
-            }],
+            },
         },
         {
-            "b": [{
+            "b": {
                 "label": "Check",
                 "value_type": "TypeBool",
                 "default": False
-            }]
+            }
         },
     ]
     model.load_settings(settings)
@@ -176,20 +176,18 @@ def test_link():
     settings = [
         "#category",
         {
-            "a": [
+            "a":
                 {
                     "label": "Document",
                     "default": "test",
                 },
-            ]
         },
         {
-            "b": [
+            "b":
                 {
                     "label": "Document",
                     "link": "a",
                 }
-            ]
         },
     ]
     model.load_settings(settings)
@@ -242,10 +240,10 @@ def test_required():
     settings = [
         "#category",
         {
-            "a": [{
+            "a": {
                 "label": "Document",
                 "required": True,
-            }]
+            }
         },
     ]
     model.load_settings(settings)

@@ -306,6 +306,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, evt):
         self._save()
         self.ui.plain_output.terminate()
+        QThreadPool.globalInstance().clear()
         QThreadPool.globalInstance().waitForDone(0)
         super(MainWindow, self).closeEvent(evt)
 

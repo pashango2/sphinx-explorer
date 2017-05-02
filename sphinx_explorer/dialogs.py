@@ -14,9 +14,9 @@ ProjectDialogSettings = """
 - "#*Python Interpreter"
 -
     - python:
-        - value_type: TypePython
-          label: Python Interpreter,
-          is_project: true
+        value_type: TypePython
+        label: Python Interpreter,
+        is_project: true
 - "#* Epub Settings"
 -
     - epub_cover
