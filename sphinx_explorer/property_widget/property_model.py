@@ -17,8 +17,11 @@ if False:
 
 __all__ = [
     "PropertyModel",
+    "BaseItem",
     "CategoryItem",
     "PropertyItem",
+    "ValueItem",
+    "FlatTableModel",
 ]
 
 CategoryItemType = QStandardItem.UserType + 1
