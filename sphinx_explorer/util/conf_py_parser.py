@@ -58,6 +58,7 @@ class Parser(object):
         self._source = []
         self._params = {}
 
+        # noinspection PyBroadException
         try:
             for line in codecs.open(conf_path, "r", CONF_PY_ENCODING).readlines():
                 self._source.append(line)
@@ -102,6 +103,7 @@ class Parser(object):
         if self._params:
             return self._params
         else:
+            # noinspection PyBroadException
             try:
                 parser = MyNodeVisitor(self._source)
                 parser.visit(self._tree)

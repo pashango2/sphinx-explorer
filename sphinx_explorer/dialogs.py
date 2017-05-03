@@ -5,7 +5,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import yaml
 # from qtpy.QtCore import *
 # from qtpy.QtGui import *
-from qtpy.QtWidgets import *
+# from qtpy.QtWidgets import *
 # from six import string_types
 from .property_widget.frames import TreeDialog
 
@@ -32,12 +32,11 @@ class ProjectSettingDialog(TreeDialog):
         self.project_item = project_item
 
         settings = yaml.load(ProjectDialogSettings)
-        self.property_model.load_settings(settings)
+        self.property_model.load_settings(settings, params_dict)
 
     def accept(self):
         self.property_widget.teardown()
         dump = self.property_model.dump(flat=True)
-        print(dump)
         self.project_item.settings.set_venv_setting(dump.get("python"))
         self.project_item.settings.store()
         super(ProjectSettingDialog, self).accept()

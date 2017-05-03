@@ -48,7 +48,7 @@ def test_table_model():
     model.get("categoryA.a").set_value("100")
 
     obj = model.dump()
-    assert {'categoryA': {'a': '100'}, 'categoryB': {}} == obj
+    assert {'categoryA': {'a': '100'}} == obj
 
     model.clear()
     model.load_settings(setting_obj, default_values=obj)
@@ -105,7 +105,6 @@ def test_load_settings2():
 - c
         """.strip()
 
-    print(yaml.load(settings))
     model.load_settings(yaml.load(settings))
     assert model.rowCount() == 3
 

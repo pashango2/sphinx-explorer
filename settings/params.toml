@@ -145,6 +145,11 @@ link="path"
 label = "Python Interpreter"
 value_type = "TypePython"
 
+[epub_writing_mode]
+value_type = "TypeChoice"
+choices = ["horizontal", "vertical"]
+default = "horizontal"
+
 [ext-autodoc]
 value_type = "TypeBool"
 default = true

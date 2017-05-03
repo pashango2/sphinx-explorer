@@ -60,6 +60,9 @@ class PropertyWidget(QTableView):
             index = self._model.index(row, 0, self.rootIndex())
             item = self._model.itemFromIndex(index)
 
+            if item is None:
+                continue
+
             if item.is_category:
                 self.setSpan(row, 0, 1, 2)
 

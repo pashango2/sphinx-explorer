@@ -13,10 +13,6 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import os
 import sys
 
-sys.path.append("./py35/Scripts")
-sys.path.append("./py35/lib/site-packages")
-# os.environ.setdefault("QT_API", 'pyside')
-# from qtpy.QtGui import *
 from qtpy.QtCore import *
 from qtpy.QtWidgets import *
 import qtpy

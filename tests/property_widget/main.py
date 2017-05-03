@@ -6,16 +6,23 @@ from qtpy.QtCore import *
 from qtpy.QtWidgets import *
 import sys
 import yaml
-from tests.property_widget.di import pytest_funcarg__params_dict
 from sphinx_explorer.property_widget.frames.tree_dialog_frame import TreeDialog
 
 app = QApplication(sys.argv)
 
 SYSTEM_SETTINGS = """
 - "#*Editor":
-    - label: Editor
+    label: Editor
+    
+- "#*Epub"
+-
+    - "#Enable":
+        checkable: yes
+    -
+        - eput_name
+    
 - "#*Default Values":
-    - label: Default Values
+    label: Default Values
 -
     - path
     - author
@@ -27,15 +34,15 @@ SYSTEM_SETTINGS = """
 -
     - python
 - "#*Extensions":
-    - label: Extensions
+    label: Extensions
 -
     - "#*test"
 """
 
 settings = yaml.load(SYSTEM_SETTINGS)
-params_dict = pytest_funcarg__params_dict(None)
+print(settings)
 
 dialog = TreeDialog()
-dialog.property_model.load_settings(settings, params_dict)
+dialog.property_model.load_settings(settings)
 dialog.show()
 app.exec_()

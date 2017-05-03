@@ -48,7 +48,7 @@ def test_table_model():
     model.get("categoryA.a").set_value("100")
 
     obj = model.dump()
-    assert {'categoryA': {'a': '100'}, 'categoryB': {}} == obj
+    assert {'categoryA': {'a': '100'}} == obj
 
     model.clear()
     model.load_settings(setting_obj, default_values=obj)
