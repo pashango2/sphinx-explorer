@@ -224,6 +224,7 @@ class PropertyWidget(QTableView):
         return self._model.default_value(key)
 
     def update_default(self):
+
         for prop in self.properties():
             prop.update_link()
 

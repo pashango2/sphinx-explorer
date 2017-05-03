@@ -384,6 +384,9 @@ class PropertyModel(QStandardItemModel):
             ch_item.setEnabled(checked)
             # noinspection PyUnresolvedReferences
             self.dataChanged.emit(ch_item.index(), ch_item.index())
+        elif role == Qt.EditRole:
+            item = self.rowItem(index)
+            item.set_value(value)
 
         return super(PropertyModel, self).setData(index, value, role)
 

@@ -5,6 +5,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import logging
 import os
 
+import json
 import toml
 # noinspection PyPackageRequirements
 from qtpy.QtCore import *
@@ -267,6 +268,16 @@ class ProjectSettings(object):
             self.settings["project"] = self.project
             toml.dump(self.settings, fd)
 
+        # output conf.json
+        conf_path = os.path.join(self.path, self.source_dir, "conf.json")
+        with open(conf_path, "w") as fd:
+            json.dump(self.conf_json(), fd, indent=4)
+
+    def conf_json(self):
+        conf = {}
+        conf.update(self.settings.get("Epub Settings", {}))
+        return conf
+
     def _analyze(self):
         # search conf.py
         self.conf_py_path = self._find_conf_py(self.path)
@@ -368,6 +379,9 @@ class ProjectSettings(object):
     def set_venv_setting(self, venv_setting):
         self.settings.setdefault("Python Interpreter", {})["python"] = venv_setting
 
+    def update(self, params):
+        self.settings.update(params)
+
 
 class LoadSettingObject(QObject):
     finished = Signal(ProjectSettings, str)
@@ -381,10 +395,5 @@ class LoadSettingObject(QObject):
 
     def run(self):
         settings = ProjectSettings(self.doc_path)
-
-        # if settings.conf_py_path:
-        #     parser = Parser(settings.conf_py_path)
-        #     settings.project = parser.params().get("project", "")
-        #     settings.store()
         self.finished.emit(settings, self.project_path)
 

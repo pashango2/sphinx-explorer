@@ -34,9 +34,11 @@ class ProjectSettingDialog(TreeDialog):
         settings = yaml.load(ProjectDialogSettings)
         self.property_model.load_settings(settings, params_dict)
 
+        self.property_model.set_values(self.project_item.settings.settings)
+
     def accept(self):
         self.property_widget.teardown()
-        dump = self.property_model.dump(flat=True)
-        self.project_item.settings.set_venv_setting(dump.get("python"))
+        dump = self.property_model.dump()
+        self.project_item.settings.update(dump)
         self.project_item.settings.store()
         super(ProjectSettingDialog, self).accept()
