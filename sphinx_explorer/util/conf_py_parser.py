@@ -118,6 +118,15 @@ class Parser(object):
         return self._source
 
 
+def comment(parser, name):
+    comment_str = "# -- {} ".format(name)
+    comment_str += "-" * (75 - len(comment_str))
+    parser.append("\n")
+    parser.append("\n")
+    parser.append(comment_str)
+    parser.append("\n")
+
+
 def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths=None):
     extensions = extensions or []
 
@@ -133,8 +142,26 @@ def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths
             if key.startswith("ext-") and params.get(key, False):
                 ext = extension.get(key)    # type: Extension
                 if ext:
+                    comment(parser, ext.name)
                     parser.append(ext.generate_py_script(params, settings))
                     parser.append("\n")
 
+        # generate code
+        comment(parser, "Sphinx Explorer")
+        parser.append(config_dode)
+        parser.append("\n")
+
         with codecs.open(conf_py_path, "w", CONF_PY_ENCODING) as fd:
             fd.write(parser.dumps())
+
+config_dode = """
+import json
+
+try:
+    conf_dict = json.load(open("conf.json"))
+
+    for key, value in conf_dict.items():
+        globals()[key] = value
+except:
+    pass
+""".strip()
