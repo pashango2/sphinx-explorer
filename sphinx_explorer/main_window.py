@@ -72,7 +72,7 @@ class MainWindow(QMainWindow):
 
         for ext_name, ext in plugin.extension.list_iter():
             self.params_dict[ext_name] = {
-                "value_type": "TypeBool",
+                "value_type": "TypeCheck",
                 "default": True,
                 "description": ext.description,
                 "description_path": ext.ext_path,

@@ -733,6 +733,9 @@ class ValueItem(QStandardItem):
         _value = self.value_type.filter(_value) if self.value_type else _value
         _display_value = self.value_type.data(_value) if self.value_type else _value
 
+        if isinstance(_display_value, bool):
+            _display_value = "Yes" if _display_value else "No"
+
         self.setText(_display_value or "")
         self._input_value = value
 

@@ -151,34 +151,34 @@ choices = ["horizontal", "vertical"]
 default = "horizontal"
 
 [ext-autodoc]
-value_type = "TypeBool"
+value_type = "TypeCheck"
 default = true
 [ext-doctest]
-value_type = "TypeBool"
+value_type = "TypeCheck"
 default = true
 [ext-intersphinx]
-value_type = "TypeBool"
+value_type = "TypeCheck"
 default = true
 [ext-todo]
-value_type = "TypeBool"
+value_type = "TypeCheck"
 default = true
 [ext-coverage]
-value_type = "TypeBool"
+value_type = "TypeCheck"
 default = true
 [ext-imgmath]
-value_type = "TypeBool"
+value_type = "TypeCheck"
 default = true
 [ext-mathjax]
-value_type = "TypeBool"
+value_type = "TypeCheck"
 default = true
 [ext-ifconfig]
-value_type = "TypeBool"
+value_type = "TypeCheck"
 default = true
 [ext-viewcode]
-value_type = "TypeBool"
+value_type = "TypeCheck"
 default = true
 [ext-githubpage]
-value_type = "TypeBool"
+value_type = "TypeCheck"
 default = true
 
 ["More Extensions"]

@@ -87,9 +87,10 @@ class PropertyWidget(QTableView):
             if not item.is_category and item.value_type and item.value_type.is_persistent_editor:
                 value_index = index.sibling(index.row(), 1)
                 ctrl = self.indexWidget(value_index)
-                item.set_value(item.value_type.value(ctrl))
+                if ctrl:
+                    item.set_value(item.value_type.value(ctrl))
 
-                self.closePersistentEditor(value_index)
+                # self.closePersistentEditor(value_index)
 
     def clear(self):
         self._model.removeRows(0, self._model.rowCount())

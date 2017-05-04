@@ -95,6 +95,29 @@ class TypeBool(TypeBase):
         return "Yes" if value else "No"
 
 
+class TypeCheck(TypeBase):
+    is_persistent_editor = True
+
+    @classmethod
+    def create(cls, params):
+        return cls()
+
+    @classmethod
+    def control(cls, delegate, parent):
+        check = QCheckBox(parent)
+        return check
+
+    @classmethod
+    def set_value(cls, control, value):
+        # type: (QCheckBox, bool) -> None
+        control.setCheckState(Qt.Checked if value else Qt.Unchecked)
+
+    @classmethod
+    def value(cls, control):
+        # type: (QCheckBox) -> bool
+        return control.isChecked()
+
+
 class TypeDirPath(TypeBase):
     @classmethod
     def control(cls, delegate, parent):
