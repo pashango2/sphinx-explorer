@@ -292,14 +292,6 @@ class PropertyModel(QStandardItemModel):
             value = self._get_default_value(property_item.parent(), property_item.key, values)
             property_item.set_value(value)
 
-    def setData(self, index, value, role=Qt.EditRole):
-        if role == Qt.EditRole:
-            item = self.itemFromIndex(index)  # type: PropertyItem
-            item.set_value(value)
-            return True
-
-        return super(PropertyModel, self).setData(index, value, role)
-
     def properties(self, root_index=None):
         # type: () -> Iterator[PropertyItem]
         root_index = root_index or QModelIndex()
@@ -373,7 +365,6 @@ class PropertyModel(QStandardItemModel):
 
         return super(PropertyModel, self).data(index, role)
 
-    # noinspection PyRedeclaration
     def setData(self, index, value, role=Qt.EditRole):
         # type: (QModelIndex, Any, int) -> None
         if role == Qt.CheckStateRole:
@@ -387,6 +378,7 @@ class PropertyModel(QStandardItemModel):
         elif role == Qt.EditRole:
             item = self.rowItem(index)
             item.set_value(value)
+            return True
 
         return super(PropertyModel, self).setData(index, value, role)
 
