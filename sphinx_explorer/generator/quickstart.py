@@ -117,8 +117,9 @@ def fix(d, settings, _, apidoc_flag=False):
         module_dir = d["apidoc-sourcedir"]
 
         if os.path.isabs(module_dir):
+            conf_py_dir = os.path.dirname(conf_py_path)
             try:
-                module_dir = os.path.relpath(module_dir, project_path)
+                module_dir = os.path.relpath(module_dir, conf_py_dir)
             except ValueError:
                 module_dir = os.path.abspath(module_dir)
 
