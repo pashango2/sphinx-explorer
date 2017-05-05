@@ -27,80 +27,6 @@ CategoryItemType = QStandardItem.UserType + 1
 PropertyItemType = CategoryItemType + 1
 
 
-class FlatTableModel(QAbstractProxyModel):
-    """
-    TreeModel -> TableModel Translate Model
-    """
-
-    def __init__(self, source_model, root_index, parent=None):
-        # type: (PropertyModel, QModelIndex, QWidget) -> None
-        super(FlatTableModel, self).__init__(parent)
-        self._map_dict = {}
-        self._from_dict = {}
-        self.row_count = 0
-
-        for i, index in enumerate(source_model.model_iter(root_index, False)):
-            self._map_dict[(i, 0)] = index
-            self._map_dict[(i, 1)] = index.sibling(index.row(), 1)
-            self._from_dict[index] = self.index(i, 0)
-            self._from_dict[index.sibling(index.row(), 1)] = self.index(i, 1)
-            self.row_count += 1
-
-        self.setSourceModel(source_model)
-        # noinspection PyUnresolvedReferences
-        source_model.dataChanged.connect(self._onChanged)
-
-    def _onChanged(self, left_index, right_index):
-        # noinspection PyUnresolvedReferences
-        self.dataChanged.emit(
-            self.mapFromSource(left_index),
-            self.mapFromSource(right_index)
-        )
-
-    # noinspection PyMethodOverriding
-    def rowCount(self, index=QModelIndex()):
-        if index.isValid():
-            return 0
-        return self.row_count
-
-    # noinspection PyMethodOverriding
-    def columnCount(self, index=QModelIndex()):
-        return 2
-
-    # noinspection PyMethodOverriding
-    def index(self, row, column, parent=QModelIndex()):
-        return self.createIndex(row, column, parent)
-
-    def itemFromIndex(self, index):
-        source_index = self.mapToSource(index)
-        return self.sourceModel().itemFromIndex(source_index)
-
-    def mapToSource(self, index):
-        if not index.isValid():
-            return index
-        return self._map_dict.get((index.row(), index.column()), QModelIndex())
-
-    def rowItem(self, index):
-        return self.sourceModel().rowItem(self.mapToSource(index))
-
-    def mapFromSource(self, source_index):
-        if not source_index.isValid():
-            return source_index
-        try:
-            return self._from_dict[source_index]
-        except KeyError:
-            return QModelIndex()
-
-    def parent(self, index=QModelIndex()):
-        return QModelIndex()
-
-    def set_values(self, *args, **kwargs):
-        return self.sourceModel().set_values(*args, **kwargs)
-
-    def dump(self, *args, **kwargs):
-        return self.sourceModel().dump(*args, **kwargs)
-
-
 class PropertyModel(QStandardItemModel):
     PrefixRe = re.compile(r"(^[#*-]*)\s*(.*)")
 
@@ -366,7 +292,7 @@ class PropertyModel(QStandardItemModel):
         return super(PropertyModel, self).data(index, role)
 
     def setData(self, index, value, role=Qt.EditRole):
-        # type: (QModelIndex, Any, int) -> None
+        # type: (QModelIndex, Any, int) -> bool
         if role == Qt.CheckStateRole:
             checked = value == Qt.Checked
             item = self.itemFromIndex(index)
@@ -753,3 +679,77 @@ class ValueItem(QStandardItem):
             property_item = self.model().itemFromIndex(property_index)  # type: PropertyItem
             if property_item:
                 property_item.set_value(self.value, not_set_value=True)
+
+
+class FlatTableModel(QAbstractProxyModel):
+    """
+    TreeModel -> TableModel Translate Model
+    """
+
+    def __init__(self, source_model, root_index, parent=None):
+        # type: (PropertyModel, QModelIndex, QWidget) -> None
+        super(FlatTableModel, self).__init__(parent)
+        self._map_dict = {}
+        self._from_dict = {}
+        self.row_count = 0
+
+        for i, index in enumerate(source_model.model_iter(root_index, False)):
+            self._map_dict[(i, 0)] = index
+            self._map_dict[(i, 1)] = index.sibling(index.row(), 1)
+            self._from_dict[index] = self.index(i, 0)
+            self._from_dict[index.sibling(index.row(), 1)] = self.index(i, 1)
+            self.row_count += 1
+
+        self.setSourceModel(source_model)
+        # noinspection PyUnresolvedReferences
+        source_model.dataChanged.connect(self._onChanged)
+
+    def _onChanged(self, left_index, right_index):
+        # noinspection PyUnresolvedReferences
+        self.dataChanged.emit(
+            self.mapFromSource(left_index),
+            self.mapFromSource(right_index)
+        )
+
+    # noinspection PyMethodOverriding
+    def rowCount(self, index=QModelIndex()):
+        if index.isValid():
+            return 0
+        return self.row_count
+
+    # noinspection PyMethodOverriding
+    def columnCount(self, index=QModelIndex()):
+        return 2
+
+    # noinspection PyMethodOverriding
+    def index(self, row, column, parent=QModelIndex()):
+        return self.createIndex(row, column, parent)
+
+    def itemFromIndex(self, index):
+        source_index = self.mapToSource(index)
+        return self.sourceModel().itemFromIndex(source_index)
+
+    def mapToSource(self, index):
+        if not index.isValid():
+            return index
+        return self._map_dict.get((index.row(), index.column()), QModelIndex())
+
+    def rowItem(self, index):
+        return self.sourceModel().rowItem(self.mapToSource(index))
+
+    def mapFromSource(self, source_index):
+        if not source_index.isValid():
+            return source_index
+        try:
+            return self._from_dict[source_index]
+        except KeyError:
+            return QModelIndex()
+
+    def parent(self, index=QModelIndex()):
+        return QModelIndex()
+
+    def set_values(self, *args, **kwargs):
+        return self.sourceModel().set_values(*args, **kwargs)
+
+    def dump(self, *args, **kwargs):
+        return self.sourceModel().dump(*args, **kwargs)

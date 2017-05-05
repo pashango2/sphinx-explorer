@@ -82,7 +82,7 @@ class PythonInterpreterWidget(QWidget):
         self.root_index = root_index
 
         for item in property_model.properties(root_index):
-            control = item.value_type.control(None, self)
+            control = item.value_type.control(None, item.params, self)
             control.set_value(item.value)
             self.control_dict[item.key] = control
             self.layout.addRow(item.text(), control)

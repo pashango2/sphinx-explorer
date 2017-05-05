@@ -9,7 +9,7 @@ from qtpy.QtCore import *
 from qtpy.QtWidgets import *
 from six import string_types
 
-from ..widgets import PathParamWidget, RelPathParamWidget
+from ..widgets import PathParamWidget, RelPathParamWidget, FilePathWidget
 
 
 class TypeBase(object):
@@ -19,6 +19,10 @@ class TypeBase(object):
         Create instance or return class
         """
         return cls
+
+    @classmethod
+    def control(cls, delegate, params, parent):
+        return None
 
     @staticmethod
     def data(value):
@@ -42,10 +46,6 @@ class TypeBase(object):
     @classmethod
     def default(cls, value):
         return value
-
-    @classmethod
-    def control(cls, delegate, parent):
-        return None
 
     @classmethod
     def filter(cls, value):
@@ -76,7 +76,7 @@ class TypeBase(object):
 
 class TypeBool(TypeBase):
     @classmethod
-    def control(cls, delegate, parent):
+    def control(cls, delegate, params, parent):
         combo = QComboBox(parent)
         combo.addItem("Yes")
         combo.addItem("No")
@@ -103,7 +103,7 @@ class TypeCheck(TypeBase):
         return cls()
 
     @classmethod
-    def control(cls, delegate, parent):
+    def control(cls, delegate, params, parent):
         check = QCheckBox(parent)
         return check
 
@@ -118,9 +118,41 @@ class TypeCheck(TypeBase):
         return control.isChecked()
 
 
+class TypeFilePath(TypeBase):
+    @classmethod
+    def control(cls, delegate, params, parent):
+        return FilePathWidget(delegate, params, parent=parent)
+
+    @classmethod
+    def set_value(cls, control, value):
+        control.setText(value)
+
+    @classmethod
+    def value(cls, control):
+        return control.text()
+
+    @classmethod
+    def filter(cls, value):
+        return os.path.normpath(value) if value else value
+
+    @classmethod
+    def link_value(cls, default_value, link_value):
+        if default_value is None and link_value is None:
+            return ""
+        if link_value is None:
+            return default_value
+        if default_value is None:
+            return link_value
+        return os.path.join(default_value, link_value)
+
+    @classmethod
+    def sizeHint(cls):
+        return QSize(-1, 28)
+
+
 class TypeDirPath(TypeBase):
     @classmethod
-    def control(cls, delegate, parent):
+    def control(cls, delegate, params, parent):
         return PathParamWidget(delegate, parent=parent)
 
     @classmethod
@@ -158,7 +190,7 @@ class TypeRelDirPath(TypeDirPath):
     def __init__(self, params):
         self.relpath = params.get("relpath", ".")
 
-    def control(self, delegate, parent):
+    def control(self, delegate, params, parent):
         return RelPathParamWidget(delegate, relpath=self.relpath, parent=parent)
 
     def default(self, path):
@@ -203,7 +235,7 @@ class TypeChoice(TypeBase):
             self.selects.append(item)
         self._data_dict = {item["value"]: item for item in self.selects}
 
-    def control(self, delegate, parent):
+    def control(self, delegate, params, parent):
         combo = QComboBox(parent)
         self.setup_combo_box(combo)
         return combo

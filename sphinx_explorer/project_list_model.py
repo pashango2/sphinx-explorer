@@ -275,7 +275,13 @@ class ProjectSettings(object):
 
     def conf_json(self):
         conf = {}
-        conf.update(self.settings.get("Epub Settings", {}))
+
+        epub_settings = self.settings.get("Epub Settings", {})
+        if "epub_cover_image" in epub_settings:
+            epub_settings["epub_cover"] = (epub_settings["epub_cover_image"], None)
+            del epub_settings["epub_cover_image"]
+
+        conf.update(epub_settings)
         return conf
 
     def _analyze(self):

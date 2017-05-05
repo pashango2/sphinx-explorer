@@ -5,7 +5,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 # from qtpy.QtWidgets import *
 
 from sphinx_explorer import python_venv
-from sphinx_explorer.property_widget import TypeBase, TypeChoice
+from sphinx_explorer.property_widget import TypeBase, TypeChoice, TypeFilePath
 from sphinx_explorer.theme_dialog import HtmlThemeWidget
 from .widgets import *
 
@@ -54,7 +54,7 @@ class TypeLanguage(TypeBase):
     """.strip()
 
     @classmethod
-    def control(cls, _, parent):
+    def control(cls, _, params, parent):
         combo = QComboBox(parent)
 
         for i, line in enumerate(cls.Languages.splitlines()):
@@ -79,7 +79,7 @@ class TypeLanguage(TypeBase):
 # noinspection PyMethodOverriding
 class TypeHtmlTheme(TypeBase):
     @classmethod
-    def control(cls, _, parent):
+    def control(cls, _, params, parent):
         return HtmlThemeWidget(parent)
 
     @classmethod
@@ -101,7 +101,7 @@ class TypePython(TypeChoice):
     def __init__(self, value):
         super(TypePython, self).__init__(value)
 
-    def control(self, delegate, parent):
+    def control(self, delegate, params, parent):
         ctrl = PythonComboButton(parent)
         self.setup_combo_box(ctrl.combo_box)
         return ctrl
@@ -161,3 +161,7 @@ class TypePython(TypeChoice):
 
     def sizeHint(self):
         return PythonComboButton().sizeHint()
+
+
+class TypeStaticImage(TypeFilePath):
+    pass

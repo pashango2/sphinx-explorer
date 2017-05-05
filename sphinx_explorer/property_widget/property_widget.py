@@ -95,11 +95,6 @@ class PropertyWidget(QTableView):
     def clear(self):
         self._model.removeRows(0, self._model.rowCount())
 
-    # noinspection PyUnresolvedReferences
-    # def _connect(self):
-    #     if self.selection_model:
-    #         self.selection_model.currentChanged.connect(self.currentChanged.emit)
-
     def index(self, row, column, parent=QModelIndex()):
         # type: (int, int) -> QModelIndex
         return self._model.index(row, column, parent)
@@ -245,7 +240,7 @@ class PropertyItemDelegate(QStyledItemDelegate):
         if item.value_type is None:
             return super(PropertyItemDelegate, self).createEditor(parent, option, index)
         else:
-            return item.value_type.control(self, parent)
+            return item.value_type.control(self, item.params, parent)
 
     def setEditorData(self, editor, index):
         # type: (QWidget, QModelIndex) -> None
@@ -269,4 +264,3 @@ class PropertyItemDelegate(QStyledItemDelegate):
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
-

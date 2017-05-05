@@ -192,6 +192,29 @@ class RefButtonWidget(QFrame):
         return self.line_edit.text()
 
 
+class FilePathWidget(RefButtonWidget):
+    def __init__(self, _, params=None, parent=None):
+        super(FilePathWidget, self).__init__(parent)
+        params = params or {}
+        self.title = params.get("title", "Open File")
+        self.filter = params.get("filter", "All Files (*.*)")
+        self.cwd = params.get("cwd")
+        self.path = params.get("path")
+
+    def _onRefButtonClicked(self):
+        filename, _ = QFileDialog.getOpenFileName(
+            self,
+            self.title,
+            self.cwd,
+            self.filter
+            # "Images (*.png *.jpeg *.jpg *.svg);;All Files (*.*)"
+        )
+        if filename:
+            if self.path:
+                filename = os.path.relpath(filename, self.path)
+            self.setText(filename)
+
+
 # noinspection PyArgumentList
 class PathParamWidget(RefButtonWidget):
     def __init__(self, delegate, params=None, parent=None):
