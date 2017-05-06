@@ -189,6 +189,9 @@ class MainWindow(QMainWindow):
         self.add_tool_action(self.open_act)
         self.add_tool_action(self.show_act)
         self.add_tool_action(self.open_html_act)
+        self.add_tool_action(self.auto_build_act)
+        self.add_tool_action(None)
+        self.add_tool_action(self.project_setting_act)
 
         # set icon
         # TODO: This is Feature Support.
