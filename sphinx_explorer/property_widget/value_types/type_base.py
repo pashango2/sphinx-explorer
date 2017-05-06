@@ -21,7 +21,7 @@ class TypeBase(object):
         return cls
 
     @classmethod
-    def control(cls, delegate, params, parent):
+    def control(cls, delegate, property_item, parent):
         return None
 
     @staticmethod
@@ -76,7 +76,7 @@ class TypeBase(object):
 
 class TypeBool(TypeBase):
     @classmethod
-    def control(cls, delegate, params, parent):
+    def control(cls, delegate, property_item, parent):
         combo = QComboBox(parent)
         combo.addItem("Yes")
         combo.addItem("No")
@@ -95,16 +95,23 @@ class TypeBool(TypeBase):
         return "Yes" if value else "No"
 
 
+class CheckBox(QCheckBox):
+    def __init__(self, item, parent):
+        super(CheckBox, self).__init__(parent)
+        self.item = item
+        # noinspection PyUnresolvedReferences
+        self.stateChanged.connect(self.on_state_changed)
+
+    def on_state_changed(self, state):
+        self.item.set_value(state == Qt.Checked, force_update=True)
+
+
 class TypeCheck(TypeBase):
     is_persistent_editor = True
 
     @classmethod
-    def create(cls, params):
-        return cls()
-
-    @classmethod
-    def control(cls, delegate, params, parent):
-        check = QCheckBox(parent)
+    def control(cls, delegate, property_item, parent):
+        check = CheckBox(property_item, parent)
         return check
 
     @classmethod
@@ -120,8 +127,8 @@ class TypeCheck(TypeBase):
 
 class TypeFilePath(TypeBase):
     @classmethod
-    def control(cls, delegate, params, parent):
-        return FilePathWidget(delegate, params, parent=parent)
+    def control(cls, delegate, property_item, parent):
+        return FilePathWidget(delegate, property_item.params, parent=parent)
 
     @classmethod
     def set_value(cls, control, value):
@@ -152,7 +159,7 @@ class TypeFilePath(TypeBase):
 
 class TypeDirPath(TypeBase):
     @classmethod
-    def control(cls, delegate, params, parent):
+    def control(cls, delegate, property_item, parent):
         return PathParamWidget(delegate, parent=parent)
 
     @classmethod
@@ -190,7 +197,7 @@ class TypeRelDirPath(TypeDirPath):
     def __init__(self, params):
         self.relpath = params.get("relpath", ".")
 
-    def control(self, delegate, params, parent):
+    def control(self, delegate, property_item, parent):
         return RelPathParamWidget(delegate, relpath=self.relpath, parent=parent)
 
     def default(self, path):
@@ -235,7 +242,7 @@ class TypeChoice(TypeBase):
             self.selects.append(item)
         self._data_dict = {item["value"]: item for item in self.selects}
 
-    def control(self, delegate, params, parent):
+    def control(self, delegate, property_item, parent):
         combo = QComboBox(parent)
         self.setup_combo_box(combo)
         return combo

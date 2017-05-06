@@ -31,6 +31,9 @@ class PropertyModel(QStandardItemModel):
     PrefixRe = re.compile(r"(^[#*-]*)\s*(.*)")
 
     def __init__(self, parent=None):
+        """
+        :param QWidget parent: parent widgets 
+        """
         super(PropertyModel, self).__init__(parent)
         self.setHorizontalHeaderLabels([
             self.tr("Property"),
@@ -44,6 +47,14 @@ class PropertyModel(QStandardItemModel):
         return self.get(key)
 
     def create_table_model(self, root_index, parent):
+        """
+        Create table type model.
+        
+        :param QModelIndex root_index: root index 
+        :param QWidget parent: parent widget
+        :return: table type model
+        :rtype: FlatTableModel
+        """
         return FlatTableModel(self, root_index, parent)
 
     def _load_settings(self, settings, parent_item, params_dict, default_values):
@@ -108,7 +119,7 @@ class PropertyModel(QStandardItemModel):
                 for pkey in parent_item.tree_key():
                     d = d[pkey]
                 return d[key]
-            except KeyError:
+            except (KeyError, TypeError):
                 pass
 
         # root access

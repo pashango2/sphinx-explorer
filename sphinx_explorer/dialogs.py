@@ -19,6 +19,29 @@ ProjectDialogSettings = """
         value_type: TypePython
         label: Python Interpreter,
         is_project: true
+- "#* apidoc":
+    label: Apidoc
+-
+    - "#autodoc_default_flags"
+    -
+        - members:
+            value_type: TypeCheck
+            default: yes
+        - undoc-members:
+            value_type: TypeCheck
+            default: yes
+        - private-members:
+            value_type: TypeCheck
+            default: no
+        - special-members:
+            value_type: TypeCheck
+            default: no
+        - inherited-members:
+            value_type: TypeCheck
+            default: no
+        - show-inheritance:
+            value_type: TypeCheck
+            default: yes
 - "#* Epub Settings"
 -
     - epub_basename

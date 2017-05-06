@@ -82,6 +82,7 @@ def apidoc_cmd(d):
     # type: (string_types, string_types, dict) -> string_types
     project_path = d["path"]
     source_dir, _ = get_source_and_build(d)
+    source_dir = os.path.join(source_dir, "apidoc")
     source_dir = os.path.abspath(os.path.join(project_path, source_dir))
     module_dir = d["apidoc-sourcedir"]
 

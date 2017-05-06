@@ -281,6 +281,16 @@ class ProjectSettings(object):
             epub_settings["epub_cover"] = (epub_settings["epub_cover_image"], None)
             del epub_settings["epub_cover_image"]
 
+        apidoc_settings = self.settings.get("apidoc", {})
+
+        if "autodoc_default_flags" in apidoc_settings:
+            default_flags = []
+            for key, value in apidoc_settings["autodoc_default_flags"].items():
+                if value:
+                    default_flags.append(key)
+            if default_flags:
+                conf["autodoc_default_flags"] = default_flags
+
         conf.update(epub_settings)
         return conf
 
@@ -352,6 +362,7 @@ class ProjectSettings(object):
         source_dir = os.path.join(project_dir, self.source_dir)
         module_dir = os.path.join(source_dir, self.module_dir)
         apidoc_dict = self.settings.get("apidoc", {})
+        source_dir = os.path.join(source_dir, "apidoc")
 
         command = [
             "sphinx-apidoc",

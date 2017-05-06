@@ -240,7 +240,7 @@ class PropertyItemDelegate(QStyledItemDelegate):
         if item.value_type is None:
             return super(PropertyItemDelegate, self).createEditor(parent, option, index)
         else:
-            return item.value_type.control(self, item.params, parent)
+            return item.value_type.control(self, item, parent)
 
     def setEditorData(self, editor, index):
         # type: (QWidget, QModelIndex) -> None

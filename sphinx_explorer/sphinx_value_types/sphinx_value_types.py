@@ -54,7 +54,7 @@ class TypeLanguage(TypeBase):
     """.strip()
 
     @classmethod
-    def control(cls, _, params, parent):
+    def control(cls, _, property_item, parent):
         combo = QComboBox(parent)
 
         for i, line in enumerate(cls.Languages.splitlines()):
@@ -79,7 +79,7 @@ class TypeLanguage(TypeBase):
 # noinspection PyMethodOverriding
 class TypeHtmlTheme(TypeBase):
     @classmethod
-    def control(cls, _, params, parent):
+    def control(cls, _, property_item, parent):
         return HtmlThemeWidget(parent)
 
     @classmethod
@@ -101,7 +101,7 @@ class TypePython(TypeChoice):
     def __init__(self, value):
         super(TypePython, self).__init__(value)
 
-    def control(self, delegate, params, parent):
+    def control(self, delegate, property_item, parent):
         ctrl = PythonComboButton(parent)
         self.setup_combo_box(ctrl.combo_box)
         return ctrl
