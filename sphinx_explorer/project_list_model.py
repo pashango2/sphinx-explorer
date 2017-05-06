@@ -27,9 +27,6 @@ class ProjectListModel(QStandardItemModel):
 
     def __init__(self, parent=None):
         super(ProjectListModel, self).__init__(parent)
-        self.setHorizontalHeaderLabels([
-            self.tr("Project List"),
-        ])
 
     def load(self, project_list):
         # type: ([str]) -> None
