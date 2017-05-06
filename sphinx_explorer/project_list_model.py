@@ -208,6 +208,10 @@ class ProjectItem(QStandardItem):
         # type: () -> bool
         return self.settings.can_apidoc()
 
+    def is_valid(self):
+        # type: () -> bool
+        return self.settings.is_valid()
+
     def venv_setting(self):
         return self.settings.venv_setting()
 

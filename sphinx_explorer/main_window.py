@@ -118,6 +118,11 @@ class MainWindow(QMainWindow):
         self.ui.action_move_down.setIcon(icon.load("arrow_down"))
         self.ui.action_delete_document.setIcon(icon.load("remove"))
 
+        self.make_html_act.setIcon(icon.load("html5"))
+        self.make_epub_act.setIcon(icon.load("epub"))
+        self.make_latex_pdf_act.setIcon(icon.load("pdf"))
+        self.make_clean_act.setIcon(icon.load("eraser"))
+
         # setup tool button
         self.ui.button_add.setDefaultAction(self.ui.action_add_document)
         self.ui.button_up.setDefaultAction(self.ui.action_move_up)
@@ -173,6 +178,18 @@ class MainWindow(QMainWindow):
 
         self.setWindowIcon(icon.load("sphinx"))
 
+        # setup project tool frame
+        self.ui.project_tool_layout.setAlignment(Qt.AlignLeft)
+        self.add_tool_action(self.make_clean_act)
+        self.add_tool_action(None)
+        self.add_tool_action(self.make_html_act)
+        self.add_tool_action(self.make_epub_act)
+        self.add_tool_action(self.make_latex_pdf_act)
+        self.add_tool_action(None)
+        self.add_tool_action(self.open_act)
+        self.add_tool_action(self.show_act)
+        self.add_tool_action(self.open_html_act)
+
         # set icon
         # TODO: This is Feature Support.
         # ProjectTools.set_file_icons(
@@ -202,10 +219,27 @@ class MainWindow(QMainWindow):
 
         push_task(task)
 
+        self.update_icon()
+
         # setup end
         self.setAcceptDrops(True)
         self._setup()
         self.ui.tree_view_projects.setFocus()
+
+    def update_icon(self):
+        self.open_act.setIcon(self.settings.editor_icon())
+
+    def add_tool_action(self, action):
+        layout = self.ui.project_tool_layout
+
+        if action:
+            button = QToolButton(self)
+            button.setDefaultAction(action)
+            layout.addWidget(button)
+        else:
+            v_line = QFrame(self)
+            v_line.setFrameShape(QFrame.VLine)
+            layout.addWidget(v_line)
 
     @Slot(str)
     def output_error(self, err_msg):
@@ -255,8 +289,6 @@ class MainWindow(QMainWindow):
 
         self.auto_build_act.setEnabled(item.can_make())
         can_apidoc = item.can_apidoc()
-
-        self.open_act.setIcon(self.settings.editor_icon())
 
         self.open_act.setData(doc_path)
         self.show_act.setData(doc_path)
@@ -397,19 +429,19 @@ class MainWindow(QMainWindow):
 
     def _on_project_changed(self, current, _):
         # type: (QModelIndex, QModelIndex) -> None
-        # TODO: This is Feature Support
-        # item = self.project_list_model.itemFromIndex(current)
-        # if item:
-        #     tools = ProjectTools(item.path(), self)
-        #     self.ui.treeView.setModel(tools.file_model)
-        #     if item.source_dir_path():
-        #         self.ui.treeView.setRootIndex(tools.file_model.index(item.source_dir_path()))
-        #     self.ui.treeView.header().hide()
-        #     self.ui.treeView.hideColumn(1)
-        #     self.ui.treeView.hideColumn(2)
-        #     self.ui.treeView.hideColumn(3)
-        #     item.set_tools(tools)
-        pass
+        item = self.project_list_model.itemFromIndex(current)
+        self.setup_project_settings(item)
+
+    def setup_project_settings(self, item):
+        # type: (ProjectItem) -> None
+        if item.is_valid():
+            self.ui.label_project.setText(item.project())
+            self.ui.label_path.setText(item.path())
+            self.ui.project_tool_widget.setEnabled(True)
+        else:
+            self.ui.label_project.clear()
+
+            self.ui.project_tool_widget.setEnabled(False)
 
     def _auto_build(self):
         # type: () -> None

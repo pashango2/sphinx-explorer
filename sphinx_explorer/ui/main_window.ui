@@ -13,16 +13,47 @@
   <property name="windowTitle">
    <string>Sphinx Explorer</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
+  <widget class="QWidget" name="project_tool_widget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QFrame" name="frame">
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
+     <layout class="QHBoxLayout" name="project_tool_layout"/>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="topMargin">
+       <number>0</number>
       </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
+      <item>
+       <widget class="QLabel" name="label_project">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_path">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QTabWidget" name="tab_widget">
+      <property name="tabPosition">
+       <enum>QTabWidget::South</enum>
       </property>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Tab 1</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Tab 2</string>
+       </attribute>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -119,6 +150,9 @@
    <addaction name="action_settings"/>
   </widget>
   <widget class="QDockWidget" name="dock_project_tree">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
    <property name="windowTitle">
     <string>Pro&amp;ject List</string>
    </property>
