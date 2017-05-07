@@ -2,7 +2,7 @@ import subprocess
 import os
 import fnmatch
 
-ts_file = "i18n/sphinx_explorer_ja.ts"
+ts_file = "sphinx_explorer/settings/i18n/sphinx_explorer_ja.ts"
 sources = [
     "sphinx-explorer.pyw",
 ]
