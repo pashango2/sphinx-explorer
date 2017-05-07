@@ -70,13 +70,13 @@ class MainWindow(QMainWindow):
         sphinx_value_types.init()
 
         # setup params dict
-        toml_path = os.path.join(self.wizard_path, "params.toml")
-        self.params_dict = toml.load(toml_path, OrderedDict)
+        params_toml_path = os.path.join(self.wizard_path, "params.toml")
+        self.params_dict = toml.load(params_toml_path, OrderedDict)
 
         for ext_name, ext in plugin.extension.list_iter():
             self.params_dict[ext_name] = {
                 "value_type": "TypeCheck",
-                "default": True,
+                "default": False,
                 "description": ext.description,
                 "description_path": ext.ext_path,
             }

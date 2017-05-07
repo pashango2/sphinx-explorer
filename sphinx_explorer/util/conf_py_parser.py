@@ -5,6 +5,7 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import ast
 import codecs
 import os
+import shutil
 from collections import OrderedDict
 from six import string_types
 
@@ -132,6 +133,8 @@ def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths
 
     if os.path.isfile(conf_py_path):
         parser = Parser(conf_py_path)
+        conf_py_dir_path = os.path.dirname(conf_py_path)
+        local_extension_path = os.path.join(conf_py_dir_path, "extension")
 
         if params:
             parser.assign_replace(params)
@@ -142,6 +145,17 @@ def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths
             if key.startswith("ext-") and params.get(key, False):
                 ext = extension.get(key)    # type: Extension
                 if ext:
+                    if ext.local_extension:
+                        parser.add_sys_path(["./extension"])
+
+                        src_path = ext.local_extension_file
+                        dst_path = os.path.join(local_extension_path, os.path.basename(src_path))
+
+                        if not os.path.exists(os.path.dirname(dst_path)):
+                            os.makedirs(os.path.dirname(dst_path))
+
+                        shutil.copy(src_path, dst_path)
+
                     comment(parser, ext.name)
                     parser.append(ext.generate_py_script(params, settings))
                     parser.append("\n")
@@ -153,6 +167,7 @@ def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths
 
         with codecs.open(conf_py_path, "w", CONF_PY_ENCODING) as fd:
             fd.write(parser.dumps())
+
 
 config_dode = """
 import json

@@ -20,7 +20,7 @@ import qtpy
 import qdarkstyle
 from .main_window import MainWindow
 import logging
-from .about import __version__
+from .define import __version__, set_sys_path
 # noinspection PyUnresolvedReferences
 import mdx_gfm
 from .util import icon
@@ -28,10 +28,10 @@ from .util import icon
 HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx-explorer")
 
 
-def main(sys_dir=None):
+def main(sys_dir):
     logging.basicConfig()
 
-    icon.init(sys_dir)
+    set_sys_path(sys_dir)
 
     app = QApplication(sys.argv)
     if qtpy.PYQT5:
