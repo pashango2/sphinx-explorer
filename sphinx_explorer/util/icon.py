@@ -3,7 +3,7 @@ from qtpy.QtGui import *
 import os
 import six
 
-ICON_DIR = "icon"
+ICON_DIR = "settings/icon"
 
 
 def load(icon_name):

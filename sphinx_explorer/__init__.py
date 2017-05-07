@@ -47,7 +47,7 @@ QLineEdit
 
     translator = QTranslator()
     # noinspection PyArgumentList
-    translator.load("i18n/sphinx_explorer_{}".format(QLocale.system().name()))
+    translator.load("settings/i18n/sphinx_explorer_{}".format(QLocale.system().name()))
     app.installTranslator(translator)
 
     # note: failed

@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
 
         # load plugin
         plugin.init(self)
-        plugin.load_plugin(sys_dir)
+        plugin.load_plugin(os.path.join(sys_dir, "settings"))
         plugin.load_plugin(home_dir)
 
         # make setting dir
