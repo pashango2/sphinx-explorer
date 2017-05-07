@@ -12,7 +12,7 @@ from .property_model import PropertyItem, CategoryItem, PropertyModel
 from .property_model import PropertyItemType
 from .description_widget import DescriptionWidget
 from .default_value_dict import DefaultValues
-from .define import set_icon, cog_icon
+from .define import set_icon, cog_icon, set_css_path
 from .property_widget import PropertyWidget
 
 from .value_types import *  # NOQA
@@ -29,7 +29,8 @@ __all__ = [
     "find_value_type",
     "DescriptionWidget",
     "DefaultValues",
-    "set_icon"
+    "set_icon",
+    "set_css_path"
 ]
 
 __version__ = "1.0"

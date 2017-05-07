@@ -5,11 +5,13 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import sys
 import os
 import markdown
+from . import define
 
 from qtpy.QtCore import *
 from qtpy.QtGui import *
 
 USE_WEB_ENGINE = True
+CSS_PATH = None
 
 if USE_WEB_ENGINE:
     from qtpy.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
@@ -33,8 +35,8 @@ class DescriptionWidget(BASE_CLASS):
                 True
             )
 
-            here = os.path.dirname(sys.argv[0])
-            css_path = os.path.join(here, "css", "markdown-dark-material.css")
+            here = define.CSS_PATH if define.CSS_PATH else os.path.dirname(sys.argv[0])
+            css_path = os.path.join(here, "markdown-dark-material.css")
 
             DescriptionWidget.CssStyle = """
 <style>

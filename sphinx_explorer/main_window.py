@@ -57,6 +57,9 @@ class MainWindow(QMainWindow):
         plugin.load_plugin(os.path.join(sys_dir, "settings"))
         plugin.load_plugin(home_dir)
 
+        # setup property widget css path
+        property_widget.set_css_path(os.path.join(sys_dir, "settings", "css"))
+
         # make setting dir
         self.setting_dir = home_dir
         if not os.path.isdir(self.setting_dir):

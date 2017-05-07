@@ -15,6 +15,11 @@ DELETE_ICON = QIcon()
 COG_ICON = QIcon()
 OPEN_DIR_ICON = QIcon()
 
+CSS_PATH = None
+
+def set_css_path(path):
+    global CSS_PATH
+    CSS_PATH = path
 
 def cog_icon():
     return COG_ICON
