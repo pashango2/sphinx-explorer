@@ -75,7 +75,7 @@ class QConsoleWidget(QTextEdit):
 
     # noinspection PyUnresolvedReferences
     def exec_command(self, cmd, cwd=None, clear=False, callback=None):
-        if clear:
+        if self._process.state() == QProcess.NotRunning and clear:
             self.clear()
 
         if cwd:
@@ -84,9 +84,9 @@ class QConsoleWidget(QTextEdit):
             self._process.setWorkingDirectory(cwd)
 
         if isinstance(cmd, (list, tuple)):
-            self.queue = cmd
+            self.queue += cmd
         else:
-            self.queue = [cmd]
+            self.queue += [cmd]
 
         self.callback = callback
 
@@ -94,6 +94,9 @@ class QConsoleWidget(QTextEdit):
 
     def push_cmd(self):
         if not self.queue:
+            return
+
+        if QProcess.NotRunning != self._process.state():
             return
 
         cmd = self.queue.pop(0)
@@ -115,7 +118,7 @@ class QConsoleWidget(QTextEdit):
         self._output(line)
 
         line = self._process.readAllStandardError().data()
-        self._output(line, Qt.red)
+        self._output(line, self.ERROR_COLOR)
 
     def _output(self, line, color=None):
         if six.PY3 and isinstance(line, bytes):
@@ -133,6 +136,7 @@ class QConsoleWidget(QTextEdit):
         char_format = QTextCharFormat()
         if color:
             char_format.setForeground(QBrush(color))
+
         cursor.setCharFormat(char_format)
         cursor.insertText(line)
 
@@ -155,6 +159,8 @@ class QConsoleWidget(QTextEdit):
         )
 
         self.finished.emit(ret_code)
+
+        self.push_cmd()
 
     def terminate(self):
         if self._process:

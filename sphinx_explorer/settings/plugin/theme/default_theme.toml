@@ -1,0 +1,23 @@
+[sphinx_rtd_theme]
+packages = ["sphinx_rtd_theme"]
+
+[alabaster]
+
+[default]
+
+[basic]
+
+[sphinxdoc]
+
+[agogo]
+
+[nature]
+
+[pyramid]
+
+[haiku]
+
+[epub]
+
+[bizstyle]
+

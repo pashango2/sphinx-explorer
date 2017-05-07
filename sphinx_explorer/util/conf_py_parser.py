@@ -31,6 +31,9 @@ class MyNodeVisitor(ast.NodeVisitor):
     def visit_Assign(self, node):
         # type: (ast.Assign) -> ast.Assign
         if len(node.targets) == 1:
+            if isinstance(node.targets[0], ast.Subscript):
+                return node
+
             left_name = node.targets[0].id
 
             if left_name in self.replace_dict:
@@ -53,10 +56,16 @@ class MyNodeVisitor(ast.NodeVisitor):
 class Parser(object):
     def __init__(self, conf_path):
         self._source = []
-        for line in codecs.open(conf_path, "r", CONF_PY_ENCODING).readlines():
-            self._source.append(line)
+        self._params = {}
 
-        self._tree = ast.parse(open(conf_path, "r").read())
+        # noinspection PyBroadException
+        try:
+            for line in codecs.open(conf_path, "r", CONF_PY_ENCODING).readlines():
+                self._source.append(line)
+
+            self._tree = ast.parse(open(conf_path, "r").read())
+        except:
+            pass
 
     def add_sys_path(self, path_list):
         if not path_list:
@@ -91,13 +100,31 @@ class Parser(object):
         return "".join(self._source)
 
     def params(self):
-        parser = MyNodeVisitor(self._source)
-        parser.visit(self._tree)
-        return parser.params()
+        if self._params:
+            return self._params
+        else:
+            # noinspection PyBroadException
+            try:
+                parser = MyNodeVisitor(self._source)
+                parser.visit(self._tree)
+                self._params = parser.params()
+
+                return parser.params()
+            except:
+                return {}
 
     @property
     def lines(self):
         return self._source
+
+
+def comment(parser, name):
+    comment_str = "# -- {} ".format(name)
+    comment_str += "-" * (75 - len(comment_str))
+    parser.append("\n")
+    parser.append("\n")
+    parser.append(comment_str)
+    parser.append("\n")
 
 
 def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths=None):
@@ -112,11 +139,29 @@ def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths
         parser.add_sys_path(insert_paths)
 
         for key in extensions:
-            if key.startswith("ext-"):
+            if key.startswith("ext-") and params.get(key, False):
                 ext = extension.get(key)    # type: Extension
                 if ext:
+                    comment(parser, ext.name)
                     parser.append(ext.generate_py_script(params, settings))
                     parser.append("\n")
 
+        # generate code
+        comment(parser, "Sphinx Explorer")
+        parser.append(config_dode)
+        parser.append("\n")
+
         with codecs.open(conf_py_path, "w", CONF_PY_ENCODING) as fd:
             fd.write(parser.dumps())
+
+config_dode = """
+import json
+
+try:
+    conf_dict = json.load(open("conf.json"))
+
+    for key, value in conf_dict.items():
+        globals()[key] = value
+except:
+    pass
+""".strip()

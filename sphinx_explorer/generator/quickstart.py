@@ -82,6 +82,7 @@ def apidoc_cmd(d):
     # type: (string_types, string_types, dict) -> string_types
     project_path = d["path"]
     source_dir, _ = get_source_and_build(d)
+    source_dir = os.path.join(source_dir, "apidoc")
     source_dir = os.path.abspath(os.path.join(project_path, source_dir))
     module_dir = d["apidoc-sourcedir"]
 
@@ -117,8 +118,9 @@ def fix(d, settings, _, apidoc_flag=False):
         module_dir = d["apidoc-sourcedir"]
 
         if os.path.isabs(module_dir):
+            conf_py_dir = os.path.dirname(conf_py_path)
             try:
-                module_dir = os.path.relpath(module_dir, project_path)
+                module_dir = os.path.relpath(module_dir, conf_py_dir)
             except ValueError:
                 module_dir = os.path.abspath(module_dir)
 
@@ -135,6 +137,7 @@ def fix(d, settings, _, apidoc_flag=False):
         project_path,
         source_dir,
         build_dir,
+        d.get("project", os.path.basename(project_path)),
         apidoc=apidoc_dict,
     )
 

@@ -12,84 +12,28 @@ from collections import OrderedDict
 import markdown
 
 if False:
-    from typing import Iterator, Dict, List
-
+    from typing import Iterator, Dict, List, Any
 
 __all__ = [
     "PropertyModel",
+    "BaseItem",
     "CategoryItem",
     "PropertyItem",
+    "ValueItem",
+    "FlatTableModel",
 ]
 
 CategoryItemType = QStandardItem.UserType + 1
 PropertyItemType = CategoryItemType + 1
 
 
-class FlatTableModel(QAbstractProxyModel):
-    """
-    TreeModel -> TableModel Translate Model
-    """
-    def __init__(self, source_model, root_index, parent=None):
-        # type: (PropertyModel, QModelIndex, QWidget) -> None
-        super(FlatTableModel, self).__init__(parent)
-        self._map_dict = {}
-        self._from_dict = {}
-        self.row_count = 0
-
-        for i, index in enumerate(source_model.model_iter(root_index, False)):
-            self._map_dict[(i, 0)] = index
-            self._map_dict[(i, 1)] = index.sibling(index.row(), 1)
-            self._from_dict[index] = self.index(i, 0)
-            self._from_dict[index.sibling(index.row(), 1)] = self.index(i, 1)
-            self.row_count += 1
-
-        self.setSourceModel(source_model)
-
-    # noinspection PyMethodOverriding
-    def rowCount(self, index=QModelIndex()):
-        if index.isValid():
-            return 0
-        return self.row_count
-
-    # noinspection PyMethodOverriding
-    def columnCount(self, index=QModelIndex()):
-        return 2
-
-    # noinspection PyMethodOverriding
-    def index(self, row, column, parent=QModelIndex()):
-        return self.createIndex(row, column, parent)
-
-    def itemFromIndex(self, index):
-        source_index = self.mapToSource(index)
-        return self.sourceModel().itemFromIndex(source_index)
-
-    def mapToSource(self, index):
-        if not index.isValid():
-            return index
-        return self._map_dict[(index.row(), index.column())]
-
-    def rowItem(self, index):
-        return self.sourceModel().rowItem(self.mapToSource(index))
-
-    def mapFromSource(self, source_index):
-        if not source_index.isValid():
-            return source_index
-        return self._from_dict[source_index]
-
-    def parent(self, index=QModelIndex()):
-        return QModelIndex()
-
-    def set_values(self, *args, **kwargs):
-        return self.sourceModel().set_values(*args, **kwargs)
-
-    def dump(self, *args, **kwargs):
-        return self.sourceModel().dump(*args, **kwargs)
-
-
 class PropertyModel(QStandardItemModel):
     PrefixRe = re.compile(r"(^[#*-]*)\s*(.*)")
 
     def __init__(self, parent=None):
+        """
+        :param QWidget parent: parent widgets 
+        """
         super(PropertyModel, self).__init__(parent)
         self.setHorizontalHeaderLabels([
             self.tr("Property"),
@@ -99,7 +43,18 @@ class PropertyModel(QStandardItemModel):
         self._use_default = False
         self.required_flag = True
 
+    def __getattr__(self, key):
+        return self.get(key)
+
     def create_table_model(self, root_index, parent):
+        """
+        Create table type model.
+        
+        :param QModelIndex root_index: root index 
+        :param QWidget parent: parent widget
+        :return: table type model
+        :rtype: FlatTableModel
+        """
         return FlatTableModel(self, root_index, parent)
 
     def _load_settings(self, settings, parent_item, params_dict, default_values):
@@ -107,7 +62,7 @@ class PropertyModel(QStandardItemModel):
         for setting in settings:
             if isinstance(setting, dict) and setting:
                 key = list(setting.keys())[0]
-                setting_param = setting.get(key, [{}])[0]
+                setting_param = setting.get(key, [{}])
             elif isinstance(setting, (list, tuple)):
                 assert last_item is not None
                 self._load_settings(setting, last_item, params_dict, default_values)
@@ -133,8 +88,10 @@ class PropertyModel(QStandardItemModel):
 
             if category_flag:
                 label = setting_param.get("label", key)
-                last_item = self.add_category(parent_item, key, label)
-                last_item.header_flag = header_flag
+                last_item = self.add_category(
+                    parent_item, key, label,
+                    header_flag, setting_param
+                )
                 last_item.vbox_flag = vbox_flag
             else:
                 _params_dict = params_dict.get(key, {}).copy()
@@ -162,7 +119,7 @@ class PropertyModel(QStandardItemModel):
                 for pkey in parent_item.tree_key():
                     d = d[pkey]
                 return d[key]
-            except KeyError:
+            except (KeyError, TypeError):
                 pass
 
         # root access
@@ -189,9 +146,9 @@ class PropertyModel(QStandardItemModel):
             item.setup_link(prop_map)
 
     @staticmethod
-    def create_category(key, label=None):
+    def create_category(key, label=None, header_flag=False, params=None):
         # type: (string_types, string_types) -> CategoryItem
-        return CategoryItem(key, label or key)
+        return CategoryItem(key, label or key, header_flag, params)
 
     @staticmethod
     def create_property(key, value_item, value_type, params=None, label_name=None):
@@ -230,12 +187,13 @@ class PropertyModel(QStandardItemModel):
             left_item.setToolTip(html)
 
         parent_item.appendRow([left_item, value_item])
+        left_item.check_enable()
         return left_item
 
     def rowItem(self, index):
         # type: (QModelIndex) -> PropertyItem
         index = self.index(index.row(), 0, index.parent()) if index.column() != 0 else index
-        item = self.itemFromIndex(index)    # type: PropertyItem
+        item = self.itemFromIndex(index)  # type: PropertyItem
         return item
 
     def _property_item(self, index):
@@ -255,7 +213,7 @@ class PropertyModel(QStandardItemModel):
         parent = self.itemFromIndex(root_index) if root_index.isValid() else self.invisibleRootItem()
         for key in keys:
             for row in range(parent.rowCount()):
-                item = parent.child(row)    # type: PropertyItem
+                item = parent.child(row)  # type: PropertyItem
                 if item.key == key:
                     parent = item
                     break
@@ -271,14 +229,6 @@ class PropertyModel(QStandardItemModel):
             value = self._get_default_value(property_item.parent(), property_item.key, values)
             property_item.set_value(value)
 
-    def setData(self, index, value, role=Qt.EditRole):
-        if role == Qt.EditRole:
-            item = self.itemFromIndex(index)    # type: PropertyItem
-            item.set_value(value)
-            return True
-
-        return super(PropertyModel, self).setData(index, value, role)
-
     def properties(self, root_index=None):
         # type: () -> Iterator[PropertyItem]
         root_index = root_index or QModelIndex()
@@ -291,7 +241,7 @@ class PropertyModel(QStandardItemModel):
         # type: () -> Iterator[PropertyItem]
         root = root or QModelIndex()
         for index in self.model_iter(root, False):
-            item = self.itemFromIndex(index)    # type: BaseItem
+            item = self.itemFromIndex(index)  # type: BaseItem
             if item.header_flag:
                 yield item
 
@@ -326,11 +276,13 @@ class PropertyModel(QStandardItemModel):
         :type parent_index: QModelIndex
         """
         index = self.index(0, 0, parent_index)
+        if not index.isValid():
+            return
 
         while True:
             if col_iter:
                 for col in range(0, self.columnCount(parent_index)):
-                    yield index.sibling(index.row(), col)
+                    yield index.siblding(index.row(), col)
             else:
                 yield index
 
@@ -350,29 +302,60 @@ class PropertyModel(QStandardItemModel):
 
         return super(PropertyModel, self).data(index, role)
 
+    def setData(self, index, value, role=Qt.EditRole):
+        # type: (QModelIndex, Any, int) -> bool
+        if role == Qt.CheckStateRole:
+            checked = value == Qt.Checked
+            item = self.itemFromIndex(index)
+
+            ch_item = item.child(0, 0)
+            ch_item.setEnabled(checked)
+            # noinspection PyUnresolvedReferences
+            self.dataChanged.emit(ch_item.index(), ch_item.index())
+        elif role == Qt.EditRole:
+            item = self.rowItem(index)
+            item.set_value(value)
+            return True
+
+        return super(PropertyModel, self).setData(index, value, role)
+
     def dump(self, store_none=False, flat=False, exclude_default=False):
-        obj_map = {}
-        cat_map = {(): obj_map}
+        # type: (bool, bool, bool) -> dict
+        dump_dict = OrderedDict()
 
         for index in self.model_iter(col_iter=False):
-            item = self.itemFromIndex(index)    # type: PropertyItem
+            item = self.itemFromIndex(index)
+            key = item.tree_key()
 
-            if flat:
-                if not item.is_category:
-                    if store_none or item.value is not None:
-                        if exclude_default is False or not item.was_default():
-                            obj_map[item.key] = item.value
+            if item.is_category:
+                continue
+
+            if item.value is not None:
+                if exclude_default and item.was_default():
+                    continue
             else:
-                parent_key = item.tree_key()[:-1]
-                if not item.is_category:
-                    if store_none or item.value is not None:
-                        if exclude_default is False or not item.was_default():
-                            cat_map[parent_key][item.key] = item.value
-                else:
-                    if self.rowCount(index) > 0:
-                        cat_map[item.tree_key()] = cat_map[parent_key][item.key] = {}
+                if store_none is False:
+                    continue
 
-        return obj_map
+            dump_dict[key] = item.value
+
+        result_dict = {}
+        if flat:
+            for key, value in dump_dict.items():
+                result_dict[key[-1]] = value
+        else:
+            for key, value in dump_dict.items():
+                parent_key, key = key[:-1], key[-1]
+                parent_dict = result_dict
+
+                if parent_key:
+                    for k in parent_key:
+                        if k not in parent_dict:
+                            parent_dict[k] = {}
+                        parent_dict = parent_dict[k]
+                parent_dict[key] = value
+
+        return result_dict
 
 
 class BaseItem(QStandardItem):
@@ -384,6 +367,13 @@ class BaseItem(QStandardItem):
         self.key = key
         self.header_flag = False
         self.vbox_flag = False
+
+    def __getattr__(self, item):
+        for row in range(self.rowCount()):
+            ch_item = self.child(row, 0)
+            if ch_item.key == item:
+                return ch_item
+        raise AttributeError(item)
 
     def tree_key(self):
         keys = []
@@ -403,6 +393,35 @@ class BaseItem(QStandardItem):
     def set_values(self, values, root=None):
         return self.model().set_values(values, root or self)
 
+    def enabled(self):
+        if not self.isCheckable():
+            return True
+        return self.checkState() == Qt.Checked
+
+    def check_enable(self):
+        parent = self.parent()
+        while parent:
+            if parent.isCheckable():
+                self.setEnabled(parent.checkState() == Qt.Checked)
+            parent = parent.parent()
+
+    def setChecked(self, checked):
+        if checked:
+            self.setCheckState(Qt.Checked)
+        else:
+            self.setCheckState(Qt.Unchecked)
+
+    def update_enabled(self, parent_check, checked_parent):
+        if self is not checked_parent:
+            if parent_check != self.isEnabled():
+                self.setEnabled(parent_check)
+                if self.model():
+                    self.model().dataChanged.emit(self.index(), self.index())
+
+        for row in range(self.rowCount()):
+            child = self.child(row, 0)
+            child.update_enabled(parent_check, checked_parent)
+
 
 class CategoryItem(BaseItem):
     BACKGROUND_COLOR = QColor(71, 74, 77)
@@ -411,17 +430,24 @@ class CategoryItem(BaseItem):
     def type(self):
         return CategoryItemType
 
-    def __init__(self, key, name):
-        # type: (string_types, string_types) -> None
-
+    def __init__(self, key, name, header_flag, params=None):
+        # type: (string_types, string_types, bool, dict) -> None
         super(CategoryItem, self).__init__(key, name)
         self.setBackground(QBrush(self.BACKGROUND_COLOR))
         self.setForeground(self.FOREGROUND_COLOR)
+        self.header_flag = header_flag
         font = self.font()
         font.setBold(True)
         self.setFont(font)
         self.setFlags(self.flags() & ~(Qt.ItemIsEditable | Qt.ItemIsSelectable))
         self.setEnabled(True)
+
+        params = params or {}
+        checkable = params.get("checkable", False)
+        if checkable:
+            checked = params.get("default", False)
+            self.setCheckable(True)
+            self.setCheckState(Qt.Checked if checked else Qt.Unchecked)
 
 
 class PropertyItem(BaseItem):
@@ -440,8 +466,8 @@ class PropertyItem(BaseItem):
         self.description_path = params.get("description_path", ".")
         self.required = params.get("required", False)
         self.require_input = params.get("require_input", False)
-        self.link_format = params.get("link_format")
         self.replace_space = params.get("replace_space")
+        value_item.allow_empty = params.get("allow_empty", True)
         self.params = params
 
         # value type
@@ -498,11 +524,10 @@ class PropertyItem(BaseItem):
 
     def set_value(self, value, force_update=False, not_set_value=False):
         # (Any) -> None
-        if value == self.default and not force_update and not self.require_input:
-            return
-
         if not not_set_value:
+            # noinspection PyUnreachableCode
             self.value_item.set_value(self.type_class().filter(value))
+
         self._default_flag = self.value is None
 
         for linked in self._linked:
@@ -600,6 +625,7 @@ class ValueItem(QStandardItem):
         self._default_display = default
         self.value_type = value_type
         self.setFlags(self.flags() | Qt.ItemIsEditable | Qt.ItemIsSelectable)
+        self.allow_empty = True
 
         self.set_value(value)
         if self.value_type:
@@ -612,12 +638,16 @@ class ValueItem(QStandardItem):
 
     @property
     def value(self):
-        if self._input_value is None:
+        if not (not (self._input_value is None) and not (not (self._input_value or self.allow_empty))):
             return self._default_display
+        # noinspection PyUnreachableCode
         return self._input_value
 
-    def was_default(self):
+    def was_input(self):
         return self._input_value is None
+
+    def was_default(self):
+        return self._input_value is None or self._input_value == self._default_value
 
     @property
     def default(self):
@@ -637,6 +667,9 @@ class ValueItem(QStandardItem):
         _value = self.value_type.filter(_value) if self.value_type else _value
         _display_value = self.value_type.data(_value) if self.value_type else _value
 
+        if isinstance(_display_value, bool):
+            _display_value = "Yes" if _display_value else "No"
+
         self.setText(_display_value or "")
         self._input_value = value
 
@@ -654,3 +687,77 @@ class ValueItem(QStandardItem):
             property_item = self.model().itemFromIndex(property_index)  # type: PropertyItem
             if property_item:
                 property_item.set_value(self.value, not_set_value=True)
+
+
+class FlatTableModel(QAbstractProxyModel):
+    """
+    TreeModel -> TableModel Translate Model
+    """
+
+    def __init__(self, source_model, root_index, parent=None):
+        # type: (PropertyModel, QModelIndex, QWidget) -> None
+        super(FlatTableModel, self).__init__(parent)
+        self._map_dict = {}
+        self._from_dict = {}
+        self.row_count = 0
+
+        for i, index in enumerate(source_model.model_iter(root_index, False)):
+            self._map_dict[(i, 0)] = index
+            self._map_dict[(i, 1)] = index.sibling(index.row(), 1)
+            self._from_dict[index] = self.index(i, 0)
+            self._from_dict[index.sibling(index.row(), 1)] = self.index(i, 1)
+            self.row_count += 1
+
+        self.setSourceModel(source_model)
+        # noinspection PyUnresolvedReferences
+        source_model.dataChanged.connect(self._onChanged)
+
+    def _onChanged(self, left_index, right_index):
+        # noinspection PyUnresolvedReferences
+        self.dataChanged.emit(
+            self.mapFromSource(left_index),
+            self.mapFromSource(right_index)
+        )
+
+    # noinspection PyMethodOverriding
+    def rowCount(self, index=QModelIndex()):
+        if index.isValid():
+            return 0
+        return self.row_count
+
+    # noinspection PyMethodOverriding
+    def columnCount(self, index=QModelIndex()):
+        return 2
+
+    # noinspection PyMethodOverriding
+    def index(self, row, column, parent=QModelIndex()):
+        return self.createIndex(row, column, parent)
+
+    def itemFromIndex(self, index):
+        source_index = self.mapToSource(index)
+        return self.sourceModel().itemFromIndex(source_index)
+
+    def mapToSource(self, index):
+        if not index.isValid():
+            return index
+        return self._map_dict.get((index.row(), index.column()), QModelIndex())
+
+    def rowItem(self, index):
+        return self.sourceModel().rowItem(self.mapToSource(index))
+
+    def mapFromSource(self, source_index):
+        if not source_index.isValid():
+            return source_index
+        try:
+            return self._from_dict[source_index]
+        except KeyError:
+            return QModelIndex()
+
+    def parent(self, index=QModelIndex()):
+        return QModelIndex()
+
+    def set_values(self, *args, **kwargs):
+        return self.sourceModel().set_values(*args, **kwargs)
+
+    def dump(self, *args, **kwargs):
+        return self.sourceModel().dump(*args, **kwargs)

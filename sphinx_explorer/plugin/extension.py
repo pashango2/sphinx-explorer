@@ -3,6 +3,7 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 import os
 import fnmatch
+# noinspection PyPackageRequirements
 import yaml
 from six import string_types
 
@@ -115,13 +116,6 @@ class Extension(object):
 
     def generate_py_script(self, params, settings):
         parser = []
-
-        # add comment
-        comment = "# -- {} ".format(self.name)
-        comment += "-" * (75 - len(comment))
-        parser.append("")
-        parser.append("")
-        parser.append(comment)
 
         # add imports
         if self.imports:

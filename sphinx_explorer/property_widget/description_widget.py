@@ -4,33 +4,83 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 # from six import string_types
 import sys
 import os
+import markdown
+
 from qtpy.QtCore import *
 from qtpy.QtGui import *
-# from qtpy.QtWidgets import *
-from qtpy.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
-# from PySide.QtWebKit import QWebView
-import markdown
+
+USE_WEB_ENGINE = True
+
+if USE_WEB_ENGINE:
+    from qtpy.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
+    BASE_CLASS = QWebEngineView
+else:
+    from qtpy.QtWidgets import *
+    BASE_CLASS = QTextBrowser
 
 
 # noinspection PyArgumentList
-class DescriptionWidget(QWebEngineView):
+class DescriptionWidget(BASE_CLASS):
     FONT_POINT_SIZE = 12
     SetupFlag = False
     CssStyle = ""
 
     @staticmethod
     def setup():
-        QWebEngineSettings.globalSettings().setAttribute(QWebEngineSettings.PluginsEnabled, True)
+        if USE_WEB_ENGINE:
+            QWebEngineSettings.globalSettings().setAttribute(
+                QWebEngineSettings.PluginsEnabled,
+                True
+            )
 
-        here = os.path.dirname(sys.argv[0])
-        css_path = os.path.join(here, "css", "markdown-dark-material.css")
+            here = os.path.dirname(sys.argv[0])
+            css_path = os.path.join(here, "css", "markdown-dark-material.css")
 
-        DescriptionWidget.CssStyle = """
+            DescriptionWidget.CssStyle = """
 <style>
 {}
 </style>
 <body class="vscode-dark">
-        """.format(open(css_path).read())
+            """.format(open(css_path).read())
+        else:
+            DescriptionWidget.CssStyle = """
+<style>
+
+body{
+    margin: 10px;
+}
+a{
+    color:#4080d0;
+    text-decoration:none;
+}
+h1 {
+    margin-bottom: 20px;
+    margin-top: 50px;
+    padding-top: 50px;
+}
+h3 {
+    margin-bottom: 50px;
+    padding-bottom: 50px;
+}
+
+table {
+    background-color: #FFFFFF;
+    margin-top: 10px;
+}
+
+th {
+    background-color: #006e54;
+    padding: 7px;
+}
+
+td {
+   padding-right: 30px;
+   background-color: #232629;
+   padding: 7px;
+}
+
+</style>
+"""
 
         DescriptionWidget.SetupFlag = True
 
@@ -43,8 +93,9 @@ class DescriptionWidget(QWebEngineView):
         font.setPointSize(self.FONT_POINT_SIZE)
         self.setFont(font)
 
-        page = self.page()
-        page.setBackgroundColor(Qt.transparent)
+        if USE_WEB_ENGINE:
+            page = self.page()
+            page.setBackgroundColor(Qt.transparent)
 
     def clear(self):
         pass
@@ -60,11 +111,20 @@ class DescriptionWidget(QWebEngineView):
             md.append("![thumbnail]({})".format(thumbnail))
 
         mdo = markdown.Markdown(extensions=["gfm"])
-        html = self.CssStyle + mdo.convert("\n".join(md)) + "</body>"
-
-        if search_path:
-            base_url = QUrl.fromLocalFile(os.path.join(search_path, "index.html"))
-            self.setHtml(html, base_url)
+        if USE_WEB_ENGINE:
+            html = self.CssStyle + mdo.convert("\n".join(md)) + "</body>"
         else:
-            self.setHtml(html)
+            html = self.CssStyle + "<body>" + mdo.convert("\n".join(md)) + "</body>"
 
+        if USE_WEB_ENGINE:
+            if search_path:
+                # noinspection PyTypeChecker
+                base_url = QUrl.fromLocalFile(os.path.join(search_path, "index.html"))
+                self.setHtml(html, base_url)
+            else:
+                self.setHtml(html)
+        else:
+            if search_path:
+                self.setSearchPaths([search_path])
+
+            self.setHtml(html)

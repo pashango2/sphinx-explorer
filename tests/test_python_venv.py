@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-from sphinx_explorer.util import python_venv
+
+from sphinx_explorer import python_venv
 
 
 # def test_pyenv():
@@ -16,6 +17,11 @@ from sphinx_explorer.util import python_venv
 #     env = python_venv.Env("venv", "py34", "./py34")
 #     assert str(env) == "py34(./py34)"
 #     assert str(python_venv.Env.from_str(env.to_str())) == "py34(./py34)"
+
+def test_search_system_python():
+    v = python_venv.search_system_python()
+    print(v)
+    print(python_venv.get_system_default_python())
 
 
 def test_search_anconda():
@@ -52,11 +58,9 @@ def test_venv():
     env = python_venv.PythonVEnv(venv_list=[py34, py35])
     env_list = env.env_list()
 
-    assert env_list[0][0] == ""
-    assert str(env_list[0][1]) == "System Python"
-    assert env_list[1][0] == "venv,py34,py34_path,3.4"
-    assert str(env_list[1][1]) == "3.4 (py34_path)"
-    assert env_list[2][0] == "venv,py35,py35_path,3.5"
-    assert str(env_list[2][1]) == "3.5 (py35_path)"
+    assert env_list[0][0] == "venv,py34,py34_path,3.4"
+    assert str(env_list[0][1]) == "3.4 (py34_path)"
+    assert env_list[1][0] == "venv,py35,py35_path,3.5"
+    assert str(env_list[1][1]) == "3.5 (py35_path)"
 
 

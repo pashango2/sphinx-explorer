@@ -1,25 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-import os
+
 import locale
 import logging
+import os
 from collections import OrderedDict
 
 import toml
+# noinspection PyPackageRequirements
 import yaml
 from qtpy.QtCore import *
-from qtpy.QtWidgets import *
 from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 
-# from sphinx_explorer.plugin import editor
+from sphinx_explorer import python_venv
+from sphinx_explorer.sphinx_value_types.pages import PythonInterpreterWidget
 from sphinx_explorer.ui.settings_ui import Ui_Form
 from sphinx_explorer.util import icon
 from .plugin import extension, editor
 from .property_widget import TypeChoice, PropertyModel
-from .util import python_venv
 from .util.commander import commander
-from sphinx_explorer.sphinx_value_types.pages import PythonInterpreterWidget
 
 logger = logging.getLogger(__name__)
 
@@ -130,9 +131,9 @@ class CategoryFilterModel(QSortFilterProxyModel):
 
 SYSTEM_SETTINGS = """
 - "#*Editor":
-    - label: Editor
+    label: Editor
 - "#*Default Values":
-    - label: Default Values
+    label: Default Values
 -
     - path
     - author
@@ -144,7 +145,7 @@ SYSTEM_SETTINGS = """
 -
     - python
 - "#*Extensions":
-    - label: Extensions
+    label: Extensions
 """
 
 

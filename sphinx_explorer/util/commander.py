@@ -7,8 +7,8 @@ import subprocess
 import platform
 from six import PY2, string_types
 import logging
-logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
 
 TERM_ENCODING = getattr(sys.stdin, 'encoding', None)
 
@@ -35,36 +35,62 @@ class Commander(object):
         self.pre_command = [[]]
 
     def create_pre_commander(self, pre_command=None):
-        new_commander =  Commander(self.system, self.py2)
+        new_commander = Commander(self.system, self.py2)
         new_commander.pre_command = [pre_command or []]
         return new_commander
 
-    def __call__(self, cmd, cwd=None, python_mode=False):
+    def __call__(self, cmd=None, cwd=None, bash=True, cmds=None):
         new_cmd = []
-        for _cmd in self.pre_command + [cmd]:
+        _cmds = [cmd] if cmd else []
+        _cmds += cmds or []
+        for _cmd in self.pre_command + _cmds:
             if isinstance(cmd, (list, tuple)):
                 _cmd = [quote(x) for x in _cmd]
                 _cmd = " ".join(_cmd)
             new_cmd.append(_cmd)
 
         new_cmd = [x for x in new_cmd if x]
-        cmd_str = " ; ".join(new_cmd)
 
-        if self.system == "Linux":
+        if self.system == "Windows":
+            cmd_joiner = " & "
+        else:
+            cmd_joiner = " ; "
+
+        cmd_str = cmd_joiner.join(new_cmd)
+
+        if self.system == "Linux" and bash:
+            # cmd_str = cmd_str.replace('"', '\\"').replace("'", "\\'")
             return '/bin/bash -c "{}"'.format(cmd_str)
         else:
             return cmd_str
 
-    def check_exist(self, cmds, default=None):
+    def check_exist(self, cmds):
         which_cmd = "which" if platform.system() != "Windows" else "where"
         for cmd in cmds:
             # noinspection PyBroadException
-            output = self.check_output([which_cmd, cmd], shell=True)
+            try:
+                output = subprocess.check_output(self([which_cmd, cmd]), stderr=None, shell=True)
+            except FileNotFoundError:
+                return False
+            except subprocess.CalledProcessError:
+                return False
 
             if output:
-                return cmd
+                return True
 
-        return default
+        return False
+
+    def which(self, cmd):
+        if self.system == "Windows":
+            which_cmd = "where"
+        else:
+            which_cmd = "which"
+
+        result = self.check_output("{} {}".format(which_cmd, cmd), shell=True)
+        if result:
+            for line in result.splitlines():
+                return line
+        return None
 
     def check_output(self, cmd, stderr=None, shell=False):
         try:
@@ -81,6 +107,18 @@ class Commander(object):
         except UnicodeDecodeError:
             logger.error("UnicodeDecodeError:{}".format(output))
             return None
+
+    def call(self, cmd, stderr=None, shell=False):
+        try:
+            code = subprocess.call(self(cmd), stderr=stderr, shell=shell)
+        except FileNotFoundError:
+            logger.error("FileNotFoundError:{}".format(self(cmd)))
+            return False
+        except subprocess.CalledProcessError:
+            logger.error("Call Error:{}".format(self(cmd)))
+            return False
+
+        return code == 0
 
     def open_terminal(self, path):
         # type: (string_types) -> None
@@ -108,7 +146,7 @@ class Commander(object):
             cmd = ["open", quote(path)]
         else:
             cmd = ["xdg-open", quote(path)]
-
+            # print(" ".join(cmd))
         self.launch(" ".join(cmd), path)
 
     @staticmethod
@@ -149,12 +187,12 @@ class Commander(object):
                 creationflags=subprocess.CREATE_NEW_CONSOLE,
             )
         elif platform.system() == "Linux":
-            cmd = 'gnome-terminal -e "{}"'.format(cmd)
+            cmd = 'gnome-terminal -e "{}"'.format(self(cmd, bash=False))
             return subprocess.Popen(cmd, cwd=cwd, shell=True)
         else:
             # cmd = command(cmd)
             # subprocess.Popen(cmd, cwd=cwd, shell=True)
-            print(platform.system())
+            logger.error("Non Impliment")
             return None
 
     def exec_(self, cmd, cwd=None):
@@ -185,7 +223,6 @@ class Commander(object):
             return make_bat + " " + make_cmd
         else:
             return "make " + make_cmd
-
 
 
 commander = Commander()

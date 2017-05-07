@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
-# from qtpy.QtCore import *
-# from qtpy.QtGui import *
-from qtpy.QtWidgets import *
 
 import os
 
+from qtpy.QtWidgets import *
+
 from sphinx_explorer.property_widget import cog_icon
 from sphinx_explorer.property_widget.widgets import MovableListWidget
-from sphinx_explorer.util.python_venv import check_python_version, VenvSetting
+from sphinx_explorer.python_venv import check_python_version, VenvSetting
 
 
+# noinspection PyArgumentList
 class ComboButton(QFrame):
     def __init__(self, parent=None):
         super(ComboButton, self).__init__(parent)
@@ -41,10 +41,12 @@ class ComboButton(QFrame):
         return self.combo_box.itemData(*args)
 
 
+# noinspection PyArgumentList
 class PythonComboButton(ComboButton):
     def __init__(self, parent=None):
         super(PythonComboButton, self).__init__(parent)
 
+        # noinspection PyArgumentList
         self.add_path_act = QAction("Add Path", self, triggered=self._on_add_path)
         self.menu = QMenu(self)
         self.menu.addAction(self.add_path_act)
@@ -90,7 +92,9 @@ class PythonComboButton(ComboButton):
             self.combo_box.setCurrentIndex(index)
 
 
+# noinspection PyArgumentList
 class PythonEnvDialog(QDialog):
+    # noinspection PyUnresolvedReferences
     def __init__(self, parent=None):
         super(PythonEnvDialog, self).__init__(parent)
 
@@ -113,7 +117,7 @@ class PythonEnvDialog(QDialog):
         self.resize(492, 652)
 
     def input_value(self):
-        # noinspection PyCallByClass,PyArgumentList
+        # noinspection PyCallByClass,PyArgumentList,PyTypeChecker
         path = QFileDialog.getOpenFileName(
             self,
             self.tr("Select Python Exe"),
@@ -135,6 +139,5 @@ class PythonEnvDialog(QDialog):
             result.append(item.text())
 
         return result
-
 
 

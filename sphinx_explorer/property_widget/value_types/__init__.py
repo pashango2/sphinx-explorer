@@ -7,6 +7,7 @@ from .type_list import *
 
 AllTypes = [
     TypeBool,
+    TypeCheck,
     TypeDirPath,
     TypeRelDirPath,
     TypeChoice,

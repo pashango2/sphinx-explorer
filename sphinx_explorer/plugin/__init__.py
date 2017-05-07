@@ -3,6 +3,7 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 import os
 import fnmatch
+# noinspection PyPackageRequirements
 import yaml
 from qtpy.QtWidgets import *
 from typing import Iterator

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 import os
+# noinspection PyPackageRequirements
 import yaml
 from qtpy.QtGui import *
 from typing import Iterator

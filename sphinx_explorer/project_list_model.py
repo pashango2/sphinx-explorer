@@ -2,22 +2,21 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 
+import logging
 import os
+
+import json
 import toml
-import yaml
+# noinspection PyPackageRequirements
 from qtpy.QtCore import *
 from qtpy.QtGui import *
-from qtpy.QtWidgets import *
+# from qtpy.QtWidgets import *
 from six import string_types
 
+from sphinx_explorer import python_venv
 from sphinx_explorer.util import icon
-from .util.QConsoleWidget import QConsoleWidget
-from .util import python_venv
-from .util.conf_py_parser import Parser
-from .util.commander import quote, commander
-from .property_widget import PropertyWidget, PropertyModel
 from .task import push_task
-import logging
+from .util.commander import commander
 logger = logging.getLogger(__name__)
 
 
@@ -28,9 +27,6 @@ class ProjectListModel(QStandardItemModel):
 
     def __init__(self, parent=None):
         super(ProjectListModel, self).__init__(parent)
-        self.setHorizontalHeaderLabels([
-            self.tr("Project List"),
-        ])
 
     def load(self, project_list):
         # type: ([str]) -> None
@@ -111,7 +107,7 @@ class ProjectListModel(QStandardItemModel):
             self.projectLoaded.emit(item.index())
         else:
             item.setIcon(icon.load("error"))
-            logger.error(settings.error_msg)
+            # logger.error(settings.error_msg)
 
         if settings.project:
             item.setText("{} ({})".format(settings.project, project_path))
@@ -175,10 +171,18 @@ class ProjectItem(QStandardItem):
     def auto_build_command(self, target="html"):
         model = self.model()
         if model:
-            cmd = "sphinx-autobuild -p 0 -s 1 --open-browser {} {}".format(
-                quote(self.settings.source_dir),
-                quote(os.path.join(self.settings.build_dir, target)),
-            )
+            cmd = [
+                "sphinx-autobuild",
+                "-p", "0",
+                "--delay", "1",
+                "--open-browser",
+                "--ignore", ".git/*",
+                "--ignore", "*.bak",
+                "--ignore", "~*.*",
+                "--ignore", "___jb_*___",
+                self.settings.source_dir,
+                os.path.join(self.settings.build_dir, target),
+            ]
             return cmd
         return None
 
@@ -203,6 +207,10 @@ class ProjectItem(QStandardItem):
     def can_apidoc(self):
         # type: () -> bool
         return self.settings.can_apidoc()
+
+    def is_valid(self):
+        # type: () -> bool
+        return self.settings.is_valid()
 
     def venv_setting(self):
         return self.settings.venv_setting()
@@ -238,34 +246,54 @@ class ProjectSettings(object):
         return d
 
     @staticmethod
-    def save(project_path, source_dir, build_dir, apidoc=None, cmd=None):
+    def save(project_path, source_dir, build_dir, project, apidoc=None, cmd=None):
         setting_path = os.path.join(project_path, ProjectSettings.SETTING_NAME)
-        setting_obj = ProjectSettings.dump(
-            source_dir,
-            build_dir,
-            apidoc,
-            cmd
-        )
-        with open(setting_path, "w") as fd:
-            toml.dump(setting_obj, fd)
 
-    @staticmethod
-    def dump(source_dir, build_dir, apidoc=None, cmd=None):
-        d = {
+        setting_obj = {
             "source_dir": source_dir,
             "build_dir": build_dir,
+            "project": project,
         }
         if cmd:
-            d["command"] = cmd
+            setting_obj["command"] = cmd
 
         if apidoc:
-            d["apidoc"] = apidoc
-        return d
+            setting_obj["apidoc"] = apidoc
+
+        with open(setting_path, "w") as fd:
+            toml.dump(setting_obj, fd)
 
     def store(self):
         save_path = os.path.join(self.path, self.SETTING_NAME)
         with open(save_path, "w") as fd:
+            self.settings["project"] = self.project
             toml.dump(self.settings, fd)
+
+        # output conf.json
+        conf_path = os.path.join(self.path, self.source_dir, "conf.json")
+        with open(conf_path, "w") as fd:
+            json.dump(self.conf_json(), fd, indent=4)
+
+    def conf_json(self):
+        conf = {}
+
+        epub_settings = self.settings.get("Epub Settings", {})
+        if "epub_cover_image" in epub_settings:
+            epub_settings["epub_cover"] = (epub_settings["epub_cover_image"], None)
+            del epub_settings["epub_cover_image"]
+
+        apidoc_settings = self.settings.get("apidoc", {})
+
+        if "autodoc_default_flags" in apidoc_settings:
+            default_flags = []
+            for key, value in apidoc_settings["autodoc_default_flags"].items():
+                if value:
+                    default_flags.append(key)
+            if default_flags:
+                conf["autodoc_default_flags"] = default_flags
+
+        conf.update(epub_settings)
+        return conf
 
     def _analyze(self):
         # search conf.py
@@ -335,6 +363,7 @@ class ProjectSettings(object):
         source_dir = os.path.join(project_dir, self.source_dir)
         module_dir = os.path.join(source_dir, self.module_dir)
         apidoc_dict = self.settings.get("apidoc", {})
+        source_dir = os.path.join(source_dir, "apidoc")
 
         command = [
             "sphinx-apidoc",
@@ -368,6 +397,9 @@ class ProjectSettings(object):
     def set_venv_setting(self, venv_setting):
         self.settings.setdefault("Python Interpreter", {})["python"] = venv_setting
 
+    def update(self, params):
+        self.settings.update(params)
+
 
 class LoadSettingObject(QObject):
     finished = Signal(ProjectSettings, str)
@@ -381,64 +413,5 @@ class LoadSettingObject(QObject):
 
     def run(self):
         settings = ProjectSettings(self.doc_path)
-
-        if settings.conf_py_path:
-            parser = Parser(settings.conf_py_path)
-            settings.project = parser.params().get("project", "")
-
         self.finished.emit(settings, self.project_path)
-
-
-ProjectDialogSettings = """
-- "#Python Interpreter"
-- python:
-    - value_type: TypePython
-      label: Python Interpreter,
-      is_project: true,
-"""
-
-
-# noinspection PyArgumentList
-class ProjectSettingDialog(QDialog):
-    # noinspection PyUnresolvedReferences
-    def __init__(self, project_item, parent=None):
-        super(ProjectSettingDialog, self).__init__(parent)
-        self.project_item = project_item
-
-        self.layout = QVBoxLayout(self)
-        # self.property_widget = PropertyWidget(parent=self)
-        self.property_widget = PropertyWidget(self)
-        self.model = PropertyModel(self)
-
-        self.button_box = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
-            parent=self
-        )
-
-        self.layout.addWidget(self.property_widget)
-        self.layout.addWidget(self.button_box)
-
-        self.setLayout(self.layout)
-        self.setWindowTitle(self.tr(str("Project Settings")))
-        self.resize(1000, 600)
-
-        self.button_box.accepted.connect(self.accept)
-        self.button_box.rejected.connect(self.reject)
-
-        settings = yaml.load(ProjectDialogSettings)
-        python_dict = settings[1]["python"][0]
-        python_dict["project_path"] = project_item.path()
-        self.model.load_settings(settings)
-
-        self.model.set_values({"python": project_item.venv_setting()})
-
-        self.property_widget.setModel(self.model)
-        self.property_widget.resizeColumnsToContents()
-
-    def accept(self):
-        self.property_widget.teardown()
-        dump = self.model.dump(flat=True)
-        self.project_item.settings.set_venv_setting(dump.get("python"))
-        self.project_item.settings.store()
-        super(ProjectSettingDialog, self).accept()
 
