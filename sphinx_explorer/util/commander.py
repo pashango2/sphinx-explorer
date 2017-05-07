@@ -146,7 +146,7 @@ class Commander(object):
             cmd = ["open", quote(path)]
         else:
             cmd = ["xdg-open", quote(path)]
-
+            # print(" ".join(cmd))
         self.launch(" ".join(cmd), path)
 
     @staticmethod

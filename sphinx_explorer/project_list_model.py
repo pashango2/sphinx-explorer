@@ -107,7 +107,7 @@ class ProjectListModel(QStandardItemModel):
             self.projectLoaded.emit(item.index())
         else:
             item.setIcon(icon.load("error"))
-            logger.error(settings.error_msg)
+            # logger.error(settings.error_msg)
 
         if settings.project:
             item.setText("{} ({})".format(settings.project, project_path))

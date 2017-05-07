@@ -185,6 +185,12 @@ class Ui_MainWindow(object):
         self.menuCreate_C.setTitle(_translate("MainWindow", "Create(&C)"))
         self.menuHelp.setTitle(_translate("MainWindow", "Help"))
         self.dock_outputs.setWindowTitle(_translate("MainWindow", "O&utputs"))
+        self.plain_output.setToolTip(_translate("MainWindow", "<html><head/><body><p>sdfsffsf</p></body></html>"))
+        self.plain_output.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Noto Sans\'; font-size:11pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>"))
         self.output_tab_widget.setTabText(self.output_tab_widget.indexOf(self.Output), _translate("MainWindow", "Output"))
         self.output_tab_widget.setTabText(self.output_tab_widget.indexOf(self.Error), _translate("MainWindow", "Error"))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))

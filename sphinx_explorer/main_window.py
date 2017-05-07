@@ -188,6 +188,7 @@ class MainWindow(QMainWindow):
         self.add_tool_action(None)
         self.add_tool_action(self.open_act)
         self.add_tool_action(self.show_act)
+        self.add_tool_action(self.terminal_act)
         self.add_tool_action(self.open_html_act)
         self.add_tool_action(self.auto_build_act)
         self.add_tool_action(None)
@@ -437,7 +438,7 @@ class MainWindow(QMainWindow):
 
     def setup_project_settings(self, item):
         # type: (ProjectItem) -> None
-        if item.is_valid():
+        if item and item.is_valid():
             self.ui.label_project.setText(item.project())
             self.ui.label_path.setText(item.path())
             self.ui.project_tool_widget.setEnabled(True)
