@@ -23,12 +23,15 @@ import logging
 from .about import __version__
 # noinspection PyUnresolvedReferences
 import mdx_gfm
+from .util import icon
 
 HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx-explorer")
 
 
-def main():
+def main(sys_dir=None):
     logging.basicConfig()
+
+    icon.init(sys_dir)
 
     app = QApplication(sys.argv)
     if qtpy.PYQT5:
@@ -47,14 +50,19 @@ QLineEdit
 
     translator = QTranslator()
     # noinspection PyArgumentList
-    translator.load("settings/i18n/sphinx_explorer_{}".format(QLocale.system().name()))
+    i18n_path = os.path.join(sys_dir, "settings/i18n/sphinx_explorer_{}".format(QLocale.system().name()))
+    translator.load(i18n_path)
     app.installTranslator(translator)
 
-    # note: failed
-    # setup(app)
-
-    sys_dir = os.path.dirname(sys.argv[0])
     window = MainWindow(sys_dir, HOME_DIR)
     window.show()
 
     sys.exit(app.exec_())
+
+
+def package_main():
+    main(os.path.dirname(__file__))
+
+
+def exec_main():
+    main(os.path.dirname(sys.argv[0]))

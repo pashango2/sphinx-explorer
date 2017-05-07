@@ -1,5 +1,1 @@
-recursive-include css *
-recursive-include i18n *
-recursive-include icon *
-recursive-include plugin *
 recursive-include settings *

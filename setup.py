@@ -35,7 +35,7 @@ setup(
     license="MIT",
     entry_points={
         'gui_scripts': [
-            'sphinx-explorer = sphinx_explorer:main',
+            'sphinx-explorer = sphinx_explorer:package_main',
         ],
     },
 )
