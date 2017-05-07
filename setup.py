@@ -22,7 +22,7 @@ requires = [
 ]
 
 setup(
-    name='Sphinx Explorer',
+    name='sphinx-explorer',
     version=sphinx_explorer.__version__,
     description='Python documentation generator',
     author='Toshiyuki Ishii.',

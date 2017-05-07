@@ -3,7 +3,7 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 
-__version__ = "0.9"
+__version__ = "0.99"
 
 message = """
 Version: {}
