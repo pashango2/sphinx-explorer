@@ -216,7 +216,7 @@ class Serializer(object):
                 if rows[-1]:
                     rows.append([])
 
-        # Not: http://agateau.com/2015/docutils-snippets/
+        # Note: http://agateau.com/2015/docutils-snippets/
         table_node = nodes.table()
         tgroup_node = nodes.tgroup(cols=len(headers))
         table_node += tgroup_node

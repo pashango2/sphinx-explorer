@@ -524,9 +524,6 @@ class PropertyItem(BaseItem):
 
     def set_value(self, value, force_update=False, not_set_value=False):
         # (Any) -> None
-        if value == self.default and not force_update and not self.require_input:
-            return
-
         if not not_set_value:
             # noinspection PyUnreachableCode
             self.value_item.set_value(self.type_class().filter(value))

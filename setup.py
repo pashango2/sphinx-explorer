@@ -22,7 +22,7 @@ requires = [
 ]
 
 setup(
-    name='Sphinx Explorer',
+    name='sphinx-explorer',
     version=sphinx_explorer.__version__,
     description='Python documentation generator',
     author='Toshiyuki Ishii.',
@@ -32,9 +32,10 @@ setup(
     include_package_data=True,
     install_requires=requires,
     platforms='any',
+    license="MIT",
     entry_points={
         'gui_scripts': [
-            'sphinx-explorer = sphinx_explorer:main',
+            'sphinx-explorer = sphinx_explorer:package_main',
         ],
     },
 )
