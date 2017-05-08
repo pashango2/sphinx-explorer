@@ -5,7 +5,7 @@ import os
 
 __version__ = "0.99"
 
-message = """
+about_message = """
 Version: {}
 
 https://github.com/pashango2/sphinx-explorer

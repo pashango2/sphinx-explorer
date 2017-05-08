@@ -3,7 +3,9 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 import logging
-
+import json
+import os
+import datetime
 from qtpy.QtCore import *
 
 from sphinx_explorer.python_venv import PythonVEnv
@@ -31,10 +33,30 @@ class SystemInitTask(BaseTask):
 
     finished = Signal(PythonVEnv)
 
-    def __init__(self, settings, parent=None):
+    PipOutDataCacheName = "pip_cache.json"
+    PipOutDataCheckHour = 6
+
+    def __init__(self, setting_dir, settings, parent=None):
         # type: () -> None
         super(SystemInitTask, self).__init__(parent)
+        self.setting_dir = setting_dir
         self.settings = settings
+
+        self.pip_out_date_cache = {}
+        self.pip_cache_path = os.path.join(setting_dir, self.PipOutDataCacheName)
+
+        # noinspection PyBroadException
+        try:
+            self.pip_out_date_cache = json.load(open(self.pip_cache_path))
+        except:
+            self.pip_out_date_cache = {}
+
+        t = self.pip_out_date_cache.get("last_update")
+        if t:
+            t = datetime.datetime.fromtimestamp(t)
+            t += datetime.timedelta(hours=self.PipOutDataCheckHour)
+            if t < datetime.datetime.today():
+                self.pip_out_date_cache = {}
 
     def run(self):
         self.message("Checking Python Venv...", 0)
@@ -53,12 +75,30 @@ class SystemInitTask(BaseTask):
         self.message("Check Python Package Finished")
 
         self.message("Checking Latest Python Packages...", 0)
-        for key, e in env.env_list():
-            activate_commander = commander.create_pre_commander(e.activate_command())
+        if self.pip_out_date_cache:
+            for key, e in env.env_list():
+                packages = self.pip_out_date_cache.get(key, [])
+                self.checkLatestPackageFinished.emit(e, packages)
+        else:
+            self.pip_out_date_cache = {
+                "last_update": datetime.datetime.today().timestamp(),
+            }
 
-            task = PipListOutDateTask(commander=activate_commander)
-            task.run()
-            self.checkLatestPackageFinished.emit(e, task.packages)
+            for key, e in env.env_list():
+                activate_commander = commander.create_pre_commander(e.activate_command())
+
+                task = PipListOutDateTask(commander=activate_commander)
+                task.run()
+                self.checkLatestPackageFinished.emit(e, task.packages)
+
+                self.pip_out_date_cache[key] = task.packages
+
+            # noinspection PyBroadException
+            try:
+                json.dump(self.pip_out_date_cache, open(self.pip_cache_path, "w"))
+            except:
+                pass
+
         self.message("Check Latest Python Package Finished")
 
 

@@ -28,7 +28,7 @@ from .system_settings import SystemSettingsDialog, SystemSettings
 from .task import SystemInitTask, push_task
 from .util.commander import commander
 from .wizard import quickstart_wizard
-from . import about
+from . import define
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -218,7 +218,7 @@ class MainWindow(QMainWindow):
         python_venv.ICON_DICT["venv"] = icon.load("python")
 
         # system init task
-        task = SystemInitTask(self.settings, self)
+        task = SystemInitTask(self.setting_dir, self.settings, self)
         task.messaged.connect(self._on_task_message)
         task.checkPythonEnvFinished.connect(self._on_check_python_env_finished)
         task.checkPythonPackageFinished.connect(self._on_check_python_package_finished)
@@ -519,7 +519,7 @@ class MainWindow(QMainWindow):
         QMessageBox.about(
             self,
             self.tr("About Sphinx Explorer"),
-            about.message
+            define.about_message
         )
 
     @Slot(QModelIndex)
