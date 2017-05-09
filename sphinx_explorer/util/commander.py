@@ -149,6 +149,17 @@ class Commander(object):
             # print(" ".join(cmd))
         self.launch(" ".join(cmd), path)
 
+    def open(self, path):
+        path = os.path.normpath(path)
+        if self.system == "Windows":
+            cmd = [path]
+        elif self.system == "Darwin":
+            cmd = ["open", path]
+        else:
+            cmd = self(["xdg-open", path])
+            # print(" ".join(cmd))
+        self.launch(cmd)
+
     @staticmethod
     def launch(cmd, cwd=None):
         # type: (string_types, string_types or None) -> None
@@ -206,6 +217,8 @@ class Commander(object):
                 cwd = cwd.encode(_encoding())
 
             shell = False
+        else:
+            cmd = self(cmd)
 
         p = subprocess.Popen(
             cmd,

@@ -164,6 +164,24 @@ class ProjectItem(QStandardItem):
             )
         return None
 
+    def epub_preview_path(self):
+        # type: () -> string_types
+        if self.settings.build_dir:
+            return os.path.join(
+                self.settings.build_dir,
+                "epub", "index.xhtml"
+            )
+        return None
+
+    def latex_pdf_path(self):
+        # type: () -> string_types
+        if self.settings.build_dir:
+            return os.path.join(
+                self.settings.build_dir,
+                "latex", self.project() + ".pdf"
+            )
+        return None
+
     def has_html(self):
         # type: () -> bool
         return bool(self.html_path() and os.path.isfile(self.html_path()))
