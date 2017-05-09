@@ -1,2 +1,0 @@
-SOURCES = sphinx-explorer.pyw sphinx_explorer/*.py sphinx_explorer/i18n.py sphinx_explorer/main_window_ui.py sphinx_explorer/main_window.py sphinx_explorer/wizard/base_wizard.py sphinx_explorer/template_model.py
-TRANSLATIONS = i18n/sphinx_explorer_ja.ts
