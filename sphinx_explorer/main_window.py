@@ -28,6 +28,7 @@ from .system_settings import SystemSettingsDialog, SystemSettings
 from .task import SystemInitTask, push_task
 from .util.commander import commander
 from .wizard import quickstart_wizard
+from .project_info_widget import ProjectInfoWidget
 from . import define
 
 SETTING_DIR = ".sphinx-explorer"
@@ -181,6 +182,9 @@ class MainWindow(QMainWindow):
 
         self.setWindowIcon(icon.load("sphinx"))
 
+        self.ui.output_tab_widget.setTabIcon(0, icon.load("comment"))
+        self.ui.output_tab_widget.setTabIcon(1, icon.load("warning"))
+
         # setup project tool frame
         self.ui.project_tool_layout.setAlignment(Qt.AlignLeft)
         self.add_tool_action(self.make_clean_act)
@@ -231,6 +235,8 @@ class MainWindow(QMainWindow):
         # setup end
         self.setAcceptDrops(True)
         self._setup()
+        self.project_info_widget = ProjectInfoWidget(self.ui, self)
+        self.project_info_widget.setup()
         self.ui.tree_view_projects.setFocus()
 
     def update_icon(self):
