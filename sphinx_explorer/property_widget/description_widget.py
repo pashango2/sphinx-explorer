@@ -10,7 +10,7 @@ from . import define
 from qtpy.QtCore import *
 from qtpy.QtGui import *
 
-USE_WEB_ENGINE = True
+USE_WEB_ENGINE = False
 CSS_PATH = None
 
 if USE_WEB_ENGINE:

@@ -19,6 +19,8 @@ from six import string_types
 from sphinx_explorer.util.commander import commander
 from .tasks import *
 from .package_model import *
+import logging
+logger = logging.getLogger(__name__)
 
 if platform.system() == "Windows":
     import winreg
@@ -82,7 +84,6 @@ class PythonVEnv(object):
             venv_list.extend(search_venv(path))
 
         env = PythonVEnv(system_env, conda_env, venv_list)
-        env.check_version()
 
         return env
 
@@ -263,7 +264,7 @@ def search_anaconda():
             conda_path, "info", "-e"
         ]
 
-        val = commander.check_output(cmd, shell=True)
+        val, _ = commander.check_output(cmd, shell=True)
         if val:
             for line in val.splitlines():
                 if line and line[0] == "#":
@@ -342,6 +343,7 @@ def search_system_python():
 
                 if value_type == winreg.REG_SZ:
                     path_list.add(os.path.join(value, "python.exe"))
+
     else:
         path_list = set()
         for python_path in glob.glob("/usr/bin/python*"):
@@ -387,7 +389,10 @@ def search_venv(path, cwd=None):
 
 
 def check_python_version(path):
-    ret = commander.check_output([path, "--version"], stderr=subprocess.STDOUT, shell=True)
+    out, err = commander.check_output([path, "--version"], shell=True)
+    out = out.strip()
+    err = err.strip()
+    ret = out or err
 
     if ret:
         return parse_python_version(ret)

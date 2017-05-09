@@ -1,10 +1,13 @@
 # -*- mode: python -*-
+import os
+import PyQt5
 
 block_cipher = None
 
+qt_bin_pth = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt', 'bin')
 
 a = Analysis(['sphinx-explorer.pyw'],
-             pathex=['C:\\Users\\056-kusakabe-n\\AppData\\Local\\Programs\\Python\\Python35\\Lib\\site-packages\\PyQt5\\Qt\\bin', 'C:\\Users\\056-kusakabe-n\\Documents\\sphinx-explorer'],
+             pathex=[qt_bin_pth, '.'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -18,16 +21,24 @@ pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          exclude_binaries=True,
+          a.binaries,
+          a.zipfiles,
+          a.datas,
           name='sphinx-explorer',
           debug=False,
           strip=False,
           upx=True,
-          console=True , icon='sphinx.ico')
-coll = COLLECT(exe,
-               a.binaries,
-               a.zipfiles,
-               a.datas,
-               strip=False,
-               upx=True,
-               name='sphinx-explorer')
+          console=False , icon='sphinx.ico')
+
+
+import shutil
+
+try:
+    shutil.rmtree(os.path.join("dist", "settings"))
+except:
+    pass
+
+shutil.copytree(
+    os.path.join("sphinx_explorer", "settings"),
+    os.path.join("dist", "settings")
+)

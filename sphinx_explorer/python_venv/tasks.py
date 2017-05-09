@@ -26,7 +26,7 @@ class PipInstallTask(QObject):
             if not result:
                 logger.warning("pip failed.")
 
-            package_info = self.commander.check_output("pip show {}".format(package), shell=True)
+            package_info, _ = self.commander.check_output("pip show {}".format(package), shell=True)
             version = self.get_version(package_info)
 
             self.finished.emit(True, package, version)
@@ -69,7 +69,7 @@ class PipListTask(QObject):
         self.finished.emit(self.packages)
 
     def _run(self):
-        output = self.commander.check_output("pip list --format=legacy", shell=True)
+        output, _ = self.commander.check_output("pip list --format=legacy", shell=True)
         if not output:
             logger.warning("pip failed.")
         else:
@@ -97,7 +97,7 @@ class PipListOutDateTask(PipListTask):
     def run(self):
         # noinspection PyBroadException
         try:
-            output = self.commander.check_output("pip list -o --format=columns", shell=True)
+            output, _ = self.commander.check_output("pip list -o --format=columns", shell=True)
             if not output:
                 logger.warning("pip failed.")
         except:

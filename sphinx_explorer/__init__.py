@@ -29,8 +29,6 @@ HOME_DIR = os.path.join(os.path.expanduser('~'), ".sphinx-explorer")
 
 
 def main(sys_dir):
-    logging.basicConfig()
-
     set_sys_path(sys_dir)
 
     app = QApplication(sys.argv)
@@ -61,8 +59,15 @@ QLineEdit
 
 
 def package_main():
+    logging.basicConfig()
+
     main(os.path.dirname(__file__))
 
 
 def exec_main():
+    logging.basicConfig(
+        # filename="sphinx-explorer.log",
+        level=logging.INFO,
+    )
+
     main(os.path.dirname(sys.argv[0]))

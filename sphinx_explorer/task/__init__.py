@@ -60,21 +60,23 @@ class SystemInitTask(BaseTask):
 
     def run(self):
         self.message("Checking Python Venv...", 0)
+        logger.info("Checking Python Venv...")
         env = PythonVEnv.create_system_python_env(self.settings.venv_setting())
 
         self.message("Checking Python Venv Finished")
         self.checkPythonEnvFinished.emit(env)
 
         self.message("Checking Python Packages...", 0)
+        logger.info("Checking Python Packages...")
         for key, e in env.env_list():
             activate_commander = commander.create_pre_commander(e.activate_command())
 
             task = PipListTask(commander=activate_commander)
             task.run()
             self.checkPythonPackageFinished.emit(e, task.packages)
-        self.message("Check Python Package Finished")
 
         self.message("Checking Latest Python Packages...", 0)
+        logger.info("Checking Latest Python Packages...")
         if self.pip_out_date_cache:
             for key, e in env.env_list():
                 packages = self.pip_out_date_cache.get(key, [])
@@ -100,6 +102,7 @@ class SystemInitTask(BaseTask):
                 pass
 
         self.message("Check Latest Python Package Finished")
+        logger.info("Check Latest Python Package Finished")
 
 
 class Worker(QRunnable):

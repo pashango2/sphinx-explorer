@@ -446,6 +446,7 @@ class MainWindow(QMainWindow):
 
         callback = callback if self.make_preview_act.isChecked() else None
 
+        self.ui.output_tab_widget.setCurrentIndex(0)
         self.ui.plain_output.exec_command(
             commander(cmds=venv_cmd),
             cwd,
@@ -678,4 +679,13 @@ class GuiLogger(logging.Handler):
         self.main_window = main_window
 
     def emit(self, record):
-        self.main_window.output_error(self.format(record))
+        QMetaObject.invokeMethod(
+            self.main_window,
+            b"output_error",
+            Qt.QueuedConnection,
+            Q_ARG(str, self.format(record))
+        )
+        # Note: following code is errow. with thread
+        # self.main_window.output_error(self.format(record))
+
+        pass

@@ -67,13 +67,7 @@ class Commander(object):
     def check_exist(self, cmds):
         which_cmd = "which" if platform.system() != "Windows" else "where"
         for cmd in cmds:
-            # noinspection PyBroadException
-            try:
-                output = subprocess.check_output(self([which_cmd, cmd]), stderr=None, shell=True)
-            except FileNotFoundError:
-                return False
-            except subprocess.CalledProcessError:
-                return False
+            output, _ = self.check_output([which_cmd, cmd], shell=True)
 
             if output:
                 return True
@@ -86,27 +80,47 @@ class Commander(object):
         else:
             which_cmd = "which"
 
-        result = self.check_output("{} {}".format(which_cmd, cmd), shell=True)
+        result, _ = self.check_output("{} {}".format(which_cmd, cmd), shell=True)
         if result:
             for line in result.splitlines():
                 return line
         return None
 
-    def check_output(self, cmd, stderr=None, shell=False):
+    def check_output(self, cmd, shell=False):
         try:
-            output = subprocess.check_output(self(cmd), stderr=stderr, shell=shell)
+            p = subprocess.Popen(
+                self(cmd),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                shell=shell
+            )
+            output, error = p.communicate()
+            p.wait()
         except FileNotFoundError:
             logger.error("FileNotFoundError:{}".format(self(cmd)))
-            return None
+            return None, None
         except subprocess.CalledProcessError:
             logger.error("Call Error:{}".format(self(cmd)))
-            return None
+            return None, None
+        except:
+            import traceback
+            logger.warning(traceback.format_exc())
+            return None, None
 
         try:
-            return output.decode(sys.getfilesystemencoding())
+            output = output.decode(sys.getfilesystemencoding())
         except UnicodeDecodeError:
-            logger.error("UnicodeDecodeError:{}".format(output))
-            return None
+            logger.error("Unicode Error!!!")
+            output = ""
+
+        try:
+            error = error.decode(sys.getfilesystemencoding())
+        except UnicodeDecodeError:
+            logger.error("Unicode Error!!!")
+            error = ""
+
+        return output, error
 
     def call(self, cmd, stderr=None, shell=False):
         try:
