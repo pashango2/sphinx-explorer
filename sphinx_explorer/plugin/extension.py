@@ -7,6 +7,8 @@ import fnmatch
 import yaml
 from six import string_types
 
+from ..define import get_sys_path
+
 Extensions = {}
 CONF_PY_NUM_INDENT = 4
 
@@ -47,6 +49,7 @@ class Extension(object):
     # TODO: ast check
     def __init__(self, name, ext_setting, ext_path=None):
         self.name = name
+        self.base_name = name[len("ext-"):]
         self.ext_setting = ext_setting
         self.ext_path = ext_path
 
@@ -60,6 +63,14 @@ class Extension(object):
         if conf_py:
             return conf_py.get("extra_code")
         return None
+
+    @property
+    def local_extension(self):
+        return self.conf_py.get("local_extension", False)
+
+    @property
+    def local_extension_file(self):
+        return os.path.join(get_sys_path(), "extensions", self.base_name + ".py")
 
     @property
     def packages(self):

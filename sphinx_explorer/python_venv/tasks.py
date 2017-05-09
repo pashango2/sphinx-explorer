@@ -9,11 +9,6 @@ from sphinx_explorer.util.commander import Commander
 logger = logging.getLogger(__name__)
 
 
-# class Commander(object):
-#     def __call__(self, cmd):
-#         return cmd
-
-
 class PipInstallTask(QObject):
     finished = Signal(bool, str, str)
 

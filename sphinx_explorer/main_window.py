@@ -28,7 +28,7 @@ from .system_settings import SystemSettingsDialog, SystemSettings
 from .task import SystemInitTask, push_task
 from .util.commander import commander
 from .wizard import quickstart_wizard
-from . import about
+from . import define
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -43,10 +43,11 @@ class MainWindow(QMainWindow):
             return super(MainWindow, self).tr(str(args[0]))
 
     def _act(self, icon_name, name, triggered=None):
+        kwargs = {"triggered": triggered} if triggered else {}
         if icon_name:
-            return QAction(icon.load(icon_name), name, self, triggered=triggered)
+            return QAction(icon.load(icon_name), name, self, **kwargs)
         else:
-            return QAction(name, self, triggered=triggered)
+            return QAction(name, self, **kwargs)
 
     def __init__(self, sys_dir, home_dir, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -56,6 +57,9 @@ class MainWindow(QMainWindow):
         plugin.init(self)
         plugin.load_plugin(os.path.join(sys_dir, "settings"))
         plugin.load_plugin(home_dir)
+
+        # setup property widget css path
+        property_widget.set_css_path(os.path.join(sys_dir, "settings", "css"))
 
         # make setting dir
         self.setting_dir = home_dir
@@ -67,13 +71,13 @@ class MainWindow(QMainWindow):
         sphinx_value_types.init()
 
         # setup params dict
-        toml_path = os.path.join(self.wizard_path, "params.toml")
-        self.params_dict = toml.load(toml_path, OrderedDict)
+        params_toml_path = os.path.join(self.wizard_path, "params.toml")
+        self.params_dict = toml.load(params_toml_path, OrderedDict)
 
         for ext_name, ext in plugin.extension.list_iter():
             self.params_dict[ext_name] = {
                 "value_type": "TypeCheck",
-                "default": True,
+                "default": False,
                 "description": ext.description,
                 "description_path": ext.ext_path,
             }
@@ -89,10 +93,14 @@ class MainWindow(QMainWindow):
         self.project_setting_act = self._act("setting", self.tr("Project Setting"), self._project_setting)
 
         self.close_act = self._act(None, self.tr("Exit"), self.close)
-        self.make_html_act = self._act(None, self.tr("HTML"), self._on_make_html)
-        self.make_epub_act = self._act(None, self.tr("Epub"), self._on_make_epub)
-        self.make_latex_pdf_act = self._act(None, self.tr("LaTex PDF"), self._on_make_latex_pdf)
-        self.make_clean_act = self._act(None, self.tr("Clean"), self._on_make_clean)
+        self.make_html_act = self._act("html5", self.tr("HTML"), self._on_make_html)
+        self.make_epub_act = self._act("epub", self.tr("Epub"), self._on_make_epub)
+        self.make_latex_pdf_act = self._act("pdf", self.tr("LaTex PDF"), self._on_make_latex_pdf)
+        self.make_clean_act = self._act("eraser", self.tr("Clean"), self._on_make_clean)
+        self.make_preview_act = self._act("eye", self.tr("Preview"))
+
+        self.make_preview_act.setCheckable(True)
+        self.make_preview_act.setChecked(True)
 
         # setup ui
         self.ui = Ui_MainWindow()
@@ -117,11 +125,6 @@ class MainWindow(QMainWindow):
         self.ui.action_move_up.setIcon(icon.load("arrow_up"))
         self.ui.action_move_down.setIcon(icon.load("arrow_down"))
         self.ui.action_delete_document.setIcon(icon.load("remove"))
-
-        self.make_html_act.setIcon(icon.load("html5"))
-        self.make_epub_act.setIcon(icon.load("epub"))
-        self.make_latex_pdf_act.setIcon(icon.load("pdf"))
-        self.make_clean_act.setIcon(icon.load("eraser"))
 
         # setup tool button
         self.ui.button_add.setDefaultAction(self.ui.action_add_document)
@@ -181,6 +184,7 @@ class MainWindow(QMainWindow):
         # setup project tool frame
         self.ui.project_tool_layout.setAlignment(Qt.AlignLeft)
         self.add_tool_action(self.make_clean_act)
+        self.add_tool_action(self.make_preview_act)
         self.add_tool_action(None)
         self.add_tool_action(self.make_html_act)
         self.add_tool_action(self.make_epub_act)
@@ -215,7 +219,7 @@ class MainWindow(QMainWindow):
         python_venv.ICON_DICT["venv"] = icon.load("python")
 
         # system init task
-        task = SystemInitTask(self.settings, self)
+        task = SystemInitTask(self.setting_dir, self.settings, self)
         task.messaged.connect(self._on_task_message)
         task.checkPythonEnvFinished.connect(self._on_check_python_env_finished)
         task.checkPythonPackageFinished.connect(self._on_check_python_package_finished)
@@ -393,11 +397,29 @@ class MainWindow(QMainWindow):
 
     def _on_make_epub(self):
         # type: () -> None
-        self._make("epub", self.ui.tree_view_projects.currentIndex())
+        self._make(
+            "epub",
+            self.ui.tree_view_projects.currentIndex(),
+            self._on_preview_epub
+        )
+
+    def _on_preview_epub(self, project_item):
+        path = project_item.epub_preview_path()
+        if path:
+            commander.open(path)
 
     def _on_make_latex_pdf(self):
         # type: () -> None
-        self._make("latexpdf", self.ui.tree_view_projects.currentIndex())
+        self._make(
+            "latexpdf",
+            self.ui.tree_view_projects.currentIndex(),
+            self._on_preview_latex_pdf
+        )
+
+    def _on_preview_latex_pdf(self, project_item):
+        path = project_item.latex_pdf_path()
+        if path:
+            commander.open(path)
 
     def _on_make_clean(self):
         # type: () -> None
@@ -417,11 +439,14 @@ class MainWindow(QMainWindow):
         ]
         venv_cmd = [x for x in venv_cmd if x]
 
+        callback = callback if self.make_preview_act.isChecked() else None
+
         self.ui.plain_output.exec_command(
             commander(cmds=venv_cmd),
             cwd,
             clear=True,
-            callback=callback
+            callback=callback,
+            callback_args=(project_item,),
         )
 
     def _project_setting(self):
@@ -516,7 +541,7 @@ class MainWindow(QMainWindow):
         QMessageBox.about(
             self,
             self.tr("About Sphinx Explorer"),
-            about.message
+            define.about_message
         )
 
     @Slot(QModelIndex)

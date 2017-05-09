@@ -104,7 +104,16 @@ class Serializer(object):
         if element.text and element.text != "\n":
             text = self.unescape_char(element.text)
             if HTML_PLACEHOLDER_RE.search(text):
-                node += nodes.raw(format='html', text=self.unescape_char(text, rawHtml=True))
+                html_text = self.unescape_char(text, rawHtml=True)
+                if html_text.startswith("<!--math"):
+                    g = re.match(r"<!--math(.*?)-->", html_text, re.DOTALL)
+                    if g:
+                        node += nodes.math(
+                            text=g.group(1).strip(),
+                            latex=g.group(1).strip()
+                        )
+                else:
+                    node += nodes.raw(format='html', text=html_text)
             elif having_block_node:
                 node += nodes.paragraph(text=text)
             else:
@@ -216,7 +225,7 @@ class Serializer(object):
                 if rows[-1]:
                     rows.append([])
 
-        # Note: http://agateau.com/2015/docutils-snippets/
+        # Not: http://agateau.com/2015/docutils-snippets/
         table_node = nodes.table()
         tgroup_node = nodes.tgroup(cols=len(headers))
         table_node += tgroup_node
@@ -251,14 +260,31 @@ class Serializer(object):
         return table_node
 
 
-def md2node(text, extensions=None):
-    md = Markdown(extensions or ["gfm"])
+def md2node(text):
+    md = Markdown(["gfm"])
     md.serializer = Serializer(md)
     md.stripTopLevelTags = False
     md.postprocessors = OrderedDict()
     md.postprocessors['section'] = SectionPostprocessor()
     md.postprocessors['strip'] = StripPostprocessor()
+    text = preprocess(text)
     return md.convert(text)
+
+
+def preprocess(text):
+    parse_re = re.compile("^\s*```\s*math\s*$")
+    end_re = re.compile("^\s*```\s*$")
+
+    new_lines = []
+    for line in text.splitlines():
+        if parse_re.match(line):
+            new_lines += ["<!--math"]
+        elif end_re.match(line):
+            new_lines += ["-->"]
+        else:
+            new_lines += [line]
+
+    return "\n".join(new_lines)
 
 
 class MarkdownParser(parsers.Parser):

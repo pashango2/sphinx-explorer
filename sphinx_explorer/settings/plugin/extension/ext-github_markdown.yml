@@ -1,0 +1,24 @@
+
+conf_py:
+    local_extension: yes
+    add_extensions: no
+
+    add_extensions: ["github_markdown"]
+
+    source_suffix: '.md'
+    source_parsers: "github_markdown.MarkdownParser"
+
+    imports:
+        - from: github_markdown
+          import: MarkdownParser
+
+    extra_code: |
+        source_suffix = [source_suffix, '.md']
+        source_parsers = {
+           '.md': MarkdownParser,
+
+        }
+
+
+description: |
+    gfm markdown

@@ -30,6 +30,7 @@ class QConsoleWidget(QTextEdit):
         self.setAcceptRichText(True)
         self.queue = []
         self.callback = None
+        self.callback_args = ()
 
         self._process = QProcess(self)
         self._process.setProcessChannelMode(QProcess.MergedChannels)
@@ -74,7 +75,7 @@ class QConsoleWidget(QTextEdit):
         return self._process
 
     # noinspection PyUnresolvedReferences
-    def exec_command(self, cmd, cwd=None, clear=False, callback=None):
+    def exec_command(self, cmd, cwd=None, clear=False, callback=None, callback_args=None):
         if self._process.state() == QProcess.NotRunning and clear:
             self.clear()
 
@@ -83,13 +84,7 @@ class QConsoleWidget(QTextEdit):
                 cwd = cwd.encode(sys.getfilesystemencoding())
             self._process.setWorkingDirectory(cwd)
 
-        if isinstance(cmd, (list, tuple)):
-            self.queue += cmd
-        else:
-            self.queue += [cmd]
-
-        self.callback = callback
-
+        self.queue.append((cmd, callback, callback_args or ()))
         self.push_cmd()
 
     def push_cmd(self):
@@ -99,7 +94,7 @@ class QConsoleWidget(QTextEdit):
         if QProcess.NotRunning != self._process.state():
             return
 
-        cmd = self.queue.pop(0)
+        cmd, callback, callback_args = self.queue.pop(0)
         if six.PY2:
             cmd = cmd.encode(sys.getfilesystemencoding())
             output_cmd = b"> " + cmd + b"\n"
@@ -107,6 +102,8 @@ class QConsoleWidget(QTextEdit):
             output_cmd = "> " + cmd + "\n"
 
         self._output(output_cmd, self.COMMAND_COLOR)
+        self.callback = callback
+        self.callback_args = callback_args
         self._process.start(cmd)
 
     @Slot()
@@ -146,12 +143,13 @@ class QConsoleWidget(QTextEdit):
     @Slot(int, QProcess.ExitStatus)
     def _on_finished(self, ret_code, _exit_status):
         if ret_code == 0:
+            if self.callback:
+                self.callback(*self.callback_args)
+                self.callback = None
+
             if self.queue:
                 self.push_cmd()
                 return
-            else:
-                if self.callback:
-                    self.callback()
 
         self._output(
             "\nProcess finished with exit code {}".format(ret_code),
