@@ -30,7 +30,7 @@ wizard:
         - release
     - "#* More Extensions"
     -
-      - ext-github_markdown
+      - ext-commonmark
       - ext-fontawesome
       - ext-nbsphinx
       - ext-blockdiag
@@ -38,7 +38,7 @@ wizard:
 
 default_values:
     html_theme: sphinx_rtd_theme
-    ext-github_markdown: yes
+    ext-commonmark: yes
     ext-viewcode: yes
     ext-mathjax: yes
     ext-nbsphinx: yes

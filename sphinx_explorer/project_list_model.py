@@ -173,12 +173,21 @@ class ProjectItem(QStandardItem):
             )
         return None
 
+    @staticmethod
+    def is_ascii(s):
+        return all(ord(c) < 128 for c in s)
+
     def latex_pdf_path(self):
         # type: () -> string_types
         if self.settings.build_dir:
+            if self.is_ascii(self.project()):
+                pdf_name = self.project()
+            else:
+                pdf_name = "sphinx"
+
             return os.path.join(
                 self.settings.build_dir,
-                "latex", self.project() + ".pdf"
+                "latex", pdf_name + ".pdf"
             )
         return None
 
