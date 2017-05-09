@@ -193,7 +193,6 @@ class MainWindow(QMainWindow):
         self.add_tool_action(self.open_act)
         self.add_tool_action(self.show_act)
         self.add_tool_action(self.terminal_act)
-        self.add_tool_action(self.open_html_act)
         self.add_tool_action(self.auto_build_act)
         self.add_tool_action(None)
         self.add_tool_action(self.project_setting_act)
@@ -302,9 +301,6 @@ class MainWindow(QMainWindow):
         self.show_act.setData(doc_path)
         self.terminal_act.setData(doc_path)
         self.update_apidoc_act.setData(item.index() if can_apidoc else None)
-        self.auto_build_act.setData(item.index())
-        self.make_html_act.setData(item.index())
-        self.open_html_act.setData(item.index())
 
         # Warning: don't use lambda to connect!!
         # Process finished with exit code -1073741819 (0xC0000005) ...
@@ -393,7 +389,16 @@ class MainWindow(QMainWindow):
 
     def _on_make_html(self):
         # type: () -> None
-        self._make("html", self.ui.tree_view_projects.currentIndex())
+        self._make(
+            "html",
+            self.ui.tree_view_projects.currentIndex(),
+            self._on_preview_html
+        )
+
+    def _on_preview_html(self, project_item):
+        path = project_item.html_path()
+        if path:
+            webbrowser.open(path)
 
     def _on_make_epub(self):
         # type: () -> None
