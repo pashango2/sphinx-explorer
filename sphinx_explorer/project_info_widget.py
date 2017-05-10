@@ -3,7 +3,7 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 from qtpy.QtCore import *
-from qtpy.QtGui import *
+# from qtpy.QtGui import *
 from qtpy.QtWidgets import *
 from .ui.main_window_ui import Ui_MainWindow
 from .sphinx_value_types.widgets import PythonComboButton
@@ -31,6 +31,3 @@ class ProjectInfoWidget(QObject):
             self.tr("Api Module"),
             QLabel("", self._parent),
         )
-
-    pass
-

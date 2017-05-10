@@ -31,6 +31,8 @@ def quickstart_cmd(d, mastertoctree=None):
         "ext-mathjax",
         "ext-ifconfig",
         "ext-viewcode",
+        "ext-graphviz",
+
     ]
     allow_params = [
         "suffix", "master", "epub",  "dot", "sep"

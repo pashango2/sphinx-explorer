@@ -1,0 +1,4 @@
+packages: ["sphinxcontrib-mermaid"]
+
+conf_py:
+    add_extensions: ["sphinxcontrib.mermaid"]

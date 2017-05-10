@@ -31,6 +31,7 @@ wizard:
     - "#* More Extensions"
     -
       - ext-commonmark
+      - ext-mermaid
       - ext-fontawesome
       - ext-nbsphinx
       - ext-blockdiag
@@ -44,4 +45,7 @@ default_values:
     ext-nbsphinx: yes
     ext-githubpage: yes
     ext-fontawesome: yes
+    ext-mermaid: yes
+    ext-graphviz: yes
+
 
