@@ -15,6 +15,8 @@ class ProjectInfoWidget(QObject):
         self._parent = parent
         self.ui = ui
 
+        self.setup()
+
     # noinspection PyAttributeOutsideInit
     def setup(self):
         # type: (Ui_MainWindow) -> None
@@ -23,6 +25,11 @@ class ProjectInfoWidget(QObject):
         self.ui.project_info_form_layout.addRow(
             self.tr("Python Interpreter"),
             self.python_combo,
+        )
+
+        self.ui.project_info_form_layout.addRow(
+            self.tr("Api Module"),
+            QLabel("", self._parent),
         )
 
     pass

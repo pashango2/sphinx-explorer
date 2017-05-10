@@ -66,7 +66,6 @@ h3 {
 }
 
 table {
-    background-color: #FFFFFF;
     margin-top: 10px;
 }
 

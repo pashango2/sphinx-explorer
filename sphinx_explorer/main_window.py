@@ -236,7 +236,6 @@ class MainWindow(QMainWindow):
         self.setAcceptDrops(True)
         self._setup()
         self.project_info_widget = ProjectInfoWidget(self.ui, self)
-        self.project_info_widget.setup()
         self.ui.tree_view_projects.setFocus()
 
     def update_icon(self):
