@@ -7,9 +7,13 @@ import os
 # noinspection PyPackageRequirements
 import yaml
 from six import string_types
+import codecs
 
 if False:
     from typing import Optional, List
+
+
+YAML_CODEC = "utf-8"
 
 
 # noinspection PyArgumentList
@@ -25,7 +29,7 @@ class TemplateModel(QStandardItemModel):
 
     def load_plugin(self, yaml_path):
         # type: (string_types) -> None
-        template_obj = yaml.load(open(yaml_path))
+        template_obj = yaml.load(codecs.open(yaml_path, "r", YAML_CODEC))
         root_path = os.path.dirname(yaml_path)
         item = TemplateItem(template_obj["title"], template_obj, root_path)
         self.appendRow(item)

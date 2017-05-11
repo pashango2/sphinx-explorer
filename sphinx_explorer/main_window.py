@@ -3,6 +3,7 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 import ctypes
+import sys
 import os
 import platform
 import webbrowser
@@ -29,6 +30,8 @@ from .task import SystemInitTask, push_task
 from .util.commander import commander
 from .wizard import quickstart_wizard
 from . import define
+
+logger = logging.getLogger(__name__)
 
 SETTING_DIR = ".sphinx-explorer"
 SETTINGS_TOML = "settings.toml"
@@ -232,6 +235,15 @@ class MainWindow(QMainWindow):
         self.setAcceptDrops(True)
         self._setup()
         self.ui.tree_view_projects.setFocus()
+
+        # except hook
+        sys.excepthook = self.excepthook
+
+    def excepthook(self, exceptionType, exceptionValue, exceptionTraceback):
+        logger.error(exceptionType)
+        logger.error(exceptionValue)
+        logger.error(exceptionTraceback)
+        self.close()
 
     def update_icon(self):
         self.open_act.setIcon(self.settings.editor_icon())
