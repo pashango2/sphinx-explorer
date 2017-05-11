@@ -30,6 +30,7 @@ wizard:
         - release
     - "#* More Extensions"
     -
+      - ext-pandoc-markdown
       - ext-commonmark
       - ext-mermaid
       - ext-fontawesome
@@ -39,7 +40,8 @@ wizard:
 
 default_values:
     html_theme: sphinx_rtd_theme
-    ext-commonmark: yes
+    ext-commonmark: no
+    ext-pandoc-markdown: yes
     ext-viewcode: yes
     ext-mathjax: yes
     ext-nbsphinx: yes

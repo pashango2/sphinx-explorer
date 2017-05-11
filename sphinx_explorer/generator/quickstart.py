@@ -21,6 +21,7 @@ build_dir = '{rbuilddir}'
 def quickstart_cmd(d, mastertoctree=None):
     # type: (dict) -> string_types
     ignore_params = ["project", "prefix", "path", "version", "release"]
+
     arrow_extension = [
         "ext-autodoc",
         "ext-doctest",
@@ -31,9 +32,8 @@ def quickstart_cmd(d, mastertoctree=None):
         "ext-mathjax",
         "ext-ifconfig",
         "ext-viewcode",
-        "ext-graphviz",
-
     ]
+
     allow_params = [
         "suffix", "master", "epub",  "dot", "sep"
     ]

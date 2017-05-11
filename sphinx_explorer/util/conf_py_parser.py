@@ -143,19 +143,8 @@ def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths
 
         for key in extensions:
             if key.startswith("ext-") and params.get(key, False):
-                ext = extension.get(key)    # type: Extension
+                ext = extension.get(key)  # type: Extension
                 if ext:
-                    if ext.local_extension:
-                        parser.add_sys_path(["./extension"])
-
-                        src_path = ext.local_extension_file
-                        dst_path = os.path.join(local_extension_path, os.path.basename(src_path))
-
-                        if not os.path.exists(os.path.dirname(dst_path)):
-                            os.makedirs(os.path.dirname(dst_path))
-
-                        shutil.copy(src_path, dst_path)
-
                     comment(parser, ext.name)
                     parser.append(ext.generate_py_script(params, settings))
                     parser.append("\n")
