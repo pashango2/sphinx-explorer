@@ -273,7 +273,7 @@ class ProjectSettings(object):
         return d
 
     @staticmethod
-    def save(project_path, source_dir, build_dir, project, apidoc=None, cmd=None):
+    def save(project_path, source_dir, build_dir, project, apidoc=None, extensions=None, cmd=None):
         setting_path = os.path.join(project_path, ProjectSettings.SETTING_NAME)
 
         setting_obj = {
@@ -286,6 +286,12 @@ class ProjectSettings(object):
 
         if apidoc:
             setting_obj["apidoc"] = apidoc
+
+        if extensions:
+            setting_obj["extensions"] = {
+                key: {"enabled": True}
+                for key in extensions
+            }
 
         with open(setting_path, "w") as fd:
             toml.dump(setting_obj, fd)
@@ -319,6 +325,7 @@ class ProjectSettings(object):
             if default_flags:
                 conf["autodoc_default_flags"] = default_flags
 
+        conf["extensions"] = self.extensions
         conf.update(epub_settings)
         return conf
 
@@ -382,6 +389,10 @@ class ProjectSettings(object):
             return self.settings["apidoc"].get("module_dir")
         except KeyError:
             return ""
+
+    @property
+    def extensions(self):
+        return self.settings.get("extensions", {})
 
     def update_apidoc_command(self, project_dir):
         if not self.module_dir:

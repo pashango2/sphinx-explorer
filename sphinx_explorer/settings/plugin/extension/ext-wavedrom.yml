@@ -1,0 +1,4 @@
+packages: ["sphinxcontrib-wavedrom"]
+
+conf_py:
+    add_extensions: ["sphinxcontrib.wavedrom"]

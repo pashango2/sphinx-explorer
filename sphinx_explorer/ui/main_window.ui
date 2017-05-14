@@ -65,6 +65,22 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Extensions</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_8">
+        <item>
+         <widget class="ExtensionTreeWidget" name="tree_widget_extensions">
+          <column>
+           <property name="text">
+            <string notr="true">1</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -371,6 +387,11 @@
    <class>QConsoleWidget</class>
    <extends>QTextEdit</extends>
    <header>..util.QConsoleWidget</header>
+  </customwidget>
+  <customwidget>
+   <class>ExtensionTreeWidget</class>
+   <extends>QTreeWidget</extends>
+   <header location="global">..widgets</header>
   </customwidget>
  </customwidgets>
  <resources/>

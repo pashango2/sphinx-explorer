@@ -134,7 +134,6 @@ def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths
     if os.path.isfile(conf_py_path):
         parser = Parser(conf_py_path)
         conf_py_dir_path = os.path.dirname(conf_py_path)
-        local_extension_path = os.path.join(conf_py_dir_path, "extension")
 
         if params:
             parser.assign_replace(params)

@@ -1,0 +1,9 @@
+setting_params:
+    - graphviz_output_format:
+        value_type: TypeChoice
+        choices: ["png", "svg"]
+        default: "svg"
+
+conf_py:
+    add_extensions: ["sphinx.ext.graphviz"]
+

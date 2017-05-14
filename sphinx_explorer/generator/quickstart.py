@@ -17,22 +17,22 @@ source_dir = '{rsrcdir}'
 build_dir = '{rbuilddir}'
 """.strip()
 
+SYSTEM_EXTENSIONS = [
+    "ext-autodoc",
+    "ext-doctest",
+    "ext-intersphinx",
+    "ext-todo",
+    "ext-coverage",
+    "ext-imgmath",
+    "ext-mathjax",
+    "ext-ifconfig",
+    "ext-viewcode",
+]
+
 
 def quickstart_cmd(d, mastertoctree=None):
     # type: (dict) -> string_types
     ignore_params = ["project", "prefix", "path", "version", "release"]
-
-    arrow_extension = [
-        "ext-autodoc",
-        "ext-doctest",
-        "ext-intersphinx",
-        "ext-todo",
-        "ext-coverage",
-        "ext-imgmath",
-        "ext-mathjax",
-        "ext-ifconfig",
-        "ext-viewcode",
-    ]
 
     allow_params = [
         "suffix", "master", "epub",  "dot", "sep"
@@ -50,10 +50,10 @@ def quickstart_cmd(d, mastertoctree=None):
             opts.extend(["-d", key + "=" + quote(value)])
             continue
 
-        if key.startswith("ext-") and key not in arrow_extension:
+        if key.startswith("ext-") and key not in SYSTEM_EXTENSIONS:
             continue
 
-        if key in allow_params or key in arrow_extension:
+        if key in allow_params or key in SYSTEM_EXTENSIONS:
             if isinstance(value, bool):
                 if value is True:
                     opts.append("--" + key)
@@ -135,12 +135,20 @@ def fix(d, settings, _, apidoc_flag=False):
         module_dir = None
         apidoc_dict = None
 
+    extensions = []
+
+    for key, value in d.items():
+        if key.startswith("ext-") and key not in SYSTEM_EXTENSIONS:
+            if value:
+                extensions.append(key)
+
     ProjectSettings.save(
         project_path,
         source_dir,
         build_dir,
         d.get("project", os.path.basename(project_path)),
         apidoc=apidoc_dict,
+        extensions=extensions,
     )
 
     if conf_py_path and os.path.isfile(conf_py_path):

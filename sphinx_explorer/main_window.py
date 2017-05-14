@@ -470,18 +470,11 @@ class MainWindow(QMainWindow):
     def _on_project_changed(self, current, _):
         # type: (QModelIndex, QModelIndex) -> None
         item = self.project_list_model.itemFromIndex(current)
-        self.setup_project_settings(item)
 
-    def setup_project_settings(self, item):
-        # type: (ProjectItem) -> None
-        if item and item.is_valid():
-            self.ui.label_project.setText(item.project())
-            self.ui.label_path.setText(item.path())
-            self.ui.project_tool_widget.setEnabled(True)
-        else:
-            self.ui.label_project.clear()
-
-            self.ui.project_tool_widget.setEnabled(False)
+        try:
+            self.project_info_widget.setup(item)
+        except AttributeError:
+            pass
 
     def _auto_build(self):
         # type: () -> None

@@ -1,3 +1,12 @@
+packages: ["sphinxcontrib-pandoc-markdown"]
+
+type: souce_parser
+source_parser:
+    md: sphinxcontrib.pandoc_markdown.MarkdownParser
+
+description: |
+    Markdown by pandoc.
+
 
 conf_py:
     add_extensions: no
@@ -16,5 +25,4 @@ conf_py:
         }
 
 
-description: |
-    Markdown by pandoc.
+
