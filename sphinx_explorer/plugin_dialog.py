@@ -13,6 +13,8 @@ from qtpy.QtCore import *
 from qtpy.QtWidgets import *
 from qtpy.QtGui import *
 
+from .define import get_sys_path
+
 from sphinx_explorer.ui.theme_dialog_ui import Ui_Dialog
 
 try:
@@ -28,6 +30,7 @@ class PluginDialog(QDialog):
     def __init__(self, plugin_dir_path, parent=None):
         # type: (six.string_types, QWidget) -> None
         super(PluginDialog, self).__init__(parent)
+        plugin_dir_path = os.path.join(get_sys_path(), plugin_dir_path)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
 
