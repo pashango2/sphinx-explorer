@@ -12,7 +12,6 @@ import os
 import json
 import fnmatch
 import platform
-import subprocess
 import glob
 from collections import OrderedDict
 from six import string_types

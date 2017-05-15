@@ -122,7 +122,7 @@ class TypePython(TypeChoice):
 
     def filter(self, value):
         return python_venv.VenvSetting(value)
-    
+
     # noinspection PyMethodOverriding
     def icon(self, value):
         if value:

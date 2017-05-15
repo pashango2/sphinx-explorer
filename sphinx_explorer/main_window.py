@@ -36,6 +36,13 @@ SETTINGS_TOML = "settings.toml"
 
 
 # noinspection PyArgumentList
+def _on_preview_html(project_item):
+    path = project_item.html_path()
+    if path:
+        webbrowser.open(path)
+
+
+# noinspection PyArgumentList
 class MainWindow(QMainWindow):
     JSON_NAME = "setting.json"
 
@@ -397,13 +404,8 @@ class MainWindow(QMainWindow):
         self._make(
             "html",
             self.ui.tree_view_projects.currentIndex(),
-            self._on_preview_html
+            _on_preview_html
         )
-
-    def _on_preview_html(self, project_item):
-        path = project_item.html_path()
-        if path:
-            webbrowser.open(path)
 
     def _on_make_epub(self):
         # type: () -> None
@@ -413,7 +415,8 @@ class MainWindow(QMainWindow):
             self._on_preview_epub
         )
 
-    def _on_preview_epub(self, project_item):
+    @staticmethod
+    def _on_preview_epub(project_item):
         path = project_item.epub_preview_path()
         if path:
             commander.open(path)
@@ -426,7 +429,8 @@ class MainWindow(QMainWindow):
             self._on_preview_latex_pdf
         )
 
-    def _on_preview_latex_pdf(self, project_item):
+    @staticmethod
+    def _on_preview_latex_pdf(project_item):
         path = project_item.latex_pdf_path()
         if path:
             commander.open(path)

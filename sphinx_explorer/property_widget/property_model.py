@@ -522,7 +522,7 @@ class PropertyItem(BaseItem):
         # type: (QValidator) -> None
         self.validator = validator
 
-    def set_value(self, value, force_update=False, not_set_value=False):
+    def set_value(self, value, not_set_value=False):
         # (Any) -> None
         if not not_set_value:
             # noinspection PyUnreachableCode

@@ -103,7 +103,7 @@ class CheckBox(QCheckBox):
         self.stateChanged.connect(self.on_state_changed)
 
     def on_state_changed(self, state):
-        self.item.set_value(state == Qt.Checked, force_update=True)
+        self.item.set_value(state == Qt.Checked)
 
 
 class TypeCheck(TypeBase):

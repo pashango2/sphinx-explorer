@@ -201,6 +201,7 @@ class FilePathWidget(RefButtonWidget):
         self.cwd = params.get("cwd")
         self.path = params.get("path")
 
+    # noinspection PyCallByClass,PyArgumentList
     def _onRefButtonClicked(self):
         filename, _ = QFileDialog.getOpenFileName(
             self,

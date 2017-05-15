@@ -5,7 +5,6 @@ from __future__ import division, print_function, absolute_import, unicode_litera
 import ast
 import codecs
 import os
-import shutil
 from collections import OrderedDict
 from six import string_types
 
@@ -133,7 +132,6 @@ def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths
 
     if os.path.isfile(conf_py_path):
         parser = Parser(conf_py_path)
-        conf_py_dir_path = os.path.dirname(conf_py_path)
 
         if params:
             parser.assign_replace(params)

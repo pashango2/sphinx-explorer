@@ -87,6 +87,7 @@ class Commander(object):
         return None
 
     def check_output(self, cmd, shell=False):
+        # noinspection PyBroadException
         try:
             p = subprocess.Popen(
                 self(cmd),
