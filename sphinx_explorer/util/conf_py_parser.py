@@ -166,3 +166,38 @@ try:
 except:
     pass
 """.strip()
+
+
+def conf_py_settings(globals_dict, settings):
+
+    extensions = globals_dict.get("extensions", [])
+
+    for _, info in settings.get("extensions", []):
+        if not info.get("enable"):
+            continue
+
+        add_extensions = info.get("add_extensions", [])
+        if add_extensions:
+            extensions += add_extensions
+
+    if extensions:
+        globals_dict["extensions"] = extensions
+
+    source_parsers = globals_dict.get("source_parsers", {})
+
+    for ext, _module in settings.get("source_parses", {}).items():
+        _mod_names = _module.split(".")
+        mod_name = ".".join(_mod_names[:-1])
+        class_name = _mod_names[-1]
+
+        if mod_name:
+            try:
+                _mod = __import__(mod_name)
+            except ImportError:
+                continue
+
+            source_parsers[ext] = getattr(_mod, class_name)
+
+
+def save_conf_py_settings(extensions=None):
+    pass

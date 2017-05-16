@@ -96,13 +96,16 @@ class Commander(object):
                 stdin=subprocess.PIPE,
                 shell=shell
             )
-            output, error = p.communicate()
+            output, error = p.communicate(timeout=15)
             p.wait()
         except FileNotFoundError:
             logger.error("FileNotFoundError:{}".format(self(cmd)))
             return None, None
         except subprocess.CalledProcessError:
             logger.error("Call Error:{}".format(self(cmd)))
+            return None, None
+        except subprocess.TimeoutExpired:
+            logger.error("TimeoutExpired:{}".format(self(cmd)))
             return None, None
         except:
             import traceback

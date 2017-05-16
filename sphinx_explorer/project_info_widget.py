@@ -3,8 +3,8 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 from qtpy.QtCore import *
-# from qtpy.QtGui import *
-# from qtpy.QtWidgets import *
+from qtpy.QtGui import *
+from qtpy.QtWidgets import *
 # from .ui.main_window_ui import Ui_MainWindow
 # from .sphinx_value_types.widgets import PythonComboButton
 from .project_list_model import ProjectItem
@@ -39,3 +39,11 @@ class ProjectInfoWidget(QObject):
         widget.clear()
         for ext, value in project_item.settings.extensions.items():
             widget.addExtension(ext)
+
+
+class ExtensionTreeWidget(QTreeWidget):
+    def addExtension(self, name):
+        item = QTreeWidgetItem([name])
+        item.setCheckState(0, Qt.Checked)
+        self.addTopLevelItem(item)
+    pass

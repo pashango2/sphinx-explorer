@@ -43,15 +43,15 @@ class Ui_MainWindow(object):
         self.label_path.setObjectName("label_path")
         self.project_info_form_layout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.label_path)
         self.verticalLayout_7.addLayout(self.project_info_form_layout)
+        self.tree_widget_extensions = ExtensionTreeWidget(self.tab)
+        self.tree_widget_extensions.setObjectName("tree_widget_extensions")
+        self.tree_widget_extensions.headerItem().setText(0, "1")
+        self.verticalLayout_7.addWidget(self.tree_widget_extensions)
         self.tab_widget.addTab(self.tab, "")
         self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
         self.verticalLayout_8 = QtWidgets.QVBoxLayout(self.tab_2)
         self.verticalLayout_8.setObjectName("verticalLayout_8")
-        self.tree_widget_extensions = ExtensionTreeWidget(self.tab_2)
-        self.tree_widget_extensions.setObjectName("tree_widget_extensions")
-        self.tree_widget_extensions.headerItem().setText(0, "1")
-        self.verticalLayout_8.addWidget(self.tree_widget_extensions)
         self.tab_widget.addTab(self.tab_2, "")
         self.verticalLayout.addWidget(self.tab_widget)
         MainWindow.setCentralWidget(self.project_tool_widget)
@@ -228,5 +228,5 @@ class Ui_MainWindow(object):
         self.action_about_qt.setText(_translate("MainWindow", "About &Qt..."))
         self.action_about_qt.setToolTip(_translate("MainWindow", "About Qt..."))
 
+from ..project_info_widget import ExtensionTreeWidget
 from ..util.QConsoleWidget import QConsoleWidget
-from ..widgets import ExtensionTreeWidget
