@@ -31,6 +31,7 @@ def extensions():
 
 
 def get(ext_name):
+    # type: (string_types) -> Extension
     return Extensions.get(ext_name)
 
 
