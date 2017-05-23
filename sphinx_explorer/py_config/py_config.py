@@ -3,17 +3,23 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 import codecs
 import yaml
+import re
 from six import string_types
+from .value_types import *
+
 
 CONFIG_TYPES = {
     "boolean": {
         "type": bool,
+        "class": TypeBool,
     },
     "integer": {
         "type": int,
+        "class": TypeInteger,
     },
     "string": {
         "type": str,
+        "class": TypeString,
     },
     "array": None,
     # "color": None,
@@ -27,108 +33,132 @@ CONFIG_TYPES = {
 CONFIG_TYPES["number"] = CONFIG_TYPES["integer"]
 
 
-class Config(object):
-    def __init__(self, config):
-        """
-        :param dict config: config by python object(dict)
-        """
-        self._config = config
+def register_type(type_name, value_class, type_class):
+    global CONFIG_TYPES
+
+    CONFIG_TYPES[type_name] = {
+        "type": value_class,
+        "class": type_class,
+    }
+
+
+class ConfigModel(QStandardItemModel):
+    PrefixRe = re.compile(r"(^[#*-]*)\s*(.*)")
 
     @staticmethod
-    def from_yaml(yaml_path, encoding="utf-8"):
+    def from_yaml(yaml_path, encoding="utf-8", parent=None):
         """
         load from yaml file.
 
         :param string_types yaml_path: yaml path
         :param string_types encoding: yaml encoding (default: utf-8)
+        :param QWidget parent: parent widget
         :rtype: Config
         """
-        return Config(yaml.load(codecs.open(yaml_path, "r", encoding=encoding)))
+        return ConfigModel(
+            yaml.load(codecs.open(yaml_path, "r", encoding=encoding)),
+            parent
+        )
 
     @staticmethod
-    def from_yaml_string(yaml_string):
+    def from_yaml_string(yaml_string, parent=None):
         """
         load from yaml file.
 
         :param string_types yaml_string: yaml string
+        :param QWidget parent: parent widget
         :rtype: Config
         """
-        return Config(yaml.load(yaml_string))
+        return ConfigModel(yaml.load(yaml_string), parent)
 
-    def get(self, key_path, *options):
-        _config = self._get_from_keys(self._pars_key_path(key_path))
-        if _config is None:
-            raise KeyError()
+    def __init__(self, config, parent=None):
+        super(ConfigModel, self).__init__(parent)
+        self._item_dict = {}
+        self.load(config)
 
-        _value = _config.get("value")
-        config_type = CONFIG_TYPES[_config.get("type", "string")]
+    def load(self, config, params_dict=None):
+        self.clear()
+        self._item_dict = {}
+        params_dict = params_dict or {}
+        root_item = self.invisibleRootItem()
 
-        return config_type["type"](_value) if _value is not None else _config.get("default")
+        def _load(_root_item, _config, _parent_key):
+            _last_item = None
+            _last_key = None
+            for x in _config:
+                key = None
+                value = None
+                if isinstance(x, string_types):
+                    key, value = x, params_dict.get(x)
+                elif isinstance(x, dict):
+                    for key, value in x.items():
+                        break
+                elif isinstance(x, (list, tuple)):
+                    assert _last_key is not None
+                    _load(_last_item, x, _parent_key + _last_key)
+                    continue
+                else:
+                    continue
 
-    def set(self, key_path, value, *options):
-        _config = self._get_from_keys(self._pars_key_path(key_path))
+                g = self.PrefixRe.match(key)
+                _category_flag = False
+                # header_flag = False
+                # vbox_flag = False
+                if g:
+                    prefix, key = g.group(1), g.group(2)
+                    _category_flag = "#" in prefix
+                    # header_flag = "*" in prefix
+                    # vbox_flag = "-" in prefix
 
-        if _config is None:
-            raise KeyError()
+                if _category_flag:
+                    item = CategoryItem(key)
+                else:
+                    item = SettingItem(key, value)
 
-        if not self.has_enum(_config, value):
-            raise ValueError(value)
+                _last_key = _parent_key + (key,)
+                self._item_dict[".".join(_last_key)] = _last_item = item
 
-        _config["value"] = value
+                _root_item.appendRow(item)
 
-    def enum(self, key_path):
-        _config = self._get_from_keys(self._pars_key_path(key_path))
-        return self._enum(_config) if _config else None
+        _load(root_item, config, ())
 
-    @staticmethod
-    def has_enum(config, value):
-        if "enum" not in config:
-            return True
+    def get(self, key_path):
+        item = self._item_dict.get(key_path)
+        if item is None:
+            return None
 
-        for x in config.get("enum"):
-            if isinstance(x, dict):
-                if x["value"] == value:
-                    return True
-            else:
-                if x == value:
-                    return True
+        return item.value
 
-        return False
+    def set(self, key_path, value):
+        item = self._item_dict.get(key_path)
+        if item is None:
+            return None
 
-    def unset(self, key_path, *options):
-        pass
+        item.set_value(value)
 
-    def observe(self, key_path, callback, **kwargs):
-        pass
+    def _index_iter(self, index, depth=0):
+        for row in range(self.rowCount(index)):
+            _index = self.index(row, 0, index)
+            yield depth, _index
 
-    def on_did_change(self, callback, **kwargs):
-        pass
+            if self.rowCount(_index) > 0:
+                for d, x in self._index_iter(_index, depth + 1):
+                    yield d, x
 
-    def config_iter(self):
-        _config = self._config.get("config", {})
+    def config_iter(self, start_index=QModelIndex()):
+        for depth, index in self._index_iter(start_index):
+            item = self.itemFromIndex(index)
+            if item:
+                yield depth, item
 
-        if isinstance(_config, dict):
-            for key, value in sorted(_config.items(), key=lambda x: x[1].get("order")):
-                yield key, value
-        elif isinstance(_config, (list, tuple)):
-            for key, value in _config:
-                yield key, value
-
-    @staticmethod
-    def _enum(config):
-        for x in config.get("enum", []):
-            if not isinstance(x, dict):
-                yield x, str(x)
-            else:
-                yield x["value"], x["description"]
-
-    def _get_from_keys(self, keys):
+    def _get_from_keys(self, key_path):
         """
         get config value from key sequence
 
         :param tuple keys: key sequence
         :rtype: any
         """
+        keys = self._parse_key_path(key_path)
         _config = self._config.get("config", {})
 
         for key in keys:
@@ -140,9 +170,9 @@ class Config(object):
         return _config
 
     @staticmethod
-    def _pars_key_path(key_path):
+    def _parse_key_path(key_path):
         """
-        pars key path
+        parse key path
 
         :param string_types key_path: key path
         :rtype: tuple[string_types]
@@ -154,75 +184,65 @@ class Config(object):
         else:
             raise ValueError(key_path)
 
-
-def main():
-    yaml_string = """
-config:
-  zSetting:
-    type: 'integer'
-    default: 4
-    order: 1
-  aSetting:
-    type: 'integer'
-    default: 4
-    order: 2
-    """.strip()
-
-    config = Config.from_yaml_string(yaml_string)
-
-    assert config.get("zSetting") == 4
-    assert config.get("aSetting") == 4
-    assert ("zSetting", "aSetting") == tuple(key for key, _ in config.config_iter())
-
-    yaml_string = """
-config:
-  someSetting:
-    type: 'integer'
-    default: 4
-    enum: [2, 4, 6, 8]
-    """.strip()
-
-    config = Config.from_yaml_string(yaml_string)
-
-    assert config.get("someSetting") == 4
-    try:
-        config.set("someSetting", 0)
-    except ValueError:
-        pass
-    else:
-        assert False
-
-    config.set("someSetting", 6)
-    assert config.get("someSetting") == 6
-
-    yaml_string = """
-config:
-  someSetting:
-    type: 'string'
-    default: 'foo'
-    enum: [
-      {value: 'foo', description: 'Foo mode. You want this.'},
-      {value: 'bar', description: 'Bar mode. Nobody wants that!'}
-    ]
-    """.strip()
-
-    config = Config.from_yaml_string(yaml_string)
-
-    assert config.get("someSetting") == "foo"
-    try:
-        config.set("someSetting", "s")
-    except ValueError:
-        pass
-    else:
-        assert False
-
-    config.set("someSetting", "bar")
-    assert config.get("someSetting") == "bar"
-
-    ans = [('foo', 'Foo mode. You want this.'), ('bar', 'Bar mode. Nobody wants that!')]
-    assert ans == list(config.enum("someSetting"))
+    @Slot(bool)
+    def setChecked(self, checked):
+        control = self.sender()
+        item = control.property("item")
+        item.set_value(checked)
 
 
-if __name__ == "__main__":
-    main()
+class BaseItem(QStandardItem):
+    is_category = False
+
+    def key(self):
+        keys = [self.text()]
+
+        parent = self.parent()
+        while parent:
+            keys.append(parent.text())
+            parent = parent.parent()
+
+        return tuple(reversed(keys))
+
+
+class SettingItem(BaseItem):
+    def __init__(self, name, setting=None):
+        super(SettingItem, self).__init__(name)
+        setting = setting or {}
+        self.setting = setting
+        self._default = setting.get("default")
+        self._value = None
+
+        config_type = CONFIG_TYPES.get(setting.get("type", "string"))
+        if config_type:
+            value_type_class = config_type["class"]
+            self.value_type = value_type_class(self, setting)
+        else:
+            self.value_type = TypeString(self, setting)
+
+        self._display_value = self.value_type.display_value(self.value)
+
+    @property
+    def value(self):
+        return self._value or self._default
+
+    @property
+    def display_value(self):
+        return self._display_value
+
+    def set_value(self, value):
+        validate_value = self.value_type.validate(value)
+        if validate_value is None:
+            raise ValueError(value)
+
+        self._value = validate_value
+        self._display_value = self.value_type.display_value(self.value)
+
+    def control(self, parent):
+        return self.value_type.control(parent)
+
+
+class CategoryItem(BaseItem):
+    is_category = True
+
 
