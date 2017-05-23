@@ -127,7 +127,7 @@ def comment(parser, name):
     parser.append("\n")
 
 
-def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths=None):
+def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths=None, append_code=None):
     extensions = extensions or []
 
     if os.path.isfile(conf_py_path):
@@ -147,9 +147,10 @@ def extend_conf_py(conf_py_path, params, settings, extensions=None, insert_paths
                     parser.append("\n")
 
         # generate code
-        comment(parser, "Sphinx Explorer")
-        parser.append(config_dode)
-        parser.append("\n")
+        if append_code:
+            comment(parser, "Sphinx Explorer")
+            parser.append(append_code)
+            parser.append("\n")
 
         with codecs.open(conf_py_path, "w", CONF_PY_ENCODING) as fd:
             fd.write(parser.dumps())

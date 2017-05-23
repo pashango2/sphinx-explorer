@@ -109,9 +109,15 @@ class Extension(object):
         elif isinstance(d, string_types):
             d = [d]
 
-        d = ["'" + x + "'" for x in d]
-
         return d
+
+    @property
+    def extensions(self):
+        return self.add_extensions
+
+    @property
+    def source_parser(self):
+        return self.ext_setting.get("source_parser", {})
 
     @property
     def exclude_patterns(self):
@@ -139,6 +145,7 @@ class Extension(object):
         if self.add_extensions:
             parser.append("extensions += [")
             for add_ext in self.add_extensions:
+                add_ext = "'" + add_ext + "'"
                 parser.append((" " * CONF_PY_NUM_INDENT) + add_ext + ",")
             parser.append("]")
 

@@ -1,28 +1,10 @@
 packages: ["sphinxcontrib-pandoc-markdown"]
 
 type: souce_parser
+
 source_parser:
-    md: sphinxcontrib.pandoc_markdown.MarkdownParser
+    .md: sphinxcontrib.pandoc_markdown.MarkdownParser
 
 description: |
     Markdown by pandoc.
-
-
-conf_py:
-    add_extensions: no
-
-    source_suffix: '.md'
-    source_parsers: "MarkdownParser"
-
-    imports:
-        - from: sphinxcontrib.pandoc_markdown
-          import: MarkdownParser
-
-    extra_code: |
-        source_suffix = [source_suffix, '.md']
-        source_parsers = {
-           '.md': MarkdownParser,
-        }
-
-
 

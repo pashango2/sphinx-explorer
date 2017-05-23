@@ -255,6 +255,8 @@ class ProjectSettings(object):
         self.error_msg = ""
         self.project = ""
 
+        self.conf_json_obj = None
+
         self._analyze()
 
     @staticmethod
@@ -281,17 +283,17 @@ class ProjectSettings(object):
             "build_dir": build_dir,
             "project": project,
         }
-        if cmd:
-            setting_obj["command"] = cmd
+        # if cmd:
+        #     setting_obj["command"] = cmd
 
         if apidoc:
             setting_obj["apidoc"] = apidoc
 
-        if extensions:
-            setting_obj["extensions"] = {
-                key: {"enabled": True}
-                for key in extensions
-            }
+        # if extensions:
+        #     setting_obj["extensions"] = {
+        #         key: {"enabled": True}
+        #         for key in extensions
+        #     }
 
         with open(setting_path, "w") as fd:
             toml.dump(setting_obj, fd)
@@ -306,6 +308,9 @@ class ProjectSettings(object):
         conf_path = os.path.join(self.path, self.source_dir, "conf.json")
         with open(conf_path, "w") as fd:
             json.dump(self.conf_json(), fd, indent=4)
+
+    def conf_json_path(self):
+        return os.path.join(self.path, self.source_dir, "conf.json")
 
     def conf_json(self):
         conf = {}
@@ -326,7 +331,8 @@ class ProjectSettings(object):
                 conf["autodoc_default_flags"] = default_flags
 
         conf["extensions"] = self.extensions
-        conf.update(epub_settings)
+        conf["globals"] = {}
+        conf["globals"].update(epub_settings)
         return conf
 
     def _analyze(self):
@@ -392,7 +398,9 @@ class ProjectSettings(object):
 
     @property
     def extensions(self):
-        return self.settings.get("extensions", {})
+        if self.conf_json_obj is None:
+            self.conf_json_obj = json.load(open(self.conf_json_path()))
+        return self.conf_json_obj.get("extensions", {})
 
     def update_apidoc_command(self, project_dir):
         if not self.module_dir:

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1019</width>
+    <height>797</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -61,24 +61,66 @@
             </property>
            </widget>
           </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Interpreter</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="comboBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
         <item>
-         <widget class="ExtensionTreeWidget" name="tree_widget_extensions">
-          <column>
-           <property name="text">
-            <string notr="true">1</string>
-           </property>
-          </column>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Extensions</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="edit_extension_button">
+            <property name="text">
+             <string>...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QListWidget" name="list_widget_extensions"/>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="auto_class">
        <attribute name="title">
-        <string>Extensions</string>
+        <string>Auto Class</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_8"/>
+      </widget>
+      <widget class="QWidget" name="epub">
+       <attribute name="title">
+        <string>Epub</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_9">
+        <item>
+         <widget class="PropertyWidget" name="property_epub"/>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -89,8 +131,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>26</height>
+     <width>1019</width>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile_F">
@@ -388,9 +430,9 @@
    <header>..util.QConsoleWidget</header>
   </customwidget>
   <customwidget>
-   <class>ExtensionTreeWidget</class>
-   <extends>QTreeWidget</extends>
-   <header>..project_info_widget</header>
+   <class>PropertyWidget</class>
+   <extends>QTableView</extends>
+   <header>..property_widget</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -107,11 +107,12 @@ class MainWindow(QMainWindow):
         self.make_html_act = self._act("html5", self.tr("HTML"), self._on_make_html)
         self.make_epub_act = self._act("epub", self.tr("Epub"), self._on_make_epub)
         self.make_latex_pdf_act = self._act("pdf", self.tr("LaTex PDF"), self._on_make_latex_pdf)
-        self.make_clean_act = self._act("eraser", self.tr("Clean"), self._on_make_clean)
+        self.make_clean_act = self._act("eraser", self.tr("Clean"))
         self.make_preview_act = self._act("eye", self.tr("Preview"))
 
         self.make_preview_act.setCheckable(True)
         self.make_preview_act.setChecked(True)
+        self.make_clean_act.setCheckable(True)
 
         # setup ui
         self.ui = Ui_MainWindow()
@@ -245,7 +246,7 @@ class MainWindow(QMainWindow):
         # setup end
         self.setAcceptDrops(True)
         self._setup()
-        self.project_info_widget = ProjectInfoWidget(self.ui, self)
+        self.project_info_widget = ProjectInfoWidget(self.ui, self.params_dict, self)
         self.ui.tree_view_projects.setFocus()
 
         # except hook
@@ -447,21 +448,19 @@ class MainWindow(QMainWindow):
         if path:
             commander.open(path)
 
-    def _on_make_clean(self):
-        # type: () -> None
-        self._make("clean", self.ui.tree_view_projects.currentIndex())
-
     def _make(self, make_cmd, index, callback=None):
         if index and index.isValid():
             project_item = self.project_list_model.itemFromIndex(index)
         else:
             return
 
+        clean_flag = self.make_clean_act.isChecked()
+
         cwd = project_item.path()
         venv_setting = project_item.venv_setting() or self.settings.venv_setting()
         venv_cmd = [
             python_venv.activate_command(venv_setting, cwd),
-            commander.make_command(make_cmd, cwd)
+            commander.make_command(make_cmd, cwd, clean_flag)
         ]
         venv_cmd = [x for x in venv_cmd if x]
 

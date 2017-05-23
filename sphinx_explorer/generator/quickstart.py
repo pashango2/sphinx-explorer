@@ -8,6 +8,10 @@ from six import string_types
 from sphinx_explorer.util.conf_py_parser import extend_conf_py
 from sphinx_explorer.util.commander import quote, commander
 from ..project_list_model import ProjectSettings
+from sphinx_explorer.plugin import extension
+import codecs
+import json
+
 
 TOML_PATH = "settings/quickstart.toml"
 CONF_PY_ENCODING = "utf-8"
@@ -148,7 +152,6 @@ def fix(d, settings, _, apidoc_flag=False):
         build_dir,
         d.get("project", os.path.basename(project_path)),
         apidoc=apidoc_dict,
-        extensions=extensions,
     )
 
     if conf_py_path and os.path.isfile(conf_py_path):
@@ -160,6 +163,82 @@ def fix(d, settings, _, apidoc_flag=False):
                 path, _ = os.path.split(path)
             insert_paths = [path]
 
-        extend_conf_py(conf_py_path, d, settings, extensions=d, insert_paths=insert_paths)
+        extend_conf_py(conf_py_path, d, settings, insert_paths=insert_paths, append_code=config_code)
+
+        conf_json_path = os.path.join(os.path.dirname(conf_py_path), "conf.json")
+        conf_json = create_conf_json([
+            key
+            for key, value in d.items()
+            if key.startswith("ext-") and value
+        ])
+        json.dump(
+            conf_json,
+            codecs.open(conf_json_path, "w", "utf-8"),
+            indent=4
+        )
 
     return source_dir, build_dir
+
+
+def create_conf_json(ext_list, default_values=None):
+    packages = []
+    extensions = {}
+    source_parser = {}
+    append_path = []
+    _globals = {}
+
+    for ext_name in ext_list:
+        ext = extension.get(ext_name)   # type: extension.Extension
+        if ext:
+            packages += ext.packages
+            extensions += ext.extensions
+            source_parser.update(ext.source_parser)
+
+            for param_name, param_setting in ext.setting_params:
+                value = default_values.get(param_name) or \
+                        param_setting.get("default")
+                if value:
+                    _globals[param_name] = value
+
+    return {
+        "packages": packages,
+        "extensions": extensions,
+        "source_parser": source_parser,
+        "append_path": append_path,
+        "globals": _globals,
+    }
+
+
+config_code = """
+import json
+import importlib
+
+try:
+    conf_json = json.load(open("conf.json"))
+    _globals = globals()
+
+    extensions
+    _globals["extensions"] += conf_json.get("extensions", [])
+
+    suffix_list = []
+    _source_parser = {}
+    for ext, parser in conf_json.get("source_parser", {}).items():
+        suffix_list.append(ext)
+        parser_sp = parser.split(".")
+
+        _module = importlib.import_module(".".join(parser_sp[:-1]))
+        _source_parser[ext] = getattr(_module, parser_sp[-1])
+
+    if _source_parser:
+        _globals["source_parsers"] = _source_parser
+
+    if suffix_list:
+        if isinstance(source_suffix, str):
+            source_suffix = [source_suffix]
+        source_suffix += suffix_list
+
+    _globals.update(conf_json.get("globals", {}))
+except:
+    pass
+
+""".strip()

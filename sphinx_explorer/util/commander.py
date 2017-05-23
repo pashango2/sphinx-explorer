@@ -247,8 +247,9 @@ class Commander(object):
         return p.returncode
 
     @staticmethod
-    def make_command(make_cmd, cwd):
+    def make_command(make_cmd, cwd, clean_flag):
         # type: (string_types, string_types) -> string_types
+        make_cmd = ("clean " + make_cmd) if clean_flag else make_cmd
         if platform.system() == "Windows":
             make_bat = os.path.join(cwd, "make.bat")
             return make_bat + " " + make_cmd
