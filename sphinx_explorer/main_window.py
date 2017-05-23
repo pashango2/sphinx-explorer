@@ -256,6 +256,7 @@ class MainWindow(QMainWindow):
         logger.error(exceptionType)
         logger.error(exceptionValue)
         logger.error(exceptionTraceback)
+        exceptionTraceback.printexc()
         self.close()
 
     def update_icon(self):

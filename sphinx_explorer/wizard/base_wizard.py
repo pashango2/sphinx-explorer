@@ -10,6 +10,7 @@ from sphinx_explorer.util import icon
 
 from sphinx_explorer import property_widget
 from sphinx_explorer.property_widget import PropertyModel, DescriptionWidget, DefaultValues
+from ..util.commander import commander
 
 
 # noinspection PyArgumentList
@@ -59,7 +60,6 @@ class ExecCommandPage(QWizardPage):
         self.setTabOrder(self.gen_button, self.console_widget)
         self.setTabOrder(self.console_widget, self.property_widget)
         self.succeeded = False
-        self.cmd = ""
 
     def initializePage(self):
         self.validatePage()
@@ -82,8 +82,11 @@ class ExecCommandPage(QWizardPage):
         self.console_widget.clear()
 
     def exec_command(self, cmd, cwd=None):
-        self.cmd = cmd
-        self.console_widget.exec_command(cmd, cwd)
+        if isinstance(cmd, list):
+            for x in cmd:
+                self.console_widget.exec_command(x, cwd)
+        else:
+            self.console_widget.exec_command(cmd, cwd)
 
     def dump(self):
         # type: () -> dict

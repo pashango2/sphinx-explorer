@@ -100,7 +100,7 @@ class QuickstartExecCommandPage(ExecCommandPage):
             was_apidoc = template_item.was_apidoc() if template_item else False
 
             params = self.dump()
-            quickstart.fix(params, self.wizard().default_values, self.cmd, was_apidoc)
+            quickstart.fix(params, self.wizard().default_values, None, was_apidoc)
 
         super(QuickstartExecCommandPage, self).finished(return_code)
 

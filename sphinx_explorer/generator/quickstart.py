@@ -182,7 +182,7 @@ def fix(d, settings, _, apidoc_flag=False):
 
 def create_conf_json(ext_list, default_values=None):
     packages = []
-    extensions = {}
+    extensions = []
     source_parser = {}
     append_path = []
     _globals = {}
