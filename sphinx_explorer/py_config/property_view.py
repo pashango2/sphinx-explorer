@@ -45,12 +45,7 @@ class PropertyItemDelegate(QStyledItemDelegate):
         model = index.model()   # type: PropertyTableModel
         item = model.itemFromIndex(index)
         control = item.control(parent)
-
         return control
-
-    def on_toggled(self, toggled):
-        print("toggled", toggled, self.sender())
-
 
 
 class PropertyTableModel(QAbstractItemModel):

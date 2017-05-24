@@ -89,7 +89,7 @@ class ConfigModel(QStandardItemModel):
                 key = None
                 value = None
                 if isinstance(x, string_types):
-                    key, value = x, params_dict.get(x)
+                    key, value = x, params_dict.get(x, {})
                 elif isinstance(x, dict):
                     for key, value in x.items():
                         break
@@ -100,6 +100,8 @@ class ConfigModel(QStandardItemModel):
                 else:
                     continue
 
+                value = value or {}
+
                 g = self.PrefixRe.match(key)
                 _category_flag = False
                 # header_flag = False
@@ -109,9 +111,11 @@ class ConfigModel(QStandardItemModel):
                     _category_flag = "#" in prefix
                     # header_flag = "*" in prefix
                     # vbox_flag = "-" in prefix
+                    header_level = max(value.get("level", 1), prefix.count("#"))
+                    value["header_level"] = value.get("header_level", header_level)
 
                 if _category_flag:
-                    item = CategoryItem(key)
+                    item = CategoryItem(key, value)
                 else:
                     item = SettingItem(key, value)
 
@@ -121,6 +125,15 @@ class ConfigModel(QStandardItemModel):
                 _root_item.appendRow(item)
 
         _load(root_item, config, ())
+
+        # setup link
+        for key, item in self._item_dict.items():
+            if "link" not in item.setting:
+                continue
+            item.setup_link(self._item_dict)
+
+    def get_item(self, key_path):
+        return self._item_dict.get(key_path)
 
     def get(self, key_path):
         item = self._item_dict.get(key_path)
@@ -190,28 +203,68 @@ class ConfigModel(QStandardItemModel):
         item = control.property("item")
         item.set_value(checked)
 
+    def create_category_tree_proxy_model(self, parent=None):
+        """
+        Create category-tree-proxy-model.
+
+        :type parent: QWidget
+        :rtype: CategoryTreeProxyModel
+        """
+        model = CategoryTreeProxyModel(parent)
+        model.setSourceModel(self)
+        return model
+
 
 class BaseItem(QStandardItem):
+    """
+    Base class of CategoryItem and SettingItem.
+    """
     is_category = False
 
-    def key(self):
-        keys = [self.text()]
+    def __init__(self, name, setting=None):
+        """
+        :type name: str
+        :type setting: dict[str, str]
+        """
+        setting = setting or {}
+        label = setting.get("label", name)
+        super(BaseItem, self).__init__(label)
+        self.key = name
+        self.setting = setting
+
+    def keys(self):
+        """
+        :rtype: tuple[str]
+        """
+        keys = [self.key]
 
         parent = self.parent()
         while parent:
-            keys.append(parent.text())
+            keys.append(parent.key)
             parent = parent.parent()
 
         return tuple(reversed(keys))
 
+    def key_path(self, sep="."):
+        return sep.join(self.keys())
+
 
 class SettingItem(BaseItem):
+    LinkParserRe = re.compile("{(.*?)}")
+
     def __init__(self, name, setting=None):
-        super(SettingItem, self).__init__(name)
-        setting = setting or {}
-        self.setting = setting
-        self._default = setting.get("default")
+        """
+        :type name: str
+        :type setting: dict[str, str]
+        """
+        super(SettingItem, self).__init__(name, setting)
+        self._default = self.setting.get("default")
         self._value = None
+
+        # link
+        self._link_format = None
+        self.linked = []
+        self.links = []
 
         config_type = CONFIG_TYPES.get(setting.get("type", "string"))
         if config_type:
@@ -238,11 +291,99 @@ class SettingItem(BaseItem):
         self._value = validate_value
         self._display_value = self.value_type.display_value(self.value)
 
+        if self.linked:
+            for link in self.linked:
+                link.update_link()
+
     def control(self, parent):
         return self.value_type.control(parent)
+
+    def setup_link(self, item_map):
+        link_format = self.setting.get("link")
+        if not link_format:
+            return
+
+        # parser link
+        link_keys = self.LinkParserRe.findall(link_format)
+
+        if not link_keys:
+            link_keys = [link_format]
+            link_format = "{_." + link_format + "}"
+
+        for key in link_keys:
+            item = item_map.get(key)
+            if item:
+                self.links.append(item)
+                item.linked.append(self)
+
+        self._link_format = link_format
+
+        self.update_link()
+
+    def update_link(self):
+        # (Any) -> None
+        if self._value is not None or self._link_format is None:
+            return
+
+        # create format dict
+        default_value = self._default
+        _ = Map({x.key_path(): x for x in self.links})
+        d = {"_default": default_value, "_": _}
+
+        for link_item in self.links:
+            d[link_item.key] = link_item.value if link_item.value else ""
+
+        try:
+            self._default = self._link_format.format(**d)
+        except KeyError:
+            self._default = default_value
+
+        # self.update_bg_color()
+
+
+class Map(object):
+    def __init__(self, d, key=()):
+        self._d = d
+        self._key = key
+
+    def __getattr__(self, attr):
+        return Map(self._d, self._key + (attr,))
+
+    def __str__(self):
+        item = self._d.get(".".join(self._key))
+        if item is None:
+            return ""
+        try:
+            return str(item.value)
+        except AttributeError:
+            return ""
 
 
 class CategoryItem(BaseItem):
     is_category = True
 
+    def __init__(self, name, setting=None):
+        """
+        :type name: str
+        :type setting: dict[str, str]
+        """
+        super(CategoryItem, self).__init__(name, setting)
+        self.header_level = self.setting.get("header_level", 1)
 
+
+class CategoryTreeProxyModel(QSortFilterProxyModel):
+    def filterAcceptsRow(self, source_row, source_parent):
+        source_index = self.sourceModel().index(source_row, 0, source_parent)
+        item = self.sourceModel().itemFromIndex(source_index)
+
+        return item and item.is_category and item.header_level == 1
+
+    def itemFromIndex(self, index):
+        source_index = self.mapToSource(index)
+        return self.sourceModel().itemFromIndex(source_index)
+
+    def columnCount(self, *_):
+        return 1
+
+    def flags(self, index):
+        return Qt.ItemIsSelectable | Qt.ItemIsEnabled
