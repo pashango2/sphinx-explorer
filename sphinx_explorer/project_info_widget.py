@@ -10,6 +10,7 @@ import yaml
 # from .sphinx_value_types.widgets import PythonComboButton
 from .project_list_model import ProjectItem
 from .property_widget import PropertyModel, PropertyWidget
+from .python_venv import sys_env
 
 PROJECT_SETTINGS = """
 - "#* Epub Settings"
@@ -74,8 +75,15 @@ class ProjectInfoWidget(QObject):
             self.ui.label_project.setText(project_item.project())
             self.ui.label_path.setText(project_item.path())
             self.ui.project_tool_widget.setEnabled(True)
+
+            venv = project_item.venv_setting()
+            if venv:
+                self.ui.label_interpreter.setText(venv.python_path())
+            else:
+                self.ui.label_interpreter.setText(sys_env.default_env().python_path())
         else:
             self.ui.label_project.clear()
+            self.ui.label_interpreter.clear()
             self.ui.project_tool_widget.setEnabled(False)
             return
 
