@@ -151,7 +151,7 @@ class Commander(object):
             elif platform.system() == "Darwin":
                 subprocess.Popen("open", cwd=cwd)
             else:
-                subprocess.Popen("gnome-terminal", cwd=cwd)
+                subprocess.Popen("xdg-terminal", cwd=cwd)
         except:
             logger.error("Open Terminal Error.")
 
@@ -216,7 +216,7 @@ class Commander(object):
                 creationflags=subprocess.CREATE_NEW_CONSOLE,
             )
         elif platform.system() == "Linux":
-            cmd = 'gnome-terminal -e "{}"'.format(self(cmd, bash=False))
+            cmd = 'xdg-terminal "{}"'.format(self(cmd, bash=False))
             return subprocess.Popen(cmd, cwd=cwd, shell=True)
         else:
             # cmd = command(cmd)

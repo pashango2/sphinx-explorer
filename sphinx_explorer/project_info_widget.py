@@ -3,14 +3,16 @@
 from __future__ import division, print_function, absolute_import, unicode_literals
 
 from qtpy.QtCore import *
-from qtpy.QtGui import *
+# from qtpy.QtGui import *
 from qtpy.QtWidgets import *
 import yaml
 # from .ui.main_window_ui import Ui_MainWindow
 # from .sphinx_value_types.widgets import PythonComboButton
 from .project_list_model import ProjectItem
-from .property_widget import PropertyModel, PropertyWidget
+from .property_widget import PropertyModel
 from .python_venv import sys_env
+from .ui.extension_widget_ui import Ui_Form
+
 
 PROJECT_SETTINGS = """
 - "#* Epub Settings"
@@ -68,6 +70,7 @@ class ProjectInfoWidget(QObject):
         #     self.python_combo,
         # )
         #
+        self.ui.edit_extension_button.clicked.connect(self.edit_extensions)
 
     def setup(self, project_item):
         # type: (ProjectItem) -> None
@@ -91,6 +94,33 @@ class ProjectInfoWidget(QObject):
 
         for ext_name in project_item.settings.extensions:
             self.ui.list_widget_extensions.addItem(ext_name)
+
+    def edit_extensions(self):
+        dlg = ExtensionDialog(self._parent)
+        dlg.exec_()
+
+
+# noinspection PyArgumentList
+class ExtensionDialog(QDialog):
+    # noinspection PyUnresolvedReferences
+    def __init__(self, parent=None):
+        super(ExtensionDialog, self).__init__(parent)
+        self.widget = QWidget(self)
+        self.button_box = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+            self
+        )
+
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.widget)
+        self.layout.addWidget(self.button_box)
+        self.setLayout(self.layout)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self.widget)
+
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
 
 
 class ExtensionTreeWidget(QTreeWidget):

@@ -19,6 +19,7 @@ requires = [
     'sphinx-fontawesome',
     'sphinxcontrib-blockdiag',
     'nbsphinx',
+    # 'yaml',
 ]
 
 setup(
