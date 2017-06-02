@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import, unicode_literals
 from qtpy.QtWidgets import *
+from . import Page
 
 
-class FormLayoutLoader(object):
+class FormLayoutPage(Page):
     def __init__(self, config_model, parent=None):
+        super(FormLayoutPage, self).__init__(parent)
         self.config_model = config_model
         self.parent = parent
         self._controls = []

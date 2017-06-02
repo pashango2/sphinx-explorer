@@ -1,4 +1,5 @@
-packages: ["sphinxcontrib-pandoc-markdown"]
+package: "sphinxcontrib-pandoc-markdown"
+sub_packages: []
 
 type: souce_parser
 

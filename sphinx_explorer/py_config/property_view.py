@@ -21,13 +21,13 @@ class PropertyView(QTableView):
 
         self.setItemDelegate(self.delegate)
 
-    def setModel(self, model):
+    def setModel(self, model, root_index=QModelIndex()):
         """
         :type model: ConfigModel
         """
         self.clearSpans()
 
-        _model = PropertyTableModel(model, QModelIndex(), self)
+        _model = PropertyTableModel(model, root_index, self)
         super(PropertyView, self).setModel(_model)
 
         # set category
@@ -55,6 +55,7 @@ class PropertyTableModel(QAbstractItemModel):
         self.root_index = root_index
 
         self.items = list(item for _, item in source_model.config_iter(root_index))
+        self.source_model.dataChanged.connect(self.dataChanged.emit)
 
     def columnCount(self, parent=QModelIndex()):
         return 2
